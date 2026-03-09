@@ -1,0 +1,240 @@
+.preloader {
+    height: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%)
+}
+
+.preloader-img {
+    display: none;
+}
+
+.btn-festive-gradient {
+    /* Базовые стили (уменьшены на 10 %) */
+    border: none;
+    border-radius: 45px;          /* Было 50px → -10 % */
+    padding: 12.6px 28.8px;     /* Было 14px/32px → -10 % */
+    font-size: 16.2px;           /* Было 18px → -10 % */
+    font-weight: 600;
+    letter-spacing: 0.9px;        /* Было 1px → -10 % */
+    cursor: pointer;
+    display: inline-block;
+    text-transform: uppercase;
+
+    /* Фиксация цвета текста */
+    color: white !important;
+    text-shadow:
+            0 0 1.8px rgba(0, 0, 0, 0.15),
+            0 0 3.6px rgba(0, 0, 0, 0.1) !important;
+
+    outline: none;
+    text-decoration: none !important;
+
+    /* Анимация */
+    transition:
+            transform 0.4s ease,
+            box-shadow 0.4s ease;
+    transform: scale(1);
+    box-shadow: 0 3.6px 13.5px rgba(0, 0, 0, 0.2); /* -10 % от исходных значений */
+}
+
+.btn-festive-gradient:hover,
+.btn-festive-gradient:focus,
+.btn-festive-gradient:active,
+.btn-festive-gradient:visited {
+    transform: scale(1.05) translateY(-1.8px); /* -10 % от translateY(-2px) */
+    box-shadow: 0 5.4px 18px rgba(0, 0, 0, 0.3); /* -10 % от исходных */
+
+    text-decoration: none !important;
+    color: white;
+    text-shadow:
+            0 0 1.8px rgba(0, 0, 0, 0.15),
+            0 0 3.6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Модификаторы цветов (уменьшены градиенты пропорционально) */
+.btn-festive-gradient-red {
+    background: linear-gradient(135deg, #e69999, #ffb3b3);
+}
+.btn-festive-gradient-red:hover {
+    background: linear-gradient(135deg, #d68080, #ff9999);
+}
+
+
+.btn-festive-gradient-green {
+    background: linear-gradient(135deg, #66b266, #99cc99);
+}
+.btn-festive-gradient-green:hover {
+    background: linear-gradient(135deg, #559955, #88b388);
+}
+
+.btn-festive-gradient-blue {
+    background: linear-gradient(135deg, #66a3d9, #99c7e6);
+}
+.btn-festive-gradient-blue:hover {
+    background: linear-gradient(135deg, #4d8fb2, #7aaed9);
+}
+
+.btn-festive-gradient-white {
+    background: linear-gradient(145deg, #ffffff, #f5f5f5);
+    color: #2d3748 !important;
+    font-family: 'Georgia', serif;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border: none;
+    box-shadow:
+            8px 8px 16px #d9d9d9,
+            -8px -8px 16px #ffffff;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.btn-festive-gradient-white:hover {
+    background: linear-gradient(145deg, #f8f8f8, #e8e8e8);
+    box-shadow:
+            4px 4px 8px #d1d1d1,
+            -4px -4px 8px #ffffff;
+    transform: translateY(-2px);
+}
+
+.btn-festive-gradient-white:active {
+    box-shadow:
+            inset 4px 4px 8px #d1d1d1,
+            inset -4px -4px 8px #ffffff;
+    transform: translateY(0);
+    background: linear-gradient(145deg, #e8e8e8, #d8d8d8);
+}
+
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 768px) {
+    .btn-festive-gradient {
+        border-radius: 40px;           /* Скругление для мобилок */
+        padding: 11px 25px;          /* Компактные отступы */
+        font-size: 15px;            /* Чуть меньше шрифт */
+        letter-spacing: 0.8px;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.18);
+    }
+
+    .btn-festive-gradient:hover {
+        transform: scale(1.03) translateY(-1.5px); /* Менее выраженная анимация */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-festive-gradient {
+        border-radius: 35px;           /* Ещё мягче углы */
+        padding: 10px 22px;          /* Минимизация отступов */
+        font-size: 14px;            /* Мелкий шрифт для смартфонов */
+        letter-spacing: 0.7px;
+        box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.15);
+    }
+
+
+    .btn-festive-gradient:hover {
+        transform: scale(1.02) translateY(-1px); /* Лёгкая анимация */
+        box-shadow: 0 3.5px 12px rgba(0, 0, 0, 0.2);
+    }
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.price-tag {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.feature-badge {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e9ecef;
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 50px;
+    margin: 8px 2px;
+    margin-top: 5px;
+    margin-bottom: 5px; /* Больше отступа снизу */
+    transition: all 0.3s ease;
+}
+
+.feature-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 10px;
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60px;
+    height: 3px;
+    background: #ff6b6b;
+}
+
+.d-flex.flex-wrap {
+    line-height: 1.8; /* Увеличьте до комфортного значения */
+}
+
+.festival {
+    background: #ffffff; /* Чистый белый фон */
+    border-radius: 14px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Лёгкая тень */
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    border: 1px solid #eaeaea; /* Светло-серая граница */
+    transition: all 0.3s ease;
+}
+
+.festival:hover {
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12); /* Чуть более тёмная тень при наведении */
+    transform: translateY(-1px);
+    border-color: #dcdcdc; /* Темнее при наведении */
+}
+
+.festival h3 {
+    color: #333333; /* Тёмно-серый текст (вместо кофейного) */
+    font-family: 'Georgia', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+}
+
+/* Адаптация для узких экранов */
+@media (max-width: 768px) {
+    .festival {
+        padding: 14px 16px;
+        border-radius: 12px;
+    }
+    .festival h3 {
+        font-size: 1.15rem;
+        margin-bottom: 14px;
+    }
+}
+
+li.page-item {
+    margin: 3px;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
+}

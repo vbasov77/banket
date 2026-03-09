@@ -1,0 +1,105 @@
+/* Общие стили для таблицы */
+.styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.styled-table td {
+    padding: 16px;
+    vertical-align: top;
+    border: 1px solid #e9ecef;
+    background-color: #fff;
+}
+
+.styled-table td:first-child {
+    border-left: none;
+}
+
+.styled-table td:last-child {
+    border-right: none;
+}
+
+/* Заголовки (жирный текст) */
+.styled-table b {
+    color: #1a1a1a;
+    display: block;
+    margin-bottom: 12px;
+}
+
+/* Контейнер для чекбоксов */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Современный чекбокс */
+.checkbox-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 16px;
+    color: #495057;
+}
+
+.checkbox-container input {
+    position: absolute;
+    opacity: 0;
+}
+
+.checkmark {
+    width: 22px;
+    height: 22px;
+    background-color: #fff;
+    border: 2px solid #e9ecef;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Галочка через CSS (без внешних ссылок) */
+.checkmark::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 3px;
+    width: 6px;
+    height: 11px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+/* Активное состояние */
+.checkbox-container input:checked ~ .checkmark {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.checkbox-container input:checked ~ .checkmark::after {
+    opacity: 1;
+}
+
+/* Эффект наведения */
+.checkbox-container:hover .checkmark {
+    border-color: #007bff;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .styled-table td {
+        padding: 12px;
+    }
+    .checkbox-container {
+        font-size: 14px;
+    }
+}

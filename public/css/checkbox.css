@@ -1,0 +1,59 @@
+/*-------------------------------Чекбоксы*/
+.checkbox-btn2 {
+    display: inline-block;
+    margin: 5px;
+    user-select: none;
+    position: relative;
+}
+
+@media screen and (max-width: 640px) {
+    .checkbox-btn2, .checkbox-btn2 span {
+        width: 100%;
+    }
+}
+
+.checkbox-btn2 input[type=checkbox] {
+    z-index: -1;
+    opacity: 0;
+    display: block;
+    width: 0;
+    height: 0;
+}
+
+.checkbox-btn2 span {
+    display: inline-block;
+    cursor: pointer;
+    padding: 6px;
+
+    border: 1px solid #4caf50;;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+/* Checked */
+.checkbox-btn2 input[type=checkbox]:checked + span {
+    background: #4caf50;;
+    color: white;
+}
+
+/* Focus */
+.focused span {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, .25);
+}
+
+/* Hover */
+.checkbox-btn2:hover {
+    color: #666;
+}
+
+/* Active */
+.checkbox-btn2 input[type=checkbox]:active:not(:disabled) + span {
+    color: #000;
+}
+
+/* Disabled */
+.checkbox-btn2 input[type=checkbox]:disabled + span {
+    background: #4caf50;;
+    color: #666;
+    cursor: default;
+}

@@ -1,0 +1,85 @@
+.parallax-container {
+    position: relative;
+    height: 65vh;
+    overflow: hidden;
+    perspective: 1000px;
+    transform-style: preserve-3d;
+}
+
+.parallax-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    transform: translateZ(-5px) scale(1.2);
+    will-change: transform;
+    backface-visibility: hidden;
+    border-radius: 20px 20px 0 0;
+}
+
+.parallax-content {
+    position: relative;
+    transform: translateZ(0);
+    z-index: 1;
+    height: 100%; /* Занимает всю высоту контейнера */
+}
+
+.pt-4,
+.py-4 {
+    padding-top: 0rem !important;
+}
+
+/* Контейнер для заголовка — центрирование через Flexbox */
+.parallax-title-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center;     /* Центрирование по вертикали */
+    width: 100%; /* Занимает всю ширину родителя */
+    height: auto; /* Высота подстраивается под содержимое */
+    z-index: 10;
+}
+
+/* Заголовок */
+.parallax-title {
+    margin: 0;
+    padding: 0 40px;
+    color: white;
+    font-family: 'Pacifico', cursive;
+    font-size: 3.5rem;
+    line-height: 1.2;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 1.5);
+
+}
+
+/* Адаптивность для планшетов */
+@media (max-width: 1024px) {
+    .parallax-title {
+        font-size: 2.2rem;
+        padding: 0 30px;
+    }
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .parallax-title {
+        font-size: 1.8rem;
+        padding: 0 20px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .parallax-title {
+        font-size: 1.4rem;
+        padding: 0 15px;
+    }
+}

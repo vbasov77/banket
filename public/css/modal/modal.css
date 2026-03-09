@@ -1,0 +1,70 @@
+/* Модальный лайтбокс */
+.lightbox {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(240, 240, 240, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    overflow: auto;
+}
+
+.lightbox.hidden {
+    display: none;
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+}
+
+#lightbox-img {
+    height: 600px; /* Фиксированная высота (можно менять) */
+    width: auto; /* Ширина подстраивается под пропорции */
+    max-width: 90vw; /* Ограничение по ширине (на мобильных) */
+    max-height: 85vh; /* Защита от выхода за пределы экрана */
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+    object-fit: cover; /* Сохраняет пропорции, заполняя контейнер */
+}
+
+.lightbox-controls {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+}
+
+.lightbox-prev,
+.lightbox-next {
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
+    z-index: 10;
+}

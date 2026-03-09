@@ -1,0 +1,53 @@
+.details {
+    padding: 5px;
+    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Заголовок */
+.details-title {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    line-height: 1.3;
+}
+
+/* Контейнер для инфо */
+.details-info {
+    display: grid;
+    gap: 8px;
+}
+
+/* Единица информации */
+.detail {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Подпись (например, "Вместимость:") */
+.detail-label {
+    color: #7f8c8d;
+    /*min-width: 90px; !* Фиксирует ширину для выравнивания *!*/
+    font-weight: 500;
+}
+
+/* Значение (например, "от 10 до 20 чел.") */
+.detail-value {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* Особое выделение цены */
+.price {
+    color: #e74c3c; /* Красный акцент */
+    font-weight: 600;
+    letter-spacing: -0.2px;
+}
+
+.down{
+    display: flex;
+}

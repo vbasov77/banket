@@ -1,0 +1,148 @@
+/* Основной контейнер карусели */
+.carousel-wrapper {
+    position: relative;
+    margin: 20px 0 0 0;
+    max-width: 100%;
+    width: 100%;
+    overflow: hidden; /* Ограничиваем содержимое внутри wrapper */
+}
+
+/* Контейнер с горизонтальной прокруткой */
+.carousel {
+    display: block;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+    width: 100%;
+    padding: 5px;
+    white-space: nowrap; /* Запрещаем перенос элементов */
+    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+}
+
+/* Скрытие скроллбара во всех браузерах */
+.carousel::-webkit-scrollbar {
+    height: 6px;
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.carousel::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+/* Контейнер для слайдов */
+.carousel-content {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 16px; /* Расстояние между слайдами (должно совпадать с this.gap в JS) */
+    padding: 0 80px; /* Отступы для кнопок навигации */
+    margin: 0 auto;
+}
+
+/* Стили для слайдов */
+.item-carousel {
+    display: block;
+    min-width: 250px; /* Минимальная ширина слайда */
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0; /* Запрещаем сжатие слайдов */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform;
+    cursor: pointer;
+}
+
+.item-carousel:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+/* Кнопки навигации — изначально скрыты */
+.carousel-prev,
+.carousel-next {
+    display: none; /* Скрыты по умолчанию */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Позиционирование кнопок */
+.carousel-prev {
+    left: 15px;
+}
+
+.carousel-next {
+    right: 15px;
+}
+
+/* Эффекты при наведении на кнопки */
+.carousel-prev:hover,
+.carousel-next:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+/* Показываем кнопки при наличии класса visible */
+.carousel-prev.visible,
+.carousel-next.visible {
+    display: flex; /* Показываем кнопку */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Дополнительные стили для лучшей доступности */
+.carousel-prev:focus,
+.carousel-next:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .carousel-content {
+        gap: 12px;
+        padding: 0 60px; /* Уменьшаем отступы для кнопок на мобильных */
+    }
+
+    .item-carousel {
+        min-width: 330px;
+        width: 330px;
+        height: 248px;
+    }
+
+    .carousel-prev,
+    .carousel-next {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 480px) {
+    .carousel-content {
+        gap: 8px;
+        padding: 0 50px;
+    }
+
+    .item-carousel {
+        min-width: 280px;
+        width: 280px;
+        height: 210px;
+    }
+}

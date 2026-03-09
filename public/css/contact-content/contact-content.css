@@ -1,0 +1,70 @@
+/* Центрирование и стилизация контактной плашки */
+.contact-card {
+    padding: 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    transition: all 0.3s ease;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.contact-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+/* Контейнер с фиксированными размерами */
+.contact-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Исходный текст */
+#trigger-text {
+    margin: 0;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+/* Телефон (скрыт, но занимает место) */
+.phone-link {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    visibility: hidden;
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white !important;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 0.4s ease, visibility 0.4s ease, background 0.3s ease;
+    white-space: nowrap; /* Запрещаем перенос текста */
+    font-size: 1rem;
+}
+
+.phone-link:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+/* Класс, который будет добавляться при клике */
+.contact-content.show-phone #trigger-text {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.contact-content.show-phone .phone-link {
+    opacity: 1;
+    visibility: visible;
+}
