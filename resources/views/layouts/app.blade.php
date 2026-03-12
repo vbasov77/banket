@@ -34,6 +34,7 @@
         </header>
     @endif
     <!-- Page Content -->
+    @stack('styles')
     <main>
         @yield('content')
     </main>
@@ -43,5 +44,6 @@
         <div class="container px-4 px-lg-5">{{config('app.name')}} &copy; {{date('Y')}}</div>
     </footer>
 </section>
+@stack('scripts')
 </body>
 </html>

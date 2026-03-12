@@ -17,6 +17,8 @@ use App\Services\SubjService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use PHPUnit\Exception;
 
@@ -153,4 +155,6 @@ class SubjController extends Controller
             ], 500);
         }
     }
+
+
 }

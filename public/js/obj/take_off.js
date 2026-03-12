@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function handleTakeOff(button) {
+    // Подтверждение действия
+    if (!confirm('Вы хотите снять с публикации?')) return;
     const id = button.getAttribute('data-id');
     const url = button.getAttribute('data-url');
 
@@ -48,6 +50,8 @@ function handleTakeOff(button) {
 }
 
 function handlePublish(button) {
+    // Подтверждение действия
+    if (!confirm('Вы хотите опубликовать?')) return;
     const id = button.getAttribute('data-id');
     const url = button.getAttribute('data-url');
 

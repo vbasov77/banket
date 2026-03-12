@@ -45,11 +45,13 @@
         }
     </style>
     <!-- Подключение Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
+    <script src="{{asset('map/leaflet/js/leaflet.js')}}" defer></script>
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-md-8 col-sm-12">
