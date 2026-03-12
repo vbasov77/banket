@@ -10,6 +10,8 @@ use App\Services\MapService;
 use App\Services\SubjService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use function Symfony\Component\Translation\t;
 
 class MapPointController extends Controller
 {
@@ -47,69 +49,7 @@ class MapPointController extends Controller
 
     public function showMap()
     {
-        $groups = GroupAddressObj::with([
-            'subjects' => function ($query) {
-                $query->select('id', 'group_id', 'subj_id', 'address', 'longitude', 'latitude');
-            },
-            'subjects.subj' => function ($query) {
-                $query->select(
-                    'id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'furshet', 'site_type',
-                    'features', 'text_subj'
-                );
-            },
-            'subjects.subj.obj' => function ($query) {
-                $query->select('id', 'user_id', 'name_obj', 'address_obj', 'phone_obj');
-            }
-        ])
-            ->select('id', 'address as title', 'latitude', 'longitude')
-            ->get()
-            ->map(function ($group) {
-                // Собираем уникальные объекты группы
-                $uniqueObjects = collect($group->subjects)
-                    ->pluck('subj.obj')
-                    ->filter() // Убираем null
-                    ->unique('id') // Оставляем только уникальные по ID
-                    ->values(); // Переиндексируем коллекцию
-
-                return [
-                    'id' => $group->id,
-                    'title' => $group->title,
-                    'latitude' => (float)$group->latitude,
-                    'longitude' => (float)$group->longitude,
-                    'subjects_count' => $group->subjects->count(),
-                    'subjects' => $group->subjects->map(function ($addressSubj) {
-                        $subj = $addressSubj->subj;
-                        return [
-                            'id' => $subj->id ?? null,
-                            'name_subj' => $subj->name_subj ?? 'Не указано',
-                            'minimum_cost' => $subj->minimum_cost ?? 'Не указана',
-                            'per_person' => $subj->per_person ?? 'Не указано',
-                            'capacity_from' => $subj->capacity_from ?? '?',
-                            'capacity_to' => $subj->capacity_to ?? '?',
-                            'furshet' => $subj->furshet ?? 'Не указано',
-                            'site_type' => $subj->site_type ?? 'Не указан',
-                            'features' => $subj->features ?? 'Нет данных',
-                            'text_subj' => $subj->text_subj ?? 'Нет описания',
-                            'address_data' => [
-                                'address' => $addressSubj->address ?? 'Нет адреса',
-                                'latitude' => (float)($addressSubj->latitude ?? 0),
-                                'longitude' => (float)($addressSubj->longitude ?? 0)
-                            ]
-                        ];
-                    })->toArray(),
-                    // Добавляем уникальные объекты группы
-                    'objects' => $uniqueObjects->map(function ($obj) {
-                        return [
-                            'id' => $obj->id,
-                            'user_id' => $obj->user_id,
-                            'name_obj' => $obj->name_obj,
-                            'address_obj' => $obj->address_obj,
-                            'phone_obj' => $obj->phone_obj
-                        ];
-                    })->toArray()
-                ];
-            });
+        $groups = $this->mapService->findMap();
 
         return view('map.index', compact('groups'));
     }
@@ -123,35 +63,30 @@ class MapPointController extends Controller
         return view('map.create', ['subj' => $subj]);
     }
 
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public
-    function store(Request $request): JsonResponse
+    public function edit(Request $request)
     {
-        $request->validate([
-            'address' => 'required|string',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-        ]);
+        $subjId = $request->id;
+        $map = AddressSubj::where('subj_id', $subjId)->first();
 
-        $addressArr = $this->mapService->parseAddress($request->input('address'));
+        if ($map) {
 
-        $point = AddressSubj::create([
-            'address' => $addressArr,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'subj_id' => 2, // Для тестирования, если нет авторизации
-        ]);
+            return view('map.edit', ['map' => $map]);
+        } else {
 
-        return response()->json($point, 201);
+            return redirect()->route('map.create', ['id' => $subjId]);
+        }
     }
+
 
     public
     function addSubjectToMap(Request $request)
     {
         $subjId = (int)$request->subj_id;
+        $subjBool = AddressSubj::where('subj_id', $subjId)->exists();
+
+        if ($subjBool) {
+            return response()->json(['success' => false, 'message' => 'Адрес уже существует']);
+        }
 
         $newSubject = [
             'address' => $request->address,
@@ -205,7 +140,28 @@ class MapPointController extends Controller
             ]);
         }
 
-        return redirect()->back();
+        return response()->json(['success' => true, 'message' => 'Адрес добавлен']);
+    }
+
+    public function destroy(Request $request)
+    {
+        try {
+            $subjs = AddressSubj::where('subj_id', $request->id)->get();
+            if (!empty($subjs)) {
+                if (count($subjs) == 1) {
+                    AddressSubj::where('id', $subjs[0]->id)->delete();
+                    GroupAddressObj::where('id', $subjs[0]->group_id)->delete();
+                } else {
+                    AddressSubj::where('id', $subjs[0]->id)->delete();
+                }
+            }
+
+            return response()->json(['success' => true, 'message' => "Адрес удалён..."]);
+        } catch (\Exception $e) {
+
+            return response()->json(['success' => false, 'message' => $e]);
+        }
+
     }
 
 

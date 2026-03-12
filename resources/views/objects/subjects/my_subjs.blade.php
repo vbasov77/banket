@@ -73,14 +73,14 @@
                                                     <div class="d-flex justify-content-between align-items-center pt-3 border-top">
                                                         <!-- Контейнер для иконок -->
                                                         <div class="actions d-flex align-items-center gap-3">
-                                                            <a title="Редактировать"
+                                                            <a title="Редактировать {{$value['name_subj']}}"
                                                                class="text-decoration-none text-muted"
                                                                href="{{ route('edit.subj', ['id' => $value['id']]) }}">
                                                                 <img src="{{ asset('icons/edit.svg') }}"
                                                                      style="width: 18px; height: 18px;"
                                                                      alt="Редактировать">
                                                             </a>
-                                                            <a title="Смотреть субъект"
+                                                            <a title="Смотреть субъект {{$value['name_subj']}}"
                                                                class="text-decoration-none text-muted"
                                                                href="{{ route('show.subj', ['id' => $value['id']]) }}">
                                                                 <img src="{{ asset('icons/eye.svg') }}"
@@ -96,6 +96,10 @@
                                                                  style="width: {{ $value['published'] ? '18' : '15' }}px; cursor: pointer;"
                                                                  title="{{ $value['published'] ? 'Снять с публикации' : 'Опубликовать' }}"
                                                                  alt="{{ $value['published'] ? 'Снять с публикации' : 'Опубликовать' }}">
+                                                            <a title="Карта {{$value['name_subj']}}" href="{{route('map.edit', ['id' => $value['id']])}}">
+                                                            <img src="{{ asset('icons/map.svg') }}"
+                                                                 style="width: 18px; height: 18px;"
+                                                                 alt="Карта {{$value['name_subj']}}"></a>
                                                         </div>
 
                                                         <!-- Статус публикации -->

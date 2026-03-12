@@ -13,6 +13,7 @@ use App\Http\Controllers\DetailsObjController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MapPointController;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\AddressSubjController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,9 +30,11 @@ Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
 Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
 //Route::get('/map', [MapPointController::class, 'index'])->name('map.index');
 Route::get('/map_create/id{id}', [MapPointController::class, 'create'])->name('map.create')->middleware('author');
+Route::get('/map_edit/id{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('author');
 Route::get('/show_map/id{id}', [MapPointController::class, 'show'])->name('show.map');
-Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
+//Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
 Route::post('/map/points', [MapPointController::class, 'addSubjectToMap'])->name('map_subj.points.store');
+Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destroy'])->name('destroy.map.address');
 
 
 Route::get('/dashboard', function () {
@@ -56,6 +59,10 @@ Route::post('/update_subj', [SubjController::class, 'update'])->name("update.sub
 Route::get('/my_obj', [SubjController::class, 'myObj'])->name("my.obj")->middleware('auth');
 Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('auth');
 Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('auth');
+
+Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
+Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
+Route::post('/api/save-address', [AddressSubjController::class, 'saveAddress']);
 
 Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
 Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('auth');
@@ -84,8 +91,9 @@ Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name
 Route::delete('/delete_subj_img/id{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy');
 Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change');
 
-Route::get('/test', [TestController::class, 'test'])->name("test")->middleware('auth');
-Route::get('/test_img', [TestController::class, 'show'])->name("test.img")->middleware('auth');
+Route::get('/test', [TestController::class, 'test'])->name("test");
+Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities");
+Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');
 
 Route::get('/home', 'HomeController@index')->middleware(['auth', 'verified'])->name('home');
