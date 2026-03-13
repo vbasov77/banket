@@ -436,6 +436,7 @@
         let checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxKitchen = document.getElementsByClassName('kitchen');
         let checkboxPaymentMethods = document.getElementsByClassName('payment_methods');
+        let checkboxServices = document.getElementsByClassName('service');
 
         if (@json(old('for_events'))) {
             //----------------- Для мероприятий:
@@ -450,6 +451,13 @@
             for (var index = 0; index < checkboxKitchen.length; index++) {
                 if (oldKitchen.includes(checkboxKitchen[index].value)) {
                     checkboxKitchen[index].checked = true;
+                }
+            }
+
+            const oldService = @json(old('service'));
+            for (var index = 0; index < checkboxServices.length; index++) {
+                if (oldService.includes(checkboxServices[index].value)) {
+                    checkboxServices[index].checked = true;
                 }
             }
 

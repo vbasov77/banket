@@ -52,7 +52,7 @@ class MapRepository extends Repository
                 );
             },
             'subjects.subj.obj' => function ($query) {
-                $query->select('id', 'user_id', 'name_obj', 'address_obj', 'phone_obj');
+                $query->select('id', 'user_id', 'name_obj', 'phone_obj');
             }
         ])
             ->select('id', 'address as title', 'latitude', 'longitude')
@@ -97,7 +97,6 @@ class MapRepository extends Repository
                             'id' => $obj->id,
                             'user_id' => $obj->user_id,
                             'name_obj' => $obj->name_obj,
-                            'address_obj' => $obj->address_obj,
                             'phone_obj' => $obj->phone_obj
                         ];
                     })->toArray()

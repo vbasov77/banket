@@ -35,8 +35,7 @@ class SubjRepository extends Repository
             $sql = "
                 SELECT
                     s.id AS subj_id,
-                    s.name_subj,
-            s.address_subj,
+                    s.name_subj,    
             s.minimum_cost,
             s.per_person,
             s.capacity_from,
@@ -54,8 +53,7 @@ class SubjRepository extends Repository
             JSON_OBJECT(
                 'obj_id', o.id,
                 'user_id', o.user_id,
-                'name_obj', o.name_obj,
-                'address_obj', o.address_obj,
+                'name_obj', o.name_obj,            
                 'phone_obj', o.phone_obj
             ) AS obj_json,
             IF(
@@ -119,7 +117,6 @@ LIMIT 1";
             return [
                 'subj_id' => $result->subj_id,
                 'name_subj' => $result->name_subj,
-                'address_subj' => $result->address_subj,
                 'minimum_cost' => $result->minimum_cost,
                 'per_person' => $result->per_person,
                 'capacity_from' => $result->capacity_from,
@@ -195,7 +192,7 @@ LIMIT 1";
             'detailsObj:*',
             'subjsAll' => function ($query) {
                 $query->select([
-                    'id', 'obj_id', 'name_subj', 'address_subj',
+                    'id', 'obj_id', 'name_subj',
                     'minimum_cost', 'per_person', 'capacity_from',
                     'capacity_to', 'site_type', 'text_subj', 'published', 'features'
                 ]);
@@ -204,7 +201,7 @@ LIMIT 1";
             'imgObj:*'
         ])
             ->where('id', $objId)
-            ->select(['id', 'user_id', 'name_obj', 'address_obj', 'phone_obj'])
+            ->select(['id', 'user_id', 'name_obj', 'phone_obj'])
             ->first();
 
         if (!$obj) {

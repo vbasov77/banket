@@ -26,11 +26,11 @@ class SearchRepository extends Repository
                     'alcohol', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'address_subj', 'minimum_cost', 'per_person',
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_from', 'capacity_to', 'site_type', 'features', 'text_subj');
             }
         ])
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.address_obj', 'objs.phone_obj');
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
 
         // Применяем фильтр по for_events, если есть выбранные значения
         if (!empty($forEventsFilter)) {
@@ -58,7 +58,6 @@ class SearchRepository extends Repository
                 return [
                     'id' => $subj->id,
                     'name_subj' => $subj->name_subj,
-                    'address_subj' => $subj->address_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
                     'capacity_from' => $subj->capacity_from,
@@ -75,7 +74,6 @@ class SearchRepository extends Repository
                 'obj_id' => $obj->id,
                 'user_id' => $obj->user_id,
                 'name_obj' => $obj->name_obj,
-                'address_obj' => $obj->address_obj,
                 'phone_obj' => $obj->phone_obj,
                 'for_events' => $obj->detailsObj->for_events,
                 'subjs_data' => $obj->subjs->toArray(),
@@ -133,7 +131,6 @@ class SearchRepository extends Repository
                     'id',
                     'obj_id',
                     'name_subj',
-                    'address_subj',
                     'minimum_cost',
                     'per_person',
                     'capacity_from',
@@ -144,7 +141,7 @@ class SearchRepository extends Repository
                 );
             }
         ])
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.address_obj', 'objs.phone_obj');
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
 
         // Применяем фильтр по for_events, если есть выбранное значение
         if (!is_null($forEventsFilter)) {
@@ -198,7 +195,6 @@ class SearchRepository extends Repository
                 return [
                     'id' => $subj->id,
                     'name_subj' => $subj->name_subj,
-                    'address_subj' => $subj->address_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
                     'capacity_from' => $subj->capacity_from,
@@ -215,7 +211,6 @@ class SearchRepository extends Repository
                 'obj_id' => $obj->id,
                 'user_id' => $obj->user_id,
                 'name_obj' => $obj->name_obj,
-                'address_obj' => $obj->address_obj,
                 'phone_obj' => $obj->phone_obj,
                 'for_events' => $obj->detailsObj ? $obj->detailsObj->for_events : null,
                 'subjs_data' => $subjsData,

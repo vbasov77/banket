@@ -26,14 +26,6 @@
                                name="name_subj"
                                value="{{$subj->name_subj ?? old('name_subj')}}"><br>
                         <br>
-                        <div>
-                            <label for="address_subj"><b>Адрес:</b></label><br>
-                            <input id="address_subj" name="address_subj" type="text"
-                                   value="{{$subj->address_subj ?? old('address_subj')}}"
-                                   class="form-control"
-                                   placeholder="Адрес субъекта {{$subj->name_obj}}" autocomplete="off" required>
-                        </div>
-                        <br>
                         {{--                        Минимальная сумма, цена на человека--}}
                         <table class="styled-table">
                             <tr>

@@ -20,25 +20,23 @@ class ObjRepository extends Repository
         return Obj::with([
             'detailsObj', // если нужны поля — дополните select
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'address_subj', 'minimum_cost', 'per_person',
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_from', 'capacity_to', 'site_type', 'text_subj', 'published', 'id')
                     ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
             }
         ])->where('subjs.id', $id)
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.address_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
             ->get()
             ->map(function ($obj) {
                 return [
                     'obj_id' => $obj->id,
                     'user_id' => $obj->user_id,
                     'name_obj' => $obj->name_obj,
-                    'address_obj' => $obj->address_obj,
                     'phone_obj' => $obj->phone_obj,
                     'subjs_data' => $obj->subjs->map(function ($subj) {
                         return [
                             'id' => $subj->id,
                             'name_subj' => $subj->name_subj,
-                            'address_subj' => $subj->address_subj,
                             'minimum_cost' => $subj->minimum_cost,
                             'per_person' => $subj->per_person,
                             'capacity_from' => $subj->capacity_from,
@@ -93,25 +91,23 @@ class ObjRepository extends Repository
         return Obj::with([
             'detailsObj', // если нужны поля — дополните select
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'address_subj', 'minimum_cost', 'per_person',
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_from', 'capacity_to', 'site_type', 'text_subj', 'published', 'id')
                     ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
             }
         ])->where('objs.user_id', $userId)
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.address_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
             ->get() // пагинация: 10 объектов на страницу
             ->map(function ($obj) {
                 return [
                     'obj_id' => $obj->id,
                     'user_id' => $obj->user_id,
                     'name_obj' => $obj->name_obj,
-                    'address_obj' => $obj->address_obj,
                     'phone_obj' => $obj->phone_obj,
                     'subjs_data' => $obj->subjs->map(function ($subj) {
                         return [
                             'id' => $subj->id,
                             'name_subj' => $subj->name_subj,
-                            'address_subj' => $subj->address_subj,
                             'minimum_cost' => $subj->minimum_cost,
                             'per_person' => $subj->per_person,
                             'capacity_from' => $subj->capacity_from,
@@ -137,11 +133,11 @@ class ObjRepository extends Repository
                     'alcohol', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'address_subj', 'minimum_cost', 'per_person',
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_from', 'capacity_to', 'site_type', 'features', 'text_subj');
             }
         ])
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.address_obj', 'objs.phone_obj')
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
             ->paginate(7);
 
         // ДОПОЛНИТЕЛЬНО загружаем фото для каждого subj
@@ -160,7 +156,6 @@ class ObjRepository extends Repository
                 return [
                     'id' => $subj->id,
                     'name_subj' => $subj->name_subj,
-                    'address_subj' => $subj->address_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
                     'capacity_from' => $subj->capacity_from,
@@ -178,7 +173,6 @@ class ObjRepository extends Repository
                 'obj_id' => $obj->id,
                 'user_id' => $obj->user_id,
                 'name_obj' => $obj->name_obj,
-                'address_obj' => $obj->address_obj,
                 'phone_obj' => $obj->phone_obj,
                 'for_events' => $obj->detailsObj->for_events,
                 'subjs_data' => $obj->subjs->toArray(),
