@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ImgObj;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Obj extends Model
 {
@@ -48,7 +50,10 @@ class Obj extends Model
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
-    public function imgObj()
+    /**
+     * @return HasOne
+     */
+    public function imgObj(): HasOne
     {
         return $this->hasOne(ImgObj::class, 'obj_id', 'id');
     }
