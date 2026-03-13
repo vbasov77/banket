@@ -255,16 +255,14 @@
         <center>
             @if(!empty($data['img_obj']))
                 <a title="Загрузить новое" href="{{ route('edit.img_obj', ['id' => $data['id']]) }}" class="logo-link">
-
                     <img src="{{ $data['img_obj']['path'] ?? asset('images/no_image/no_image.jpg') }}"
                          alt="Логотип предприятия"
                          class="circular-logo">
                 </a>
             @else
-                <a title="Добавить лого" href="{{ route('edit.img_obj', ['id' => $data['id']]) }}" class="logo-link">
-                    <img src="{{asset('images/no_image/no_image.jpg') }}"
-                         alt="Логотип предприятия"
-                         class="circular-logo"></a>
+                <img src="{{asset('images/no_image/no_image.jpg') }}"
+                     alt="Логотип предприятия" title="Сначала добавьте объект"
+                     class="circular-logo">
             @endif
         </center>
 

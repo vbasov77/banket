@@ -61,6 +61,27 @@
     .dropdown-container.show .dropdown-menu-custom {
         display: block;
     }
+    /* Корректное выравнивание чекбоксов */
+    .form-check-label {
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Отступ между чекбоксом и текстом */
+        padding: 8px 12px;
+        cursor: pointer;
+        white-space: nowrap; /* Запрещаем перенос текста */
+    }
+
+    .form-check:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Стиль для чекбокса */
+    .form-check input[type="checkbox"] {
+        margin: 0;
+        flex-shrink: 0; /* Запрещаем сжатие */
+        width: 16px;
+        height: 16px;
+    }
 
     /* Поле ввода внутри выпадающего меню */
     #capacity_to_input {
@@ -278,7 +299,6 @@
 
     .btn-reset,
     .btn-apply {
-        width: 100%;
         padding: 12px;
         text-align: center;
     }
@@ -303,6 +323,13 @@
         .filter-container .button-left,
         .filter-container .button-right {
             width: auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .btn-reset,
+        .btn-apply {
+            width: 100%;
         }
     }
 </style>
@@ -663,12 +690,12 @@
     });
 </script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const showFiltersBtn = document.querySelector('.btn-show-filters');
         const dropdownsContainer = document.querySelector('.horizontal-dropdowns');
 
         if (showFiltersBtn && dropdownsContainer) {
-            showFiltersBtn.addEventListener('click', function() {
+            showFiltersBtn.addEventListener('click', function () {
                 dropdownsContainer.classList.toggle('active');
 
                 // Меняем текст кнопки

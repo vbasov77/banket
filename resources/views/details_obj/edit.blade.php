@@ -134,6 +134,109 @@
                                     </div>
                                 </td>
                                 <td style="width: 49%">
+                                    <div>
+                                        <label for="service"><b>Сервис:</b></label>
+                                        <div class="checkbox-group">
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Ведущий/Тамада">
+                                                <span class="checkmark"></span>
+                                                Ведущий/Тамада
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Диджей">
+                                                <span class="checkmark"></span>
+                                                Диджей
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Живая музыка">
+                                                <span class="checkmark"></span>
+                                                Живая музыка
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Фотограф/Видеооператор">
+                                                <span class="checkmark"></span>
+                                                Фотограф/Видеооператор
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Аниматоры">
+                                                <span class="checkmark"></span>
+                                                Аниматоры
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Украшение зала">
+                                                <span class="checkmark"></span>
+                                                Украшение зала
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Оформление фотозоны">
+                                                <span class="checkmark"></span>
+                                                Оформление фотозоны
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Воздушные шары">
+                                                <span class="checkmark"></span>
+                                                Воздушные шары
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Звуковое оборудование">
+                                                <span class="checkmark"></span>
+                                                Звуковое оборудование
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Световое оборудование">
+                                                <span class="checkmark"></span>
+                                                Световое оборудование
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Проекционное оборудование">
+                                                <span class="checkmark"></span>
+                                                Проекционное оборудование
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Трансфер для гостей">
+                                                <span class="checkmark"></span>
+                                                Трансфер для гостей
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Выездная регистрация">
+                                                <span class="checkmark"></span>
+                                                Выездная регистрация
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="service[]"
+                                                       class="service" type="checkbox"
+                                                       value="Фейерверк/Салют">
+                                                <span class="checkmark"></span>
+                                                Фейерверк/Салют
+                                            </label>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
