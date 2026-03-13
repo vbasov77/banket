@@ -31,17 +31,6 @@
                                placeholder="Название"
                                required><br><br>
 
-                        <label for="address_obj"><b>Адрес объекта</b></label><br>
-                        <div>
-                            <input type="text"
-                                   name="address_obj"
-                                   placeholder="Адрес"
-                                   class="form-control @error('address_obj') is-invalid @enderror"
-                                   value="{{ old('address_obj') }}"
-                                   required><br>
-                        </div>
-                        <br>
-
                         <label for="phone_obj"><b>Телефон объекта</b></label><br>
                         <div>
                             <!-- Добавляем ID для более точного селектора -->

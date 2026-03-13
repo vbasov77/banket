@@ -9,7 +9,6 @@ class Subj extends Model
     public $timestamps = false;
     protected $fillable = ['obj_id',
         'name_subj',
-        'address_subj',
         'minimum_cost',
         'per_person',
         'capacity_from',

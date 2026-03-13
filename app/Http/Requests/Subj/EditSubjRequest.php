@@ -32,11 +32,6 @@ class EditSubjRequest extends FormRequest
                 'max:255',
                 'regex:/^[\pL\s\d\pP]+$/u' // только буквы, цифры, пробелы и знаки препинания
             ],
-            'address_subj' => [
-                'required',
-                'string',
-                'max:500',
-            ],
             'capacity_from' => [
                 'required',
                 'integer',
@@ -139,7 +134,6 @@ class EditSubjRequest extends FormRequest
     {
         return [
             'name_subj' => 'Название субъекта',
-            'address_subj' => 'Адрес субъекта',
             'minimum_cost' => 'Минимальная стоимость',
             'per_person' => 'Стоимость за человека',
             'capacity_from' => 'Вместимость от',

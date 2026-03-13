@@ -23,13 +23,6 @@
                                value="{{$obj->name_obj ?? old('name_obj')}}"
                                required><br>
                         <br>
-                        <label for="address_obj"><b>Адрес</b></label><br>
-                        <div>
-                            <input type="text" name="address_obj"
-                                   class="form-control @error('address_obj') is-invalid @enderror"
-                                   value="{{$obj->address_obj ?? old('address_obj')}}" required><br>
-                        </div>
-                        <br>
                         <label for="phone_obj"><b>Телефон</b></label><br>
                         <div>
                             <input type="phone" name="phone_obj"

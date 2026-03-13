@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class Obj extends Model
 {
     public $timestamps = false;
-    protected $fillable = ['user_id', 'name_obj', 'address_obj', 'phone_obj',];
+    protected $fillable = ['user_id', 'name_obj', 'phone_obj',];
 
     protected $table = 'objs';
 

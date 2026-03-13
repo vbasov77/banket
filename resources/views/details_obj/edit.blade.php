@@ -385,6 +385,8 @@
         let checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxKitchen = document.getElementsByClassName('kitchen');
         let checkboxPaymentMethods = document.getElementsByClassName('payment_methods');
+        let checkboxServices = document.getElementsByClassName('service');
+
 
         document.getElementById('office').addEventListener('click', function(e) {
             e.preventDefault()
@@ -407,6 +409,13 @@
                 }
             }
 
+            const oldService = @json(old('service'));
+            for (var index = 0; index < checkboxServices.length; index++) {
+                if (oldService.includes(checkboxServices[index].value)) {
+                    checkboxServices[index].checked = true;
+                }
+            }
+
             //----------------- Оплата:
             const oldPaymentMethods = @json(old('payment_methods'));
             for (var index = 0; index < checkboxPaymentMethods.length; index++) {
@@ -415,10 +424,18 @@
                 }
             }
         } else {
+
             const forEventsArray = @json($obj->for_events);
             for (var index = 0; index < checkboxForEvents.length; index++) {
                 if (forEventsArray.includes(checkboxForEvents[index].value)) {
                     checkboxForEvents[index].checked = true;
+                }
+            }
+
+            const serviceArray = @json(old('service'));
+            for (var index = 0; index < checkboxServices.length; index++) {
+                if (serviceArray.includes(checkboxServices[index].value)) {
+                    checkboxServices[index].checked = true;
                 }
             }
 

@@ -62,10 +62,6 @@
                 <div class="details bg-light p-3 rounded">
                     <div class="details-info">
                         <div class="detail mb-2">
-                            <span class="detail-label text-muted">Адрес:</span>
-                            <span class="detail-value d-block">{{ $map->data_subj['address_subj'] ?: $map->data_subj['obj']['address_obj'] }}</span>
-                        </div>
-                        <div class="detail mb-2">
                             <span class="detail-label text-muted">Вместимость:</span>
                             <span class="detail-value d-block">от {{ $map->data_subj['capacity_from'] }} до {{ $map->data_subj['capacity_to'] }} чел</span>
                         </div>
@@ -118,9 +114,7 @@
             const balloonContent = `
             <div class="custom-balloon">
                 <div class="balloon-title">${mapData.data_subj.name_subj}</div>
-                <div class="balloon-content">
-                    <strong>Адрес:</strong> ${mapData.data_subj.address_subj}<br>
-                </div>
+
             </div>
         `;
 

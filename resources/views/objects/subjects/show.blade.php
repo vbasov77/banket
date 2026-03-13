@@ -169,6 +169,7 @@
             .lightbox-controls {
                 bottom: 5%;
             }
+
             .lightbox-counter {
                 font-size: 12px;
                 padding: 3px 10px;
@@ -266,15 +267,9 @@
                     <div class="col-md-6 mb-4">
                         <div class="bg-light p-4 rounded-10 shadow-sm h-100">
                             <h4 class="section-title mb-4">Основная информация</h4>
-                            <dl class="row">
+                            <div class="row">
                                 <div class="details">
                                     <div class="details-info">
-                                        <div class="detail">
-                                            <span class="detail-label">Адрес:</span>
-                                            <span class="detail-value">
-                                        {{ $subj['address_subj'] ?: $subj['obj']['address_obj'] }}
-                                    </span>
-                                        </div>
                                         <div class="detail">
                                             <span class="detail-label">Вместимость:</span>
                                             <span class="detail-value">от {{ $subj['capacity_from'] }}
@@ -296,7 +291,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            </dl>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6 mb-4">

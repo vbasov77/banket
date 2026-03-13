@@ -20,7 +20,6 @@ class Subjs extends Migration
                 ->references('id')->on('objs')
                 ->onDelete('cascade');
             $table->string('name_subj')->nullable(); //
-            $table->string('address_subj')->nullable(); // Расположение: На природе, За городом
             $table->integer('minimum_cost')->nullable();
             $table->integer('per_person')->nullable();
             $table->integer('capacity_from')->nullable(); // Вместимость

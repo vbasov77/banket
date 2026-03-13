@@ -21,7 +21,6 @@ class Objects extends Migration
                 ->references('id')->on('users')
                 ->onDelete('cascade');
             $table->string('name_obj');
-            $table->string('address_obj');
             $table->string('phone_obj');
         });
     }

@@ -30,7 +30,6 @@ class EditObjRequest extends FormRequest
             "user_id" => ['required'],
             "name_obj" => ['required', 'string', 'min:2', 'max:200'],
             "phone_obj" => ['required', 'string', 'min:18', 'max:18'],
-            "address_obj" => ['required', 'string', 'min:2', 'max:250'],
         ];
     }
 
@@ -42,7 +41,6 @@ class EditObjRequest extends FormRequest
         return [
             'name_obj' => "Название",
             'phone_obj' => "Телефон",
-            'address_obj' => "Адрес"
         ];
     }
 

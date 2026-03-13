@@ -22,8 +22,8 @@ class DetailsObj extends Migration
             $table->json('for_events')->nullable(); // Для мероприятий
             $table->json('kitchen')->nullable(); // Кухня
             $table->json('service')->nullable();
-            $table->integer('alcohol')->default(0); // Пробковый сбор: 0=запрещено, 1=разрешено, -X=цена
-            $table->integer('more')->default(0); // Дополнительно: 0=запрещено, 1=разрешено, -X=цена
+            $table->string('alcohol')->nullable(); // Пробковый сбор: 0=запрещено, 1=разрешено, -X=цена
+            $table->string('more')->nullable(); // Дополнительно: 0=запрещено, 1=разрешено, -X=цена
             $table->json('payment_methods')->nullable(); // Способы оплаты
             $table->text('text_obj')->nullable();
         });

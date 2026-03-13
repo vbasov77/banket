@@ -29,7 +29,6 @@ class CreateObjRequest extends FormRequest
             "user_id" => ['required'],
             "name_obj" => ['required', 'string', 'min:2', 'max:200'],
             "phone_obj" => ['required', 'string', 'min:18', 'max:18'],
-            "address_obj" => ['required', 'string', 'min:2', 'max:250'],
         ];
     }
 
@@ -41,7 +40,6 @@ class CreateObjRequest extends FormRequest
         return [
             'name_obj' => "Название",
             'phone_obj' => "Телефон",
-            'address_obj' => "Адрес"
         ];
     }
 
