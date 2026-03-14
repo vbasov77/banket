@@ -181,8 +181,7 @@
                                     <div class="details-info">
                                         <div class="detail">
                                             <span class="detail-label">Вместимость:</span>
-                                            <span class="detail-value">от {{ $subj['capacity_from'] }}
-                                    до {{ $subj['capacity_to'] }} чел </span>
+                                            <span class="detail-value">до {{ $subj['capacity_to'] }} чел </span>
                                         </div>
                                         <div class="detail">
                                             <span class="detail-label">На фуршет до:</span>
@@ -335,7 +334,6 @@
                                                     <div class="detail">
                                                         <span class="detail-label">Вместимость:</span>
                                                         <span class="detail-value">
-                                        от {{ $subj['related_subjs'][$j]['capacity_from'] }}
                                         до {{ $subj['related_subjs'][$j]['capacity_to'] }} чел.
                                     </span>
                                                     </div>

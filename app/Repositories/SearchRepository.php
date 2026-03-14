@@ -26,8 +26,7 @@ class SearchRepository extends Repository
                     'alcohol', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'site_type', 'features', 'text_subj');
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj');
             }
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
@@ -60,7 +59,6 @@ class SearchRepository extends Repository
                     'name_subj' => $subj->name_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
-                    'capacity_from' => $subj->capacity_from,
                     'capacity_to' => $subj->capacity_to,
                     'site_type' => $subj->site_type,
                     'features' => $subj->features,
@@ -133,7 +131,6 @@ class SearchRepository extends Repository
                     'name_subj',
                     'minimum_cost',
                     'per_person',
-                    'capacity_from',
                     'capacity_to',
                     'site_type',
                     'features',
@@ -197,7 +194,6 @@ class SearchRepository extends Repository
                     'name_subj' => $subj->name_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
-                    'capacity_from' => $subj->capacity_from,
                     'capacity_to' => $subj->capacity_to,
                     'site_type' => $subj->site_type,
                     'features' => $subj->features,

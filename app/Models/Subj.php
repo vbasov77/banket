@@ -11,7 +11,6 @@ class Subj extends Model
         'name_subj',
         'minimum_cost',
         'per_person',
-        'capacity_from',
         'capacity_to',
         'furshet',
         'site_type',

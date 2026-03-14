@@ -63,7 +63,7 @@
                     <div class="details-info">
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">Вместимость:</span>
-                            <span class="detail-value d-block">от {{ $map->data_subj['capacity_from'] }} до {{ $map->data_subj['capacity_to'] }} чел</span>
+                            <span class="detail-value d-block">до {{ $map->data_subj['capacity_to'] }} чел</span>
                         </div>
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">На фуршет до:</span>

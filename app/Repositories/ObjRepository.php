@@ -21,7 +21,7 @@ class ObjRepository extends Repository
             'detailsObj', // если нужны поля — дополните select
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'site_type', 'text_subj', 'published', 'id')
+                    'capacity_to', 'site_type', 'text_subj', 'published', 'id')
                     ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
             }
         ])->where('subjs.id', $id)
@@ -39,7 +39,6 @@ class ObjRepository extends Repository
                             'name_subj' => $subj->name_subj,
                             'minimum_cost' => $subj->minimum_cost,
                             'per_person' => $subj->per_person,
-                            'capacity_from' => $subj->capacity_from,
                             'capacity_to' => $subj->capacity_to,
                             'site_type' => $subj->site_type,
                             'text_subj' => $subj->text_subj,
@@ -92,7 +91,7 @@ class ObjRepository extends Repository
             'detailsObj', // если нужны поля — дополните select
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'site_type', 'text_subj', 'published', 'id')
+                    'capacity_to', 'site_type', 'text_subj', 'published', 'id')
                     ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
             }
         ])->where('objs.user_id', $userId)
@@ -110,7 +109,6 @@ class ObjRepository extends Repository
                             'name_subj' => $subj->name_subj,
                             'minimum_cost' => $subj->minimum_cost,
                             'per_person' => $subj->per_person,
-                            'capacity_from' => $subj->capacity_from,
                             'capacity_to' => $subj->capacity_to,
                             'site_type' => $subj->site_type,
                             'text_subj' => $subj->text_subj,
@@ -133,8 +131,7 @@ class ObjRepository extends Repository
                     'alcohol', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'site_type', 'features', 'text_subj');
+                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj');
             }
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
@@ -158,7 +155,6 @@ class ObjRepository extends Repository
                     'name_subj' => $subj->name_subj,
                     'minimum_cost' => $subj->minimum_cost,
                     'per_person' => $subj->per_person,
-                    'capacity_from' => $subj->capacity_from,
                     'capacity_to' => $subj->capacity_to,
                     'site_type' => $subj->site_type,
                     'features' => $subj->features,
