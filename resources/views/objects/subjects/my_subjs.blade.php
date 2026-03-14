@@ -142,7 +142,6 @@
                                                 $sections = [
                                                     ['title' => 'Подходит для:', 'icon' => 'bi-calendar-event', 'color' => 'text-danger', 'data' => $data['details_obj']['for_events']],
                                                     ['title' => 'Кухня:', 'icon' => 'bi-cutlery', 'color' => 'text-warning', 'data' => $data['details_obj']['kitchen']],
-        //                                            ['title' => 'Услуги:', 'icon' => 'bi-star', 'color' => 'text-info', 'data' => $data['details_obj']['service']],
                                                     ['title' => 'Способы оплаты:', 'icon' => 'bi-credit-card', 'color' => 'text-dark', 'data' => $data['details_obj']['payment_methods']]
                                                 ];
                                             @endphp
@@ -202,6 +201,8 @@
                                     </div> <!-- Закрытие col-12 с особенностями и услугами -->
                                 </div> <!-- Закрытие основного row секции -->
                             @else
+
+
                                 <p class="text-center text-muted fs-5">Заполните больше о своем объекте</p>
                                 <div class="row mt-5">
                                     <div class="col-12 text-center">

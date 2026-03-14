@@ -3,11 +3,6 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-    <link href="{{ asset('css/modal/modal.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/cards/cards.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">
-
     <style>
         .moreSubj .carousel {
             height: 360px;
@@ -84,110 +79,24 @@
             font-weight: 600;
             letter-spacing: -0.2px;
         }
-    </style>
 
-    <style>
-        .lightbox {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .lightbox.hidden {
-            display: none;
-        }
-
-        .lightbox-close {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 36px;
-            color: white;
-            background: none;
-            border: none;
-            cursor: pointer;
-            z-index: 1010;
-            padding: 10px; /* Увеличенная область нажатия */
-        }
-
-        .lightbox-content {
-            position: relative;
-            max-width: 90%;
-            max-height: 90%;
-        }
-
-        #lightbox-img {
-            max-width: 100%;
-            max-height: 80vh;
-            object-fit: contain;
-            border-radius: 8px;
-        }
-
-        .lightbox-controls {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 40px;
-        }
-
-        .lightbox-prev,
-        .lightbox-next {
-            font-size: 28px;
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-        }
-
-        .lightbox-counter {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: white;
-            font-size: 14px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 4px 12px;
-            border-radius: 20px;
-        }
-
-        /* Адаптация для портретной ориентации */
-        @media (orientation: portrait) {
-            .lightbox-controls {
-                bottom: 5%;
-            }
-
-            .lightbox-counter {
-                font-size: 12px;
-                padding: 3px 10px;
-            }
-        }
-
-        /* Адаптация для ландшафтной ориентации */
-        @media (orientation: landscape) {
-            .lightbox-counter {
-                bottom: 20px;
+        @media (min-width: 992px) {
+            .row-cols-lg-4 > * {
+                width: auto;
             }
         }
 
     </style>
 
+    <link href="{{ asset('css/modal/modal.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/cards/cards.css') }}" rel="stylesheet">
+
+    <link href="{{ asset('css/lightbox/lightbox.css') }}" rel="stylesheet">
     <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">
+
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
             <div class="parallax-bg" style="background-image: url('{{ $subj['image_paths'][0] }}');"></div>
@@ -340,89 +249,75 @@
                 <section class="mt-5">
                     <h3 class="section-title fs-4 mb-4">Общая информация "{!! $subj['obj']['name_obj'] !!}"</h3>
                 </section>
-                <section>
-                    <div class="row">
-                        <div style="margin-top: 40px" class="col-md-12 mb-12">
-                            <h5 class="fw-semibold mb-3"><i class="bi bi-calendar-event text-danger me-2"></i>Подходит
-                                для:</h5>
-                            @php
-                                $events = $subj['details_obj']['for_events'];
-                            @endphp
-                            <div class="d-flex flex-wrap align-items-start gap-2">
-                                @for ($i = 0; $i < count($events); $i++)
-                                    <span class="feature-badge">
-                {{ $events[$i] }}
-            </span>
-                                @endfor
-                            </div>
-                        </div>
-                        <div style="margin-top: 40px" class="col-md-12 mb-12">
-                            <h5 class="fw-semibold mb-3"><i class="bi bi-star text-info me-2"></i>Дополнительные услуги:
-                            </h5>
-                            @if(!empty($services))
-                                @php
-                                    $services = $subj['details_obj']['service'];
-                                @endphp
-                                <div class="d-flex flex-wrap align-items-start gap-2">
-                                    @for ($i = 0; $i < count($services); $i++)
-                                        <span class="feature-badge">
-                {{ $services[$i] }}
-            </span>
-                                    @endfor
 
-                                </div>
-                            @endif
-                        </div>
-                        @if(!empty($features))
-                            <div style="margin-top: 40px" class="col-md-12 mb-12">
-                                <h5 class="fw-semibold mb-3"><i class="bi bi-lightbulb text-success me-2"></i>Особенности:
-                                </h5>
+                @if(!empty($subj['details_obj']))
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h3 class="section-title fs-4 mb-4">Особенности и услуги</h3>
+                            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                                <!-- Все блоки особенностей -->
                                 @php
-                                    $features = $subj['features'];
+                                    $sections = [
+                                        ['title' => 'Подходит для:', 'icon' => 'bi-calendar-event', 'color' => 'text-danger', 'data' => $subj['details_obj']['for_events']],
+                                        ['title' => 'Кухня:', 'icon' => 'bi-cutlery', 'color' => 'text-warning', 'data' => $subj['details_obj']['kitchen']],
+                                        ['title' => 'Способы оплаты:', 'icon' => 'bi-credit-card', 'color' => 'text-dark', 'data' => $subj['details_obj']['payment_methods']]
+                                    ];
                                 @endphp
-                                <div class="d-flex flex-wrap align-items-start gap-2">
-                                    @for ($i = 0; $i < count($features); $i++)
-                                        <span class="feature-badge">
-            {{ $features[$i] }}
-        </span>
-                                    @endfor
+
+                                @foreach($sections as $section)
+                                    <div class="col">
+                                        <div class="p-3 bg-light rounded h-100">
+                                            <h5 class="fw-semibold mb-3">
+                                                <i class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                {{ $section['title'] }}
+                                            </h5>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                @foreach($section['data'] as $item)
+                                                    <span class="feature-badge bg-white border rounded px-2 py-1">
+{{ $item }}
+</span>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+
+                                <!-- Алкоголь -->
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded h-100">
+                                        <h5 class="fw-semibold mb-3">
+                                            <i class="bi bi-wine text-danger me-2"></i>
+                                            Алкоголь:
+                                        </h5>
+                                        @if($subj['details_obj']['alcohol'])
+                                            <span class="badge bg-success bg-gradient">Разрешён</span>
+                                        @else
+                                            <span class="badge bg-danger bg-gradient">Не разрешён</span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
-                        @endif
-                        <div style="margin-top: 40px" class="col-md-4 mb-4">
-                            <h5 class="fw-semibold mb-3"><i class="bi bi-credit-card text-dark me-2"></i>Способы
-                                оплаты:
-                            </h5>
-                            @php
-                                $payments = $subj['details_obj']['payment_methods'];
-                            @endphp
-                            <div>
-                                @for ($i = 0; $i < count($payments); $i++)
-                                    <span class="feature-badge">
-                {{ $payments[$i] }}
-            </span>
-                                @endfor
+                            <div style="margin-top: 40px" class="col-md-12 mb-12">
+                                <h5 class="fw-semibold mb-3"><i class="bi bi-wine text-danger me-2"></i>Описание:
+                                </h5>
+                                <div class="bg-light p-4 rounded-10 shadow-sm">
+                                    <p class="lead text-muted">
+                                        {{ $subj['details_obj']['text_obj'] }}
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                        <div style="margin-top: 40px" class="col-md-4 mb-4">
-                            <h5 class="fw-semibold mb-3"><i class="bi bi-wine text-danger me-2"></i>Алкоголь:</h5>
-                            @if($subj['details_obj']['alcohol'])
-                                <span class="feature-badge bg-success text-white">
-            Разрешён
-        </span>
-                            @else
-                                <span class="feature-badge bg-danger text-white">
-            Не разрешён
-        </span>
-                            @endif
-                        </div>
-                    </div>
-                </section>
+                        </div> <!-- Закрытие col-12 с особенностями и услугами -->
+                    </div> <!-- Закрытие основного row секции -->
+                @endif
+
+
                 <section>
                     @if(!empty($subj['related_subjs']))
-                        <div class="carousel-wrapper moreSubj festival">
+                        <h3 class="section-title">Ещё залы</h3>
+                        <div class="carousel-wrapper moreSubj @if(count($subj['related_subjs']) > 2)festival @endif">
                             <div class="carousel">
                                 <div class="carousel-content">
+
                                     @php($countSubj = count($subj['related_subjs']))
                                     @for ($j = 0; $j < $countSubj; $j++)
                                         <div class="item-carousel">
@@ -460,15 +355,6 @@
                             <button class="carousel-next">❯</button>
                         </div>
                     @endif
-                    <div style="margin-top: 40px" class="col-md-12 mb-12">
-                        <h5 class="fw-semibold mb-3"><i class="bi bi-wine text-danger me-2"></i>Описание:</h5>
-                        <div class="bg-light p-4 rounded-10 shadow-sm">
-                            <p class="lead text-muted">
-                                {{ $subj['details_obj']['text_obj'] }}
-                            </p>
-                        </div>
-                    </div>
-
                     @auth
                         @if(Auth::user()->isAuthor(Auth::id()))
                             <div>
