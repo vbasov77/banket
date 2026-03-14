@@ -57,17 +57,6 @@
                             <tr>
                                 <td style="width: 49%">
                                     <div>
-                                        <label for="capacity_from"><b>Вместимость (человек) от:</b></label>
-                                        <input style="width: 50%" name="capacity_from" type="number"
-                                               value="{{old('capacity_from') ?? $subj->capacity_from }}"
-                                               class="form-control"
-                                               onkeypress="return (event.charCode >= 48 && event.charCode <= 57 && /^\d{0,3}$/.test(this.value));"
-                                               placeholder="Вместимость от" autocomplete="off" required>
-                                        <br>
-                                    </div>
-                                </td>
-                                <td style="width: 49%">
-                                    <div>
                                         <label for="capacity_to"><b>Вместимость (человек) до:</b></label>
                                         <input style="width: 50%" name="capacity_to" type="number"
                                                value="{{old('capacity_to') ?? $subj->capacity_to }}"
@@ -76,12 +65,6 @@
                                                placeholder="Вместимость до" autocomplete="off" required>
                                     </div>
                                 </td>
-                            </tr>
-                        </table>
-
-                        {{--                        На фуршет--}}
-                        <table class="styled-table">
-                            <tr>
                                 <td style="width: 49%">
                                     <div>
                                         <label for="furshet"><b>Вместимость на фуршет(человек) до:</b></label>
@@ -92,8 +75,6 @@
                                                placeholder="Вместимость на фуршет до" autocomplete="off" required>
                                         <br>
                                     </div>
-                                </td>
-                                <td style="width: 49%">
                                 </td>
                             </tr>
                         </table>

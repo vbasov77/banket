@@ -38,12 +38,6 @@ class CreateSubjRequest extends FormRequest
                 'max:255',
                 'regex:/^[\pL\s\d\pP]+$/u' // только буквы, цифры, пробелы и знаки препинания
             ],
-            'capacity_from' => [
-                'required',
-                'integer',
-                'min:0',
-                'lte:capacity_to'
-            ],
             'minimum_cost' => [
                 'required',
                 'integer',
@@ -58,7 +52,6 @@ class CreateSubjRequest extends FormRequest
                 'required',
                 'integer',
                 'min:0',
-                'gte:capacity_from'
             ],
             'furshet' => [
                 'required',
@@ -119,8 +112,6 @@ class CreateSubjRequest extends FormRequest
             'obj_id.min' => 'ID объекта должен быть положительным числом',
 
             'name_subj.regex' => 'Название может содержать только буквы, цифры, пробелы и знаки препинания',
-
-            'capacity_from.lte' => 'Вместимость от не может быть больше вместимости до',
             'capacity_to.gte' => 'Вместимость до не может быть меньше вместимости от',
 
             'furshet.between' => 'Значение фуршета должно быть 0 или 1',
@@ -146,7 +137,6 @@ class CreateSubjRequest extends FormRequest
             'name_subj' => 'Название субъекта',
             'minimum_cost' => 'Минимальная стоимость',
             'per_person' => 'Стоимость за человека',
-            'capacity_from' => 'Вместимость от',
             'capacity_to' => 'Вместимость до',
             'furshet' => 'Вместимость на фуршет',
             'features' => 'Особенности',

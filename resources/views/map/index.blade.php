@@ -142,7 +142,7 @@
                 <div class="subject-card">
                     <strong>${subject.name_subj}</strong><br>
             На человека: ${subject.per_person}<br>
-            Вместимость: ${subject.capacity_from}–${subject.capacity_to} чел.
+            Вместимость до: ${subject.capacity_to} чел.
                 </div>
             </a>
                 </li>`).join('')}

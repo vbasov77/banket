@@ -47,7 +47,7 @@ class MapRepository extends Repository
             'subjects.subj' => function ($query) {
                 $query->select(
                     'id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_from', 'capacity_to', 'furshet', 'site_type',
+                    'capacity_to', 'furshet', 'site_type',
                     'features', 'text_subj'
                 );
             },
@@ -78,7 +78,6 @@ class MapRepository extends Repository
                             'name_subj' => $subj->name_subj ?? 'Не указано',
                             'minimum_cost' => $subj->minimum_cost ?? 'Не указана',
                             'per_person' => $subj->per_person ?? 'Не указано',
-                            'capacity_from' => $subj->capacity_from ?? '?',
                             'capacity_to' => $subj->capacity_to ?? '?',
                             'furshet' => $subj->furshet ?? 'Не указано',
                             'site_type' => $subj->site_type ?? 'Не указан',

@@ -22,7 +22,6 @@ class Subjs extends Migration
             $table->string('name_subj')->nullable(); //
             $table->integer('minimum_cost')->nullable();
             $table->integer('per_person')->nullable();
-            $table->integer('capacity_from')->nullable(); // Вместимость
             $table->integer('capacity_to')->nullable(); // Вместимость
             $table->integer('furshet')->nullable(); // Вместимость
             $table->json('site_type')->nullable();// Тип площадки: База отдыха, Банкетный зал

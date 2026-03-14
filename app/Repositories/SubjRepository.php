@@ -38,7 +38,6 @@ class SubjRepository extends Repository
                     s.name_subj,    
             s.minimum_cost,
             s.per_person,
-            s.capacity_from,
             s.capacity_to,
             s.furshet,
             s.site_type,
@@ -87,8 +86,7 @@ class SubjRepository extends Repository
             WHERE subj_id = rs.id
             ORDER BY id ASC
             LIMIT 1
-        ),
-        'capacity_from', rs.capacity_from,
+        ),        
         'capacity_to', rs.capacity_to,
         'minimum_cost', rs.minimum_cost
     )
@@ -119,7 +117,6 @@ LIMIT 1";
                 'name_subj' => $result->name_subj,
                 'minimum_cost' => $result->minimum_cost,
                 'per_person' => $result->per_person,
-                'capacity_from' => $result->capacity_from,
                 'capacity_to' => $result->capacity_to,
                 'furshet' => $result->furshet,
                 'site_type' => $this->parseJsonField($result->site_type),
@@ -193,8 +190,7 @@ LIMIT 1";
             'subjsAll' => function ($query) {
                 $query->select([
                     'id', 'obj_id', 'name_subj',
-                    'minimum_cost', 'per_person', 'capacity_from',
-                    'capacity_to', 'site_type', 'text_subj', 'published', 'features'
+                    'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'text_subj', 'published', 'features'
                 ]);
             },
             'user:*',
