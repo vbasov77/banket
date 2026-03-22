@@ -22,6 +22,7 @@ class ImgSubj extends Migration
             $table->bigInteger('photo_id');
             $table->string('path');
             $table->string('position');
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

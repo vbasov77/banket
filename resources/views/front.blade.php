@@ -15,8 +15,9 @@
         }
 
 
-        .front-btn{
-            float: right; position: relative;
+        .front-btn {
+            float: right;
+            position: relative;
         }
     </style>
 
@@ -25,8 +26,155 @@
             /* Скрываем оригинальную кнопку внутри блока */
         }
 
+        .details-info {
+            padding: 15px;
+        }
 
     </style>
+
+    <style>
+        .restaurants-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            padding: 20px;
+        }
+
+        .restaurant-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: clip;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #f0f0f0;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .restaurant-image {
+            width: 320px;
+            height: 180px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .restaurant-image img,
+        .restaurant-image .placeholder {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .placeholder {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: #f0f2f5;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .restaurant-content {
+            padding: 20px;
+        }
+
+        .restaurant-name {
+            margin: 0 0 12px 0;
+            color: #2c3e50;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .restaurant-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #495057;
+        }
+
+        .feature-icon {
+            font-size: 16px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tag {
+            background: #e9ecef;
+            color: #495057;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .features-list {
+            margin-bottom: 16px;
+        }
+
+        .features-list strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .features-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .features-list li {
+            margin-bottom: 4px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .restaurant-description {
+            color: #6c757d;
+            line-height: 1.5;
+            font-size: 14px;
+            margin-bottom: 16px;
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .restaurant-meta {
+            color: #95a5a6;
+            font-size: 12px;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 12px;
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .restaurants-grid {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+
+            .restaurant-card {
+                margin-bottom: 16px;
+            }
+        }
+
+    </style>
+
 
 
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
@@ -49,13 +197,15 @@
                                                 @if(!empty($data[$i]['subjs_data']))
                                                     @php($subjData = $data[$i]['subjs_data'])
                                                     @for ($j = 0; $j < $countSubj; $j++)
-                                                        <div class="festival"
+                                                        <div class="restaurant-card"
                                                              style="display: block; margin-bottom: 10px">
                                                             <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">
-                                                                <img src="{{$data[$i]['subjs_data'][$j]['path'] . '&cs=360x0'}}"
-                                                                     class="item-carousel"
-                                                                     alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
-                                                                <br>
+                                                                <div class="restaurant-image">
+                                                                    <img src="{{$data[$i]['subjs_data'][$j]['path'] . '&cs=360x0'}}"
+
+                                                                         alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
+                                                                    <br>
+                                                                </div>
                                                             </a>
 
                                                             <section>
@@ -124,7 +274,8 @@
                                             </button>
                                         </div>
                                         <div class="row">
-                                            <div style="vertical-align: middle" class="col-12 col-sm-9 col-md-7 col-lg-5">
+                                            <div style="vertical-align: middle"
+                                                 class="col-12 col-sm-9 col-md-7 col-lg-5">
                                                 <section>
                                                     <div class="details">
                                                         <div class="details-info">
@@ -145,7 +296,8 @@
                                                     </div>
                                                 </section>
                                             </div>
-                                            <div style="vertical-align: middle" class="col-12 col-sm-3 col-md-5 col-lg-7">
+                                            <div style="vertical-align: middle"
+                                                 class="col-12 col-sm-3 col-md-5 col-lg-7">
                                                 <!-- position-relative + text-start -->
                                                 <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][0]['id']])}}"
                                                    class="btn-festive-gradient btn-festive-gradient-green front-btn">

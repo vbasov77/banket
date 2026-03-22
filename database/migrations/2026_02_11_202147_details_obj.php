@@ -26,6 +26,7 @@ class DetailsObj extends Migration
             $table->string('more')->nullable(); // Дополнительно: 0=запрещено, 1=разрешено, -X=цена
             $table->json('payment_methods')->nullable(); // Способы оплаты
             $table->text('text_obj')->nullable();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

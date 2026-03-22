@@ -58,4 +58,14 @@ class User extends Authenticatable implements MustVerifyEmail
        return Obj::where('user_id', $this->id)->value('id');
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(FavoriteSubj::class);
+    }
+
+    public function favoriteRestaurants()
+    {
+        return $this->belongsToMany(Subj::class, 'favorites_subj');
+    }
+
 }

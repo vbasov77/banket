@@ -14,6 +14,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MapPointController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AddressSubjController;
+use App\Http\Controllers\FavoriteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,8 +30,8 @@ use App\Http\Controllers\AddressSubjController;
 Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
 Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
 //Route::get('/map', [MapPointController::class, 'index'])->name('map.index');
-Route::get('/map_create/id{id}', [MapPointController::class, 'create'])->name('map.create')->middleware('author');
-Route::get('/map_edit/id{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('author');
+Route::get('/map_create/subj{id}', [MapPointController::class, 'create'])->name('map.create')->middleware('author');
+Route::get('/map_edit/subj{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('author');
 Route::get('/show_map/id{id}', [MapPointController::class, 'show'])->name('show.map');
 //Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
 Route::post('/map/points', [MapPointController::class, 'addSubjectToMap'])->name('map_subj.points.store');
@@ -47,7 +48,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 Route::get('/', [FrontController::class, 'show'])->name("front");
 
@@ -97,6 +98,12 @@ Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');
 
 Route::get('/home', 'HomeController@index')->middleware(['auth', 'verified'])->name('home');
+
+
+Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth');
+Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth');
+Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
+
 
 Route::get('/test-log', function () {
     // Тестовая запись на русском

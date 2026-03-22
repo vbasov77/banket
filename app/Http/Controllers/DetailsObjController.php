@@ -58,7 +58,7 @@ class DetailsObjController extends Controller
 
     private function parseJsonValue(string $jsonValue)
     {
-        if (strpos($jsonValue, ':') !== false) {
+        if (str_contains($jsonValue, ':')) {
             [$value, $price] = explode(':', $jsonValue);
             return ['value' => $value, 'price' => (float)$price];
         }
@@ -79,11 +79,19 @@ class DetailsObjController extends Controller
     public function edit(Request $request): View
     {
         $obj = $this->detailsObjService->findById($request->id);
-        $alcoholData = $this->parseJsonValue($obj->alcohol);
-        $moreData = $this->parseJsonValue($obj->more);
+        $alcoholData = null;
+        $moreData = null;
 
-        return \view('details_obj.edit', ['obj' => $obj, 'alcoholValue' => $alcoholData['value'],
-            'alcoholPrice' => $alcoholData['price'], 'moreValue' => $moreData['value'],'morePrice' => $moreData['price']]);
+        if ($obj->alcohol) {
+            $alcoholData = $this->parseJsonValue($obj->alcohol);
+        }
+
+        if ($obj->more) {
+            $moreData = $this->parseJsonValue($obj->more);
+        }
+
+        return \view('details_obj.edit', ['obj' => $obj, 'alcoholValue' => $alcoholData['value'] ?? null,
+            'alcoholPrice' => $alcoholData['price'] ?? null, 'moreValue' => $moreData['value'] ?? null, 'morePrice' => $moreData['price'] ?? null]);
     }
 
 

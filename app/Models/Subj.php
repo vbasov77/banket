@@ -59,9 +59,15 @@ class Subj extends Model
             ->orderBy('id', 'asc');      // страховка: если position одинаковые
     }
 
+
     public function groupAddressObj()
     {
         return $this->hasOne(GroupAddressObj::class, 'subj_id');
+    }
+
+    public function favoritedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'favorites');
     }
 
 

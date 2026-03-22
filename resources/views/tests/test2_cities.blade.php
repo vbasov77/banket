@@ -1,7 +1,7 @@
 @extends('layouts.app', ['title' => "Мои субъекты"])
 @section('content')
     <script src="{{ asset('js/preloader/preloader.js') }}"></script>
-    <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
+    {{--    <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">--}}
     <style>
         @media (min-width: 992px) {
             .row-cols-lg-4 > * {
@@ -168,26 +168,23 @@
                         <div class="row">
                             @if(!empty($data['subjs_all']))
                                 @foreach($data['subjs_all'] as $value)
-                                    <div class="col-12 col-sm-8 col-md-6 col-lg-4 restaurants-grid">
-                                        <div class="restaurant-card opacity"
+                                    <div class="col-12 col-sm-8 col-md-6 col-lg-4">
+                                        <div class="card opacity festival"
                                              data-id="{{ $value['id'] }}">
                                             <!-- Изображение -->
                                             <div class="position-relative">
-                                                <div class="restaurant-image">
-                                                    @if($value['primaryImg'] && $value['primaryImg']->path)
-
-                                                        <img src="{{ $value['primaryImg']->path . '&cs=360x0' }}"
-                                                             class="card-img-top" alt="Фото субъекта"
-                                                             style="height: 200px; object-fit: cover; @if($value['published'] == 0) opacity: .7; @endif">
-                                                    @else
-                                                        <img src="{{ asset('images/no_image/no_image.jpg') }}"
-                                                             class="card-img-top" alt="Нет фото"
-                                                             style="height: 200px; object-fit: cover;">
-                                                    @endif
-                                                </div>
+                                                @if($value['primaryImg'] && $value['primaryImg']->path)
+                                                    <img src="{{ $value['primaryImg']->path . '&cs=360x0' }}"
+                                                         class="card-img-top" alt="Фото субъекта"
+                                                         style="height: 200px; object-fit: cover; @if($value['published'] == 0) opacity: .7; @endif">
+                                                @else
+                                                    <img src="{{ asset('images/no_image/no_image.jpg') }}"
+                                                         class="card-img-top" alt="Нет фото"
+                                                         style="height: 200px; object-fit: cover;">
+                                                @endif
                                             </div>
                                             <!-- Тело карточки -->
-                                            <div class="restaurant-content">
+                                            <div class="details">
                                                 <!-- Название -->
                                                 <h5 class="card-title fw-bold mb-3">{{ $value['name_subj'] }}</h5>
 

@@ -93,7 +93,8 @@
                                                 Азиатская
                                             </label>
                                             <label class="checkbox-container">
-                                                <input name="kitchen[]" class="kitchen" type="checkbox" value="Русская">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Европейская">
                                                 <span class="checkmark"></span>
                                                 Европейская
                                             </label>
@@ -372,7 +373,8 @@
                         <br>
                         <input style="margin-bottom: 50px" class="btn-festive-gradient btn-festive-gradient-green"
                                type="submit" value="Продолжить">
-                        <input id="office" style="margin-bottom: 50px; box-shadow: none;" class="btn-festive-gradient btn-festive-gradient-white"
+                        <input id="office" style="margin-bottom: 50px; box-shadow: none;"
+                               class="btn-festive-gradient btn-festive-gradient-white"
                                type="submit"
                                value="Перейти в офис">
 
@@ -388,7 +390,7 @@
         let checkboxServices = document.getElementsByClassName('service');
 
 
-        document.getElementById('office').addEventListener('click', function(e) {
+        document.getElementById('office').addEventListener('click', function (e) {
             e.preventDefault()
             window.location.href = '{{route('my.obj')}}';
         });
@@ -432,16 +434,18 @@
                 }
             }
 
-            const serviceArray = @json(old('service'));
-            for (var index = 0; index < checkboxServices.length; index++) {
-                if (serviceArray.includes(checkboxServices[index].value)) {
-                    checkboxServices[index].checked = true;
+            if (@json($obj->service)) {
+                const serviceArray = @json($obj->service);
+                for (var index = 0; index < checkboxServices.length; index++) {
+                    if (serviceArray.includes(checkboxServices[index].value)) {
+                        checkboxServices[index].checked = true;
+                    }
                 }
             }
 
-            const kitchen = @json($obj->kitchen);
+            const kitchenArray = @json($obj->kitchen);
             for (var index = 0; index < checkboxKitchen.length; index++) {
-                if (kitchen.includes(checkboxKitchen[index].value)) {
+                if (kitchenArray.includes(checkboxKitchen[index].value)) {
                     checkboxKitchen[index].checked = true;
                 }
             }

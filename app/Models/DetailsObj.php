@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class DetailsObj extends Model
 {
     protected $table = 'details_obj';
+
     public $timestamps = false;
+
     protected $fillable = [
         'obj_id',
         'for_events',
@@ -23,7 +25,7 @@ class DetailsObj extends Model
         'kitchen' => 'array',
         'service' => 'array',
         'payment_methods' => 'array',
-        ];
+    ];
 
     public function obj()
     {

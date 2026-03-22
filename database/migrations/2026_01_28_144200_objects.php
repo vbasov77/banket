@@ -22,6 +22,7 @@ class Objects extends Migration
                 ->onDelete('cascade');
             $table->string('name_obj');
             $table->string('phone_obj');
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

@@ -22,13 +22,12 @@ return new class extends Migration
             $table->index('subj_id');
             $table->index(['latitude', 'longitude']);
 
-            $table->timestamps();
-
             // Внешний ключ на таблицу объектов (если есть)
             $table->foreign('subj_id')
                 ->references('id')
                 ->on('subjs')
                 ->onDelete('cascade');
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

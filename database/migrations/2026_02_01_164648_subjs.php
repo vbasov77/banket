@@ -28,6 +28,7 @@ class Subjs extends Migration
             $table->json('features')->nullable(); // Особенности - Можно свои б/а напитки, Выездная регистрация, Музыкальное оборудование
             $table->text('text_subj')->nullable();
             $table->integer('published')->default(0);
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 

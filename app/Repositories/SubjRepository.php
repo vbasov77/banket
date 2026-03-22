@@ -8,6 +8,7 @@ use App\Models\Obj;
 use App\Models\Subj;
 use App\Services\VkService;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SubjRepository extends Repository
@@ -32,36 +33,42 @@ class SubjRepository extends Repository
     public function findById(int $id): ?array
     {
         try {
-            $sql = "
-                SELECT
-                    s.id AS subj_id,
-                    s.name_subj,    
-            s.minimum_cost,
-            s.per_person,
-            s.capacity_to,
-            s.furshet,
-            s.site_type,
-            s.features,
-            s.text_subj,
-            s.published,
-            CASE
-                WHEN asub.subj_id IS NOT NULL THEN TRUE
-                WHEN aobj.obj_id IS NOT NULL THEN TRUE
-                ELSE FALSE
-            END AS map,
-            JSON_OBJECT(
-                'obj_id', o.id,
-                'user_id', o.user_id,
-                'name_obj', o.name_obj,            
-                'phone_obj', o.phone_obj
-            ) AS obj_json,
-            IF(
-                do.for_events IS NOT NULL OR
-                do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
-                do.alcohol IS NOT NULL OR do.payment_methods IS NOT NULL OR
-                do.text_obj IS NOT NULL,
-                JSON_OBJECT(
-                    'for_events', do.for_events,        
+            $sql = "SELECT
+    s.id AS subj_id,
+    s.name_subj,
+    s.minimum_cost,
+    s.per_person,
+    s.capacity_to,
+    s.furshet,
+    s.site_type,
+    s.features,
+    s.text_subj,
+    s.published,
+    CASE
+        WHEN asub.subj_id IS NOT NULL THEN TRUE
+        WHEN aobj.obj_id IS NOT NULL THEN TRUE
+        ELSE FALSE
+    END AS map,
+    -- Флаг «в избранном» для текущего пользователя
+    EXISTS(
+        SELECT 1
+        FROM favorites_subj fs
+        WHERE fs.subj_id = s.id
+          AND fs.user_id = ?  -- Плейсхолдер вместо жёсткого значения
+    ) AS is_favorite,
+    JSON_OBJECT(
+        'obj_id', o.id,
+        'user_id', o.user_id,
+        'name_obj', o.name_obj,
+        'phone_obj', o.phone_obj
+    ) AS obj_json,
+    IF(
+        do.for_events IS NOT NULL OR
+        do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
+        do.alcohol IS NOT NULL OR do.payment_methods IS NOT NULL OR
+        do.text_obj IS NOT NULL,
+        JSON_OBJECT(
+            'for_events', do.for_events,
             'kitchen', do.kitchen,
             'service', do.service,
             'alcohol', do.alcohol,
@@ -81,29 +88,29 @@ class SubjRepository extends Repository
                 'subj_id', rs.id,
                 'name_subj', rs.name_subj,
                 'image_path', (
-            SELECT path
-            FROM img_subj
-            WHERE subj_id = rs.id
-            ORDER BY id ASC
-            LIMIT 1
-        ),        
-        'capacity_to', rs.capacity_to,
-        'minimum_cost', rs.minimum_cost
-    )
-)
-FROM subjs rs
-WHERE rs.obj_id = s.obj_id
-  AND rs.id != s.id
-) AS related_subjs_json
+                    SELECT path
+                    FROM img_subj
+                    WHERE subj_id = rs.id
+                    ORDER BY id ASC
+                    LIMIT 1
+                ),
+                'capacity_to', rs.capacity_to,
+                'minimum_cost', rs.minimum_cost
+            )
+        )
+        FROM subjs rs
+        WHERE rs.obj_id = s.obj_id
+          AND rs.id != s.id
+    ) AS related_subjs_json
 FROM subjs s
 LEFT JOIN objs o ON s.obj_id = o.id
 LEFT JOIN details_obj do ON o.id = do.obj_id
 LEFT JOIN address_subjs asub ON s.id = asub.subj_id
 LEFT JOIN address_objs aobj ON o.id = aobj.obj_id
-WHERE s.id = ?
-LIMIT 1";
-
-            $results = DB::select($sql, [$id]);
+WHERE s.id = ?  -- ID ресторана
+LIMIT 1;";
+            $userId = Auth::id();
+            $results = DB::select($sql, [$userId, $id]);
 
             // DB::select возвращает массив, даже если одна строка
             if (empty($results)) {
@@ -128,6 +135,7 @@ LIMIT 1";
                 'details_obj' => $this->parseJsonField($result->details_obj_json),
                 'image_paths' => $this->parseJsonArray($result->image_paths_json),
                 'related_subjs' => $this->parseJsonArray($result->related_subjs_json),
+                'is_favorite' => $result->is_favorite,
             ];
         } catch (QueryException $e) {
             throw $e;
