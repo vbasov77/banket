@@ -9,6 +9,8 @@ class AddressSubj extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     protected $fillable = [
         'subj_id',
         'group_id',

@@ -17,6 +17,11 @@ class CreateDetailsObjRequest extends FormRequest
     {
         return [
             'obj_id' => ['required', 'integer', 'exists:objs,id'],
+            'service' => ['required', 'array', 'min:1'],
+            'service.*' => [
+                'string',
+                'in:Ведущий/Тамада,Диджей,Живая музыка,Фотограф/Видеооператор,Аниматоры,Украшение зала,Оформление фотозоны,Воздушные шары,Звуковое оборудование,Световое оборудование,Проекционное оборудование,Трансфер для гостей,Выездная регистрация,Фейерверк/Салют'
+            ],
             'for_events' => ['required', 'array', 'min:1'],
             'for_events.*' => [
                 'string',

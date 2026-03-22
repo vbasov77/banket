@@ -253,7 +253,7 @@
     <div class="logo-container">
 
         <center>
-            @if(!empty($data['img_obj']))
+            @if(!empty($data['id']))
                 <a title="Загрузить новое" href="{{ route('edit.img_obj', ['id' => $data['id']]) }}" class="logo-link">
                     <img src="{{ $data['img_obj']['path'] ?? asset('images/no_image/no_image.jpg') }}"
                          alt="Логотип предприятия"

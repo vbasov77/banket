@@ -9,6 +9,8 @@ class GroupAddressObj extends Model
 {
     use HasFactory;
 
+    public $timestamps = false;
+
     // Имя таблицы в БД
     protected $table = 'group_address_objs';
 

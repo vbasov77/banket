@@ -111,36 +111,35 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <!-- Hero section -->
+
                 <section class="hero-section p-4 mb-5">
                     <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h1 class="section-title display-5 fw-bold text-dark mb-3">
-                                {{ $subj['name_subj'] }}
-                            </h1>
-                            <p class="lead text-muted mb-4">
-                                {{ $subj['text_subj'] }}
-                            </p>
-                            @auth
-                                @if(Auth::user()->isAuthor(Auth::id()))
-                                    @if($subj['published'])
-                                        <span style="margin-bottom: 10px;"
-                                              class="badge bg-success fs-5 px-4 py-2">Опубликовано</span>
-                                    @else
-                                        <span style="margin-bottom: 10px;"
-                                              class="badge bg-warning text-dark fs-5 px-4 py-2">Не опубликовано</span>
-                                    @endif
-                                @endif
-                            @endauth
+                        @include('blocks.favorite')
+                        <h1 class="section-title display-5 fw-bold text-dark mb-3">
+                            {{ $subj['name_subj'] }}
+                        </h1>
 
+                        <p class="lead text-muted mb-4">
+                            {{ $subj['text_subj'] }}
+                        </p>
+                        <div class="price-tag fs-3 fw-bold">
+                            от {{ number_format($subj['minimum_cost'], 0, ' ', ' ') }} ₽
                         </div>
-                        <div class="col-md-4 text-end">
-                            <div class="price-tag fs-3 fw-bold">
-                                от {{ number_format($subj['minimum_cost'], 0, ' ', ' ') }} ₽
-                            </div>
-                        </div>
+                        <br>
                     </div>
                 </section>
                 <section class="mb-5">
+                    @auth
+                        @if(Auth::user()->isAuthor(Auth::id()))
+                            <div style="margin-bottom: 10px; margin-top: 10px; width: auto; float: right">
+                                @if($subj['published'])
+                                    <span class="badge bg-success fs-5 px-4 py-2">Опубликовано</span>
+                                @else
+                                    <span class="badge bg-warning text-dark fs-5 px-4 py-2">Не опубликовано</span>
+                                @endif
+                            </div>
+                        @endif
+                    @endauth
                     <h4 class="section-title mb-4">Тип площадки</h4>
                     <div class="d-flex align-items-center gap-4">
                         @for ($i = 0; $i < count($subj['site_type']); $i++)
@@ -252,7 +251,6 @@
                 @if(!empty($subj['details_obj']))
                     <div class="row g-4">
                         <div class="col-12">
-                            <h3 class="section-title fs-4 mb-4">Особенности и услуги</h3>
                             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                                 <!-- Все блоки особенностей -->
                                 @php
@@ -380,8 +378,10 @@
             </div>
         </div>
     </div>
-
-
+    <script>
+        window.favStore = '{{route('favorites_subj.store', ['id' => $subj['subj_id']])}}';
+        window.favDestroy = '{{route('favorites_subj.destroy', ['id' => $subj['subj_id']])}}';
+    </script>
     <script src="{{ asset('js/parallax/parallax.js') }}" defer></script>
     <script src="{{ asset('js/carousels/carousel.js') }}" defer></script>
     <script src="{{ asset('js/lightbox/lightbox.js') }}" defer></script>
@@ -395,7 +395,6 @@
                 container.classList.add('show-phone');
             });
         });
-
     </script>
 
 @endsection

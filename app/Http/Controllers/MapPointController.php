@@ -69,10 +69,8 @@ class MapPointController extends Controller
         $map = AddressSubj::where('subj_id', $subjId)->first();
 
         if ($map) {
-
             return view('map.edit', ['map' => $map]);
         } else {
-
             return redirect()->route('map.create', ['id' => $subjId]);
         }
     }
@@ -81,7 +79,7 @@ class MapPointController extends Controller
     public
     function addSubjectToMap(Request $request)
     {
-        $subjId = (int)$request->subj_id;
+        $subjId = (int) $request->subj_id;
         $subjBool = AddressSubj::where('subj_id', $subjId)->exists();
 
         if ($subjBool) {

@@ -22,6 +22,7 @@ class ImgObj extends Migration
                 ->references('id')->on('objs')
                 ->onDelete('cascade');
             $table->string('path');
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 
