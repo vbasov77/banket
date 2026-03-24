@@ -256,7 +256,6 @@
                                                     ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
                                             ];
                                         @endphp
-
                                         @foreach($sections as $section)
                                             <div class="col">
                                                 <div class="p-3 bg-light rounded h-100">
