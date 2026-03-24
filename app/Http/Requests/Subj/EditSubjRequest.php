@@ -29,7 +29,7 @@ class EditSubjRequest extends FormRequest
             'name_subj' => [
                 'required',
                 'string',
-                'max:255',
+                'max:20',
                 'regex:/^[\pL\s\d\pP]+$/u' // только буквы, цифры, пробелы и знаки препинания
             ],
             'minimum_cost' => [
@@ -60,7 +60,7 @@ class EditSubjRequest extends FormRequest
             'site_type.*' => [
                 'required',
                 'string',
-                'in:Ресторан,Кафе,Клуб,Лофт,Загородный дом,Банкетный зал,Терраса,Шатер,Яхта,Теплоход,База отдыха',
+                'in:База отдыха,Банкетный зал,Кафе,Коттедж,Ресторан,Клуб,Загородный дом,Шатёр,Лофт,Терраса,Яхта,Теплоход',
             ],
             'for_events.*' => [
                 'string',

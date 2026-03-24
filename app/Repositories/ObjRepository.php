@@ -128,7 +128,7 @@ class ObjRepository extends Repository
         $paginated = Obj::with([
             'detailsObj' => function ($q) {
                 $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
-                    'alcohol', 'payment_methods', 'text_obj');
+                    'alcohol', 'more', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj');
@@ -170,8 +170,8 @@ class ObjRepository extends Repository
                 'user_id' => $obj->user_id,
                 'name_obj' => $obj->name_obj,
                 'phone_obj' => $obj->phone_obj,
-                'for_events' => $obj->detailsObj->for_events,
                 'subjs_data' => $obj->subjs->toArray(),
+                'details_obj' => $obj->detailsObj->toArray(),
             ];
         });
 

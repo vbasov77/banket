@@ -3,11 +3,8 @@
 
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
+    <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <style>
-        .carousel {
-            height: 390px;
-        }
-
         /* Блок деталей */
 
         .one .carousel {
@@ -55,7 +52,6 @@
         }
 
         .restaurant-image {
-            width: 320px;
             height: 180px;
             overflow: hidden;
             background: #f8f9fa;
@@ -173,21 +169,33 @@
             }
         }
 
+
+    </style>
+
+    <style>
+        .details-title {
+            white-space: nowrap; /* Запрещаем перенос строк */
+            overflow: hidden; /* Скрываем выходящий за границы текст */
+            text-overflow: ellipsis; /* Добавляем многоточие в конце обрезанного текста */
+            width: 100%; /* Занимаем всю доступную ширину родителя */
+        }
     </style>
 
 
-
-    <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div style="margin-top: 60px" class="col-lg-11 col-md-11 col-sm-12">
                     @if(!empty($data) && count($data) > 0)
-                        @php($counter = 0)
-                        @php($countObj = count($data))
+                        @php
+                            $counter = 0;
+                            $countObj = count($data);
+                        @endphp
                         @for($i = 0; $i < $countObj; $i++)
-                            @php($countSubj = count($data[$i]['subjs_data']))
+                            @php
+                                $countSubj = count($data[$i]['subjs_data']);
+                            @endphp
                             @if($countSubj > 1)
                                 <div class="festival">
                                     <h3>{!! $data[$i]['name_obj'] !!}</h3>
@@ -195,14 +203,15 @@
                                         <div class="carousel">
                                             <div class="carousel-content">
                                                 @if(!empty($data[$i]['subjs_data']))
-                                                    @php($subjData = $data[$i]['subjs_data'])
+                                                    @php
+                                                        $subjData = $data[$i]['subjs_data'];
+                                                    @endphp
                                                     @for ($j = 0; $j < $countSubj; $j++)
-                                                        <div class="restaurant-card"
+                                                        <div class="col-lg-5 col-md-6 col-sm-12 restaurant-card"
                                                              style="display: block; margin-bottom: 10px">
                                                             <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">
                                                                 <div class="restaurant-image">
                                                                     <img src="{{$data[$i]['subjs_data'][$j]['path'] . '&cs=360x0'}}"
-
                                                                          alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
                                                                     <br>
                                                                 </div>
@@ -215,13 +224,13 @@
                                                                         <!-- Вместимость в одной строке -->
                                                                         <div class="detail">
                                                                             <span class="detail-label">Вместимость:</span>
-                                                                            <span class="detail-value">до {{ $data[$i]['subjs_data'][$j]['capacity_to'] }} чел.</span>
+                                                                            <span class="detail-value">до: {{ $data[$i]['subjs_data'][$j]['capacity_to'] }} чел.</span>
                                                                         </div>
 
                                                                         <!-- Цена в одной строке (уже правильно обёрнута) -->
                                                                         <div class="detail">
                                                                             <span class="detail-label">Цена:</span>
-                                                                            <span class="detail-value price">
+                                                                            <span class="detail-value price">от:
                     {{ number_format($data[$i]['subjs_data'][$j]['per_person'], 0, ' ', ' ') }} ₽
                 </span>
                                                                         </div>
@@ -241,6 +250,34 @@
                                             ❯
                                         </button>
                                     </div>
+                                    @if(!empty(count($data[$i]['details_obj']['for_events'])))
+                                        @php
+                                            $sections = [
+                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
+                                            ];
+                                        @endphp
+
+                                        @foreach($sections as $section)
+                                            <div class="col">
+                                                <div class="p-3 bg-light rounded h-100">
+
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <i style="font-size: 30px"
+                                                           class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                        @foreach($section['data'] as $item)
+                                                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+
+                                    @endif
+                                    <div class="bg-light p-4 rounded-10 shadow-sm">
+                                        <p class="lead text-muted" @style(['font-size: 18px'])>
+                                            {{ $data[$i]['details_obj']['text_obj'] }}
+                                        </p>
+                                    </div>
                                 </div>
                             @else
                                 @if($countSubj)
@@ -250,8 +287,10 @@
                                             <div class="carousel">
                                                 <div class="carousel-content">
                                                     @if(!empty($data[$i]['subjs_data']))
-                                                        @php($dataImg = $data[$i]['subjs_data'][0]['image_paths'])
-                                                        @php($countImg = count($dataImg))
+                                                        @php
+                                                            $dataImg = $data[$i]['subjs_data'][0]['image_paths'];
+                                                            $countImg = count($dataImg);
+                                                        @endphp
                                                         @for ($j = 0; $j < $countImg; $j++)
                                                             <div
                                                                     style="display: block; margin-bottom: 10px">
@@ -296,16 +335,44 @@
                                                     </div>
                                                 </section>
                                             </div>
-                                            <div style="vertical-align: middle"
-                                                 class="col-12 col-sm-3 col-md-5 col-lg-7">
-                                                <!-- position-relative + text-start -->
-                                                <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][0]['id']])}}"
+
+                                            <div class="col-12 col-sm-3 col-md-5 col-lg-7 d-flex align-items-center justify-content-center">
+                                                <a style="width: auto"
+                                                   href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][0]['id']])}}"
                                                    class="btn-festive-gradient btn-festive-gradient-green front-btn">
                                                     Подробнее
                                                 </a>
                                             </div>
                                         </div>
+                                        @if(!empty(count($data[$i]['details_obj']['for_events'])))
+                                            @php
+                                                $sections = [
+                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
+                                                ];
+                                            @endphp
 
+                                            @foreach($sections as $section)
+                                                <div class="col">
+                                                    <div class="p-3 bg-light rounded h-100">
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <i style="font-size: 30px"
+                                                               class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                            @foreach($section['data'] as $item)
+                                                                <span class="feature-badge bg-white border rounded px-2 py-1">
+{{ $item }}
+</span>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+
+                                        @endif
+                                        <div class="bg-light p-4 rounded-10 shadow-sm">
+                                            <p class="lead text-muted" @style(['font-size: 18px'])>
+                                                {{ $data[$i]['details_obj']['text_obj'] }}
+                                            </p>
+                                        </div>
                                     </div>
                                 @endif
                             @endif

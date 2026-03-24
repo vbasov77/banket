@@ -44,7 +44,7 @@
                                                 Азиатская
                                             </label>
                                             <label class="checkbox-container">
-                                                <input name="kitchen[]" class="kitchen" type="checkbox" value="Русская">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox" value="Европейская">
                                                 <span class="checkmark"></span>
                                                 Европейская
                                             </label>
