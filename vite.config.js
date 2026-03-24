@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import path from 'path'; // Добавляем эту строку
 
 export default defineConfig({
     plugins: [
@@ -12,8 +13,8 @@ export default defineConfig({
         }),
     ],
     server: {
-        host: '0.0.0.0', // Слушаем все интерфейсы
-        origin: 'http://new-bank.loc', // Ваш домен
+        host: '0.0.0.0',
+        origin: 'http://new-bank.loc',
         port: 5173,
         strictPort: true,
         hmr: {
@@ -22,8 +23,6 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            // Опциональная настройка для больших проектов
-            // Позволяет разделить код на чанки
             output: {
                 manualChunks: {
                     alpine: ['alpinejs'],
@@ -32,9 +31,9 @@ export default defineConfig({
         },
     },
     resolve: {
-        // Алиасы для удобства импорта
         alias: {
             '@': '/resources/js',
+            'bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
         },
     },
 });

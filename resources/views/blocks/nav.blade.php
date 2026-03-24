@@ -1,36 +1,41 @@
 <style>
-    /* Основной контейнер — сохраняем flex‑раскладку с переносом */
+    /* Основной контейнер — выравнивание элементов вправо */
     .horizontal-dropdowns {
-        display: flex;
+        display: inline-flex;
         flex-direction: row;
         flex-wrap: wrap;
-        justify-content: flex-start;
+        justify-content: flex-end; /* Выравнивание всех элементов по правому краю */
         align-items: flex-start;
         gap: 20px;
-        width: 100%;
+        margin-left: auto; /* Прижимаем контейнер вправо */
+        padding: 0;
+        box-sizing: border-box;
     }
 
     /* Контейнер для каждого выпадающего меню */
     .dropdown-container {
         position: relative;
         display: inline-block;
-        width: 100%; /* Занимает всю ширину родителя */
-        max-width: 100%; /* Не выходит за пределы контейнера */
+        max-width: 300px; /* Жёстко ограничиваем ширину контейнера */
+        min-width: 180px; /* Минимальная ширина для читаемости */
+        width: auto; /* Ширина определяется содержимым */
         box-sizing: border-box;
     }
 
-    /* Кнопка выпадающего меню — растягиваем на всю ширину */
+    /* Кнопка выпадающего меню — центрирование текста */
     .btn-festive-gradient {
         white-space: nowrap;
         border: none;
         font-weight: 500;
-        text-align: left; /* Текст слева */
-        padding: 12px 16px; /* Отступы для лучшей читаемости */
+        text-align: center; /* ЦЕНТР текста — основное изменение */
+        padding: 12px 16px;
         overflow: hidden;
-        text-overflow: ellipsis; /* Обрезаем длинный текст */
+        text-overflow: ellipsis;
+        width: 100%; /* Кнопка занимает всю ширину своего контейнера */
+        min-width: 0; /* Разрешаем сжиматься при переносе */
     }
 
-    /* Стили для выпадающего списка — ограничиваем ширину */
+    /* Стили для выпадающего списка */
     .dropdown-menu-custom {
         position: absolute;
         top: 100%;
@@ -41,34 +46,24 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         border: 1px solid #e0e0e0;
-        min-width: 100%; /* Ширина как у кнопки */
-        max-width: 100vw; /* Максимальная ширина — весь экран */
+        min-width: 100%;
+        max-width: 400px;
         margin-top: 4px;
-    }
-
-    /* Для мобильных устройств — дополнительные ограничения */
-    @media (max-width: 768px) {
-        .dropdown-menu-custom {
-            max-width: calc(100vw - 30px); /* Отступы от краёв экрана */
-            left: 0;
-            right: 0;
-            margin-left: auto;
-            margin-right: auto;
-        }
     }
 
     /* Показываем список при активном состоянии */
     .dropdown-container.show .dropdown-menu-custom {
         display: block;
     }
+
     /* Корректное выравнивание чекбоксов */
     .form-check-label {
         display: flex;
         align-items: center;
-        gap: 8px; /* Отступ между чекбоксом и текстом */
+        gap: 8px;
         padding: 8px 12px;
         cursor: pointer;
-        white-space: nowrap; /* Запрещаем перенос текста */
+        white-space: nowrap;
     }
 
     .form-check:hover {
@@ -78,7 +73,7 @@
     /* Стиль для чекбокса */
     .form-check input[type="checkbox"] {
         margin: 0;
-        flex-shrink: 0; /* Запрещаем сжатие */
+        flex-shrink: 0;
         width: 16px;
         height: 16px;
     }
@@ -91,7 +86,7 @@
         border: 1px solid #ced4da;
         border-radius: 4px;
         box-sizing: border-box;
-        margin-bottom: 8px; /* Отступ снизу */
+        margin-bottom: 8px;
     }
 
     /* Метка и подсказка */
@@ -115,21 +110,42 @@
         padding-bottom: 12px;
     }
 
-    /* Адаптация для очень маленьких экранов */
-    @media (max-width: 480px) {
+    /* Адаптация для мобильных устройств */
+    @media (max-width: 768px) {
         .horizontal-dropdowns {
+            justify-content: flex-end;
             gap: 15px;
+            margin-left: auto;
+        }
+
+        .dropdown-container {
+            max-width: 280px;
+            min-width: 160px;
         }
 
         .btn-festive-gradient {
             font-size: 14px;
             padding: 10px 14px;
+            text-align: center; /* Центрирование текста на мобильных */
+        }
+    }
+
+    /* Адаптация для очень маленьких экранов */
+    @media (max-width: 480px) {
+        .horizontal-dropdowns {
+            gap: 12px;
+            margin-left: auto;
         }
 
-        .dropdown-menu-custom {
-            max-width: calc(100vw - 20px);
-            left: 10px;
-            right: 10px;
+        .dropdown-container {
+            max-width: 240px;
+            min-width: 140px;
+        }
+
+        .btn-festive-gradient {
+            font-size: 13px;
+            padding: 9px 12px;
+            text-align: center; /* Центрирование текста на очень маленьких экранах */
         }
     }
 </style>

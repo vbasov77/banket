@@ -22,7 +22,7 @@
                         @endif
                         <input type="hidden" name="subj_id" value="{{$subj->id}}">
                         <label for="name_subj"><b>Название</b></label><br>
-                        <input type="text" class="form-control @error('name_subj') is-invalid @enderror"
+                        <input type="text" maxlength="20" class="form-control @error('name_subj') is-invalid @enderror"
                                name="name_subj"
                                value="{{$subj->name_subj ?? old('name_subj')}}"><br>
                         <br>
@@ -260,7 +260,6 @@
     </section>
 
     <script>
-
         let checkboxFeatures = document.getElementsByClassName('features');
         var checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxSiteType = document.getElementsByClassName('site_type');

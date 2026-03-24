@@ -33,7 +33,7 @@
                         @endif
                         <input type="hidden" name="obj_id" value="{{$objId}}">
                         <label for="name_subj"><b>Название</b></label><br>
-                        <input type="text" class="form-control @error('name_subj') is-invalid @enderror"
+                        <input type="text" maxlength="20" class="form-control @error('name_subj') is-invalid @enderror"
                                name="name_subj"
                                value="{{old('name_subj')}}"><br>
                         <br>
@@ -146,9 +146,9 @@
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"
-                                                   value="Шатер">
+                                                   value="Шатёр">
                                             <span class="checkmark"></span>
-                                            Шатер
+                                            Шатёр
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"
