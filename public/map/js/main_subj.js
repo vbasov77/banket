@@ -31,13 +31,12 @@ function setupMapClickHandler() {
     if (isFormComplete()) {
         map.on('click', function (e) {
             const latlng = e.latlng;
-            updateCurrentAddress();
+            updateCurrentAddress(); // Перегенерируем адрес с учётом района
             showAddressForm(latlng, address);
         });
     } else {
-        // Опционально: показываем подсказку
         map.on('click', function () {
-            alert('Сначала заполните город, улицу и номер дома');
+            alert('Сначала заполните город, район, улицу и номер дома.');
         });
     }
 }
@@ -60,12 +59,15 @@ async function showAddressForm(latlng, address) {
     // Генерируем HTML формы с подставленными координатами и реальным адресом
     const formHTML = `<form id="popupForm">
         <input type="hidden" name="_token" value="${window.csrfToken}">
-        <input type="hidden" name="address" value="${address}">
+        <input type="hidden" name="city" value="${selectedCityId}">
+        <input type="hidden" name="district" value="${selectedDistrictId}">
+        <input type="hidden" name="street" value="${selectedStreet}">
+        <input type="hidden" name="houseNumber" value="${houseNumberInput.value}">
         <input type="hidden" name="latitude" value="${latlng.lat.toFixed(6)}">
         <input type="hidden" name="longitude" value="${latlng.lng.toFixed(6)}">
         <input type="hidden" name="subj_id" value="${window.subjId}">
-        <span><b>${window.nameSubj}</b></span><br>
-        <span>Мы здесь 🙂</span><br>
+        <span><b>${window.nameSubj}</b></span><br><br>
+        <span>Мы здесь 🙂</span><br><br>
         <button type="submit" class="btn btn-sm btn-success">Сохранить</button>
     </form>`;
 
@@ -88,11 +90,14 @@ async function handleFormSubmit(e) {
         return;
     }
 
-    const addressField = form.querySelector('[name="address"]');
+    const cityField = form.querySelector('[name="city"]');
+    const districtField = form.querySelector('[name="district"]');
+    const streetField = form.querySelector('[name="street"]');
+    const houseNumberField = form.querySelector('[name="houseNumber"]');
     const latitude = form.querySelector('[name="latitude"]').value;
     const longitude = form.querySelector('[name="longitude"]').value;
 
-    if (!addressField.value || !latitude || !longitude) {
+    if (!cityField.value || !districtField || !streetField || !houseNumberField ||  !latitude || !longitude) {
         alert('Недостаточно данных для сохранения метки.');
         return;
     }
@@ -120,7 +125,7 @@ async function handleFormSubmit(e) {
             // Добавляем маркер на карту
             L.marker([latitude, longitude])
                 .addTo(map)
-                .bindPopup(`<b>Точка добавлена</b><br>${addressField.value}`);
+                .bindPopup(`<b>Точка добавлена</b><br>`);
             alert('Точка успешно сохранена!');
             window.location.href = `${window.myObjUrl}`;
         }
@@ -141,6 +146,7 @@ async function geocodeAddress() {
 
     try {
         // Используем Nominatim для геокодирования
+        console.log(address);
         const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
         const data = await response.json();
 

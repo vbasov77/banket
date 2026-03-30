@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\AddressSubj;
+use App\Models\City;
+use App\Models\District;
 use App\Models\GroupAddressObj;
 use App\Models\MapPoint;
 use App\Models\Subj;
@@ -28,116 +30,50 @@ class AddressSubjController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('q');
-
-        // Валидация входных данных
-        if (!$query || strlen($query) < 2) {
-            return response()->json(['error' => 'Запрос слишком короткий'], 400);
-        }
+//
+//        // Валидация входных данных
+//        if (!$query || strlen($query) < 2) {
+//            return response()->json(['error' => 'Запрос слишком короткий'], 400);
+//        }
 
         try {
-            $response = Http::timeout(15)
-                ->withHeaders([
-                    'User-Agent' => 'MyCitySearchApp/1.0 (0120912@mail.ru)',
-                    'Accept' => 'application/json'
-                ])
-                ->get('https://nominatim.openstreetmap.org/search', [
-                    'q' => $query,
-                    'countrycodes' => 'RU',
-                    'format' => 'json',
-                    'addressdetails' => '1',
-                    'limit' => 10,
-                    'featuretype' => 'city,town,village' // Ограничиваем типы объектов
-                ]);
-
-            if (!$response->successful()) {
-                Log::error('Nominatim API error: ' . $response->status());
-                return response()->json(['error' => 'API временно недоступно'], 503);
-            }
-
-            $data = $response->json();
-            $cities = [];
-            $processedNames = [];
-
-            // Приоритет типов: город > посёлок > деревня > прочее
-            $typePriority = [
-                'city' => 1,
-                'town' => 2,
-                'village' => 3,
-            ];
-
-            foreach ($data as $place) {
-                $cityName = $this->extractCityName($place);
-                if (!$cityName) continue;
-
-                $currentType = $place['type'] ?? 'other';
-                $currentPriority = $typePriority[$currentType] ?? 99;
-
-                if (!isset($processedNames[$cityName])) {
-                    // Первый встреченный вариант для этого названия
-                    $processedNames[$cityName] = $currentPriority;
-                    $cities[] = [
-                        'name' => $cityName,
-                        'lat' => $place['lat'],
-                        'lon' => $place['lon'],
-                        'type' => $currentType
+            // Поиск городов в локальной базе данных
+            $cities = City::select('id', 'name')
+                ->where('name', 'like', '%' . $query . '%') // регистронезависимый поиск
+                // Альтернатива для MySQL: ->where('name', 'like', '%' . $query . '%')
+                ->orderBy('name') // сортировка по названию
+                ->limit(10) // ограничение количества результатов
+                ->get()
+                ->map(function ($city) {
+                    return [
+                        'id' => $city->id,
+                        'name' => $city->name,
                     ];
-                } elseif ($processedNames[$cityName] > $currentPriority) {
-                    // Заменяем на вариант с более высоким приоритетом
-                    $index = array_search($cityName, array_column($cities, 'name'));
-                    if ($index !== false) {
-                        $cities[$index] = [
-                            'name' => $cityName,
-                            'lat' => $place['lat'],
-                            'lon' => $place['lon'],
-                            'type' => $currentType
-                        ];
-                        $processedNames[$cityName] = $currentPriority;
-                    }
-                }
-            }
+                });
 
-            // Удаляем поле 'type' из итогового ответа (не нужно фронтенду)
-            foreach ($cities as &$city) {
-                unset($city['type']);
+            if ($cities->isEmpty()) {
+                return response()->json(['error' => 'Города не найдены'], 404);
             }
 
             return response()->json($cities);
 
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('Connection error to Nominatim: ' . $e->getMessage());
-            return response()->json(['error' => 'Проблема с подключением к сервису'], 503);
         } catch (\Exception $e) {
-            Log::error('Server error: ' . $e->getMessage());
+            Log::error('Local city search error: ' . $e->getMessage());
             return response()->json(['error' => 'Внутренняя ошибка сервера'], 500);
         }
     }
 
-    private function extractCityName($place)
+    // Вспомогательный метод для извлечения названия города из данных Nominatim
+    // (оставляем на случай, если понадобится вернуть API-поиск в будущем)
+    private function extractCityName(array $place): ?string
     {
-        $address = $place['address'] ?? [];
-
-        // Проверяем, что это действительно город/посёлок
-        if (isset($address['city'])) {
-            return $address['city'];
-        } elseif (isset($address['town'])) {
-            return $address['town'];
-        } elseif (isset($address['village'])) {
-            return $address['village'];
-        } else {
-            // Исключаем станции, улицы и т. д.
-            $excludeKeywords = ['station', 'street', 'area', 'district', 'railway', 'square'];
-            $displayName = $place['display_name'] ?? '';
-
-            foreach ($excludeKeywords as $keyword) {
-                if (stripos($displayName, $keyword) !== false) {
-                    return null; // Не считаем это городом
-                }
-            }
-
-            $parts = explode(',', $displayName);
-            return trim($parts[0]) ?? null;
-        }
+        // Логика извлечения названия города
+        return $place['address']['city'] ??
+            $place['address']['town'] ??
+            $place['address']['village'] ??
+            null;
     }
+
 
     public function searchStreets(Request $request)
     {
@@ -195,6 +131,79 @@ class AddressSubjController extends Controller
             return response()->json(['error' => 'Внутренняя ошибка сервера'], 500);
         }
     }
+
+    public function searchDistricts(Request $request)
+    {
+        $cityId = $request->input('city_data_city_id');
+        $query = $request->input('q');
+
+        // Валидация
+        if (!$query || strlen($query) < 2) {
+            return response()->json(['error' => 'Запрос обязателен, минимум 2 символа'], 400);
+        }
+
+        try {
+            $districts = District::select('id', 'name')
+                ->where('city_id', $cityId)
+                ->where('name', 'like', '%' . $query . '%') // регистронезависимый поиск
+                // Альтернатива для MySQL: ->where('name', 'like', '%' . $query . '%')
+                ->orderBy('name') // сортировка по названию
+                ->limit(10) // ограничение количества результатов
+                ->get()
+                ->map(function ($city) {
+                    return [
+                        'id' => $city->id,
+                        'name' => $city->name,
+                    ];
+                });
+
+            if ($districts->isEmpty()) {
+                return response()->json(['error' => 'Города не найдены'], 404);
+            }
+
+            return response()->json($districts);
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Connection error to Nominatim for districts: ' . $e->getMessage());
+            return response()->json(['error' => 'Проблема с подключением к сервису'], 503);
+        } catch (\Exception $e) {
+            Log::error('Server error for districts: ' . $e->getMessage());
+            return response()->json(['error' => 'Внутренняя ошибка сервера'], 500);
+        }
+    }
+
+    /**
+     * Извлекает название района из данных Nominatim
+     * @param array $place Данные места от Nominatim
+     * @return string|null Название района или null, если не найдено
+     */
+    private function extractDistrictName(array $place): ?string
+    {
+        // Пробуем разные варианты расположения информации о районе
+        $address = $place['address'] ?? [];
+
+        // Основные ключи для поиска района
+        $possibleKeys = [
+            'suburb',      // пригород, район
+            'district',   // административный район
+            'quarter',   // квартал/район
+            'neighbourhood' // район/окрестность
+        ];
+
+        foreach ($possibleKeys as $key) {
+            if (!empty($address[$key])) {
+                return $address[$key];
+            }
+        }
+
+        // Если не нашли в address, проверяем extratags
+        if (!empty($place['extratags']['district'])) {
+            return $place['extratags']['district'];
+        }
+
+        return null;
+    }
+
 
     private function extractStreetName($place)
     {

@@ -17,6 +17,8 @@ class GroupAddressObj extends Model
 
     // Поля, доступные для массового заполнения
     protected $fillable = [
+        'city',
+        'district',
         'address',
         'latitude',
         'longitude',

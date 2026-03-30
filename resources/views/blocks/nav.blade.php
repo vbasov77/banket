@@ -695,6 +695,8 @@
                 }
             }
 
+            console.log(isFormEmpty);
+            return;
             // Если форма пустая, отменяем отправку и показываем сообщение
             if (isFormEmpty) {
                 event.preventDefault(); // Отменяем отправку формы

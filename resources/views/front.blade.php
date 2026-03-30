@@ -11,7 +11,6 @@
             height: auto;
         }
 
-
         .front-btn {
             float: right;
             position: relative;
@@ -39,7 +38,7 @@
 
         .restaurant-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 13px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             overflow: clip;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -165,7 +164,7 @@
             }
 
             .restaurant-card {
-                margin-bottom: 16px;
+                margin-bottom: 14px;
             }
         }
 

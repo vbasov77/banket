@@ -14,6 +14,8 @@ class AddressSubj extends Model
     protected $fillable = [
         'subj_id',
         'group_id',
+        'city',
+        'district',
         'address',
         'longitude',
         'latitude',

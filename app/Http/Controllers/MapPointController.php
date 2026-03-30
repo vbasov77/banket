@@ -87,7 +87,9 @@ class MapPointController extends Controller
         }
 
         $newSubject = [
-            'address' => $request->address,
+            'city' => (int) $request->city,
+            'district' => (int) $request->district,
+            'address' => $request->street . "; " . $request->houseNumber,
             'latitude' => $request->latitude,
             'longitude' => $request->longitude,
             'subj_id' => $subjId,
@@ -114,6 +116,8 @@ class MapPointController extends Controller
         if ($assignedGroup) {
             // Добавляем субъекта в существующую группу
             AddressSubj::create([
+                'city' => $newSubject['city'],
+                'district' => $newSubject['district'],
                 'address' => $newSubject['address'],
                 'latitude' => $assignedGroup->latitude, // используем центральные координаты группы
                 'longitude' => $assignedGroup->longitude,
@@ -123,6 +127,8 @@ class MapPointController extends Controller
         } else {
             // Создаём новую группу для этого субъекта
             $newGroup = GroupAddressObj::create([
+                'city' => $newSubject['city'],
+                'district' => $newSubject['district'],
                 'address' => $newSubject['address'],
                 'latitude' => $newSubject['latitude'],
                 'longitude' => $newSubject['longitude'],
@@ -130,6 +136,8 @@ class MapPointController extends Controller
             ]);
 
             AddressSubj::create([
+                'city' => $newSubject['city'],
+                'district' => $newSubject['district'],
                 'address' => $newSubject['address'],
                 'latitude' => $newSubject['latitude'],
                 'longitude' => $newSubject['longitude'],

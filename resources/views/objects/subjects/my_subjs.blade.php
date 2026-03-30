@@ -19,7 +19,7 @@
 
         .restaurant-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 14px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             overflow: hidden;
             transition: transform 0.3s ease, box-shadow 0.3s ease;

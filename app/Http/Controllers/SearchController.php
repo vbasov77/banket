@@ -18,7 +18,6 @@ class SearchController extends Controller
     public function search(Request $request)
     {
         $this->destroySession();
-
         $filters = $request->validate([
             'for_events' => 'nullable|string', // теперь строка, а не массив
             'district' => 'nullable|array',
@@ -31,12 +30,11 @@ class SearchController extends Controller
         session()->put('selected_filters', $filters);
 
         return $this->searchResults($request);
-
     }
+
 
     public function clearFilters(Request $request)
     {
-
         $isCleared = $this->destroySession();
 
         return response()->json([
@@ -51,7 +49,6 @@ class SearchController extends Controller
             ]
         ]);
     }
-
 
     public function searchResults(Request $request)
     {
