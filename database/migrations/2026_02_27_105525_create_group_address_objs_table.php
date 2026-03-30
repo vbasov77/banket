@@ -13,6 +13,8 @@ return new class extends Migration
     {
         Schema::create('group_address_objs', function (Blueprint $table) {
             $table->id();
+            $table->integer('city');
+            $table->integer('district');
             $table->string('address', 255)->nullable(false);
             $table->decimal('latitude', 10, 8)->nullable(false); // до 8 знаков после запятой
             $table->decimal('longitude', 11, 8)->nullable(false); // до 8 знаков после запятой

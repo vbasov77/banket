@@ -15,6 +15,7 @@ use App\Http\Controllers\MapPointController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AddressSubjController;
 use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\CityDistrictController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +27,10 @@ use App\Http\Controllers\FavoriteController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+
+Route::get('/city-district', [CityDistrictController::class, 'create'])->name('city-district.create');
+Route::post('/city-district', [CityDistrictController::class, 'store'])->name('city-district.store');
 
 Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
 Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
@@ -64,6 +69,7 @@ Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.pu
 Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
 Route::post('/api/save-address', [AddressSubjController::class, 'saveAddress']);
+Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
 Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
 Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('auth');

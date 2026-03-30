@@ -122,7 +122,7 @@ class SearchRepository extends Repository
         $query = Obj::with([
             'detailsObj' => function ($q) {
                 $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
-                    'alcohol', 'payment_methods', 'text_obj');
+                    'alcohol', 'more', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) {
                 $query->select(
@@ -210,6 +210,7 @@ class SearchRepository extends Repository
                 'phone_obj' => $obj->phone_obj,
                 'for_events' => $obj->detailsObj ? $obj->detailsObj->for_events : null,
                 'subjs_data' => $subjsData,
+                'details_obj' => $obj->detailsObj->toArray(),
             ];
         })->toArray();
 

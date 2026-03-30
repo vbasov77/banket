@@ -1,9 +1,14 @@
 let selectedCity = '';
+let selectedCityId = '';
+let selectedDistrictId = '';
 let selectedStreet = '';
 let selectedCoordinates = {};
 let address = null;
+let selectedDistrict = '';
 
 const cityInput = document.getElementById('city');
+const districtInput = document.getElementById('district');
+const districtSuggestions = document.getElementById('district-suggestions');
 const streetInput = document.getElementById('street');
 const houseNumberInput = document.getElementById('house-number');
 const saveButton = document.getElementById('save-address');
@@ -40,10 +45,8 @@ function showSuggestions(suggestionsList, data) {
     data.forEach((item, index) => {
         const li = document.createElement('li');
         li.textContent = item.name;
-        li.dataset.lat = item.lat;
-        li.dataset.lon = item.lon;
+        li.dataset.id = item.id;
         li.dataset.index = index; // добавляем индекс для навигации
-
         li.addEventListener('click', () => {
             selectSuggestion(item, suggestionsList);
         });
@@ -96,6 +99,44 @@ cityInput.addEventListener('input', debounce(async (e) => {
 
 }, 300));
 
+// Обработчик для района
+districtInput.addEventListener('input', debounce(async (e) => {
+    const query = e.target.value;
+
+    if (!selectedCity || query.length < 2) {
+        districtSuggestions.innerHTML = '';
+        districtSuggestions.classList.remove('visible');
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `/api/districts?city_data_city_id=${encodeURIComponent(selectedCityId)}&q=${encodeURIComponent(query)}`
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Expected JSON, but got:', text.substring(0, 200));
+            throw new Error('Invalid response format: expected JSON');
+        }
+
+        const districts = await response.json();
+        console.log(districts);
+        showSuggestions(districtSuggestions, districts);
+        setupMapClickHandler();
+    } catch (error) {
+        console.error('Error fetching districts:', error);
+        districtSuggestions.innerHTML = '<li class="error">Ошибка загрузки районов</li>';
+        districtSuggestions.classList.add('visible');
+    }
+}, 300));
+
+
 // Обработчик для улицы
 streetInput.addEventListener('input', debounce(async (e) => {
     const query = e.target.value;
@@ -145,10 +186,21 @@ houseNumberInput.addEventListener('input', () => {
 function selectSuggestion(item, suggestionsList) {
     if (suggestionsList === citySuggestions) {
         cityInput.value = item.name;
+        cityInput.dataset.cityId = item.id;
         selectedCity = item.name;
-        streetInput.disabled = false;
+        selectedCityId = item.id;
+        districtInput.disabled = false;
+        streetInput.disabled = true;
         houseNumberInput.disabled = true;
         saveButton.disabled = true;
+        districtInput.focus();
+        // selectedCoordinates = {lat: item.lat, lon: item.lon};
+
+    } else if (suggestionsList === districtSuggestions) {
+        districtInput.value = item.name;
+        selectedDistrict = item.name;
+        selectedDistrictId = item.id;
+        streetInput.disabled = false;
         streetInput.focus();
         selectedCoordinates = {lat: item.lat, lon: item.lon};
 
@@ -173,6 +225,7 @@ function updateCurrentAddress() {
 
 function isFormComplete() {
     return !!selectedCity &&
+        !!selectedDistrict &&
         !!selectedStreet &&
         !!houseNumberInput.value &&
         houseNumberInput.value.trim() !== '';
@@ -238,6 +291,33 @@ function highlightPreviousStreetItem() {
     scrollToHighlighted(items[currentHighlightedIndex]);
 }
 
+function highlightNextDistrictItem() {
+    const items = districtSuggestions.querySelectorAll('li');
+    if (items.length === 0) return;
+
+    if (currentHighlightedIndex >= 0) {
+        items[currentHighlightedIndex].classList.remove('highlighted');
+    }
+
+    currentHighlightedIndex = (currentHighlightedIndex + 1) % items.length;
+    items[currentHighlightedIndex].classList.add('highlighted');
+    scrollToHighlighted(items[currentHighlightedIndex]);
+}
+
+function highlightPreviousDistrictItem() {
+    const items = districtSuggestions.querySelectorAll('li');
+    if (items.length === 0) return;
+
+    if (currentHighlightedIndex >= 0) {
+        items[currentHighlightedIndex].classList.remove('highlighted');
+    }
+
+    currentHighlightedIndex = currentHighlightedIndex <= 0 ? items.length - 1 : currentHighlightedIndex - 1;
+    items[currentHighlightedIndex].classList.add('highlighted');
+    scrollToHighlighted(items[currentHighlightedIndex]);
+}
+
+
 function scrollToHighlighted(element) {
     element.scrollIntoView({
         block: 'nearest',
@@ -273,6 +353,34 @@ cityInput.addEventListener('keydown', (e) => {
     }
 
 });
+
+districtInput.addEventListener('keydown', (e) => {
+    const suggestionsVisible = districtSuggestions.classList.contains('visible');
+
+    if (!suggestionsVisible) return;
+
+    switch (e.key) {
+        case 'ArrowDown':
+            e.preventDefault();
+            highlightNextDistrictItem();
+            break;
+        case 'ArrowUp':
+            e.preventDefault();
+            highlightPreviousDistrictItem();
+            break;
+        case 'Enter':
+            e.preventDefault();
+            if (currentHighlightedIndex !== -1 && suggestionsData[currentHighlightedIndex]) {
+                selectSuggestion(suggestionsData[currentHighlightedIndex], districtSuggestions);
+            }
+            break;
+        case 'Escape':
+            districtSuggestions.classList.remove('visible');
+            currentHighlightedIndex = -1;
+            break;
+    }
+});
+
 
 streetInput.addEventListener('keydown', (e) => {
     const suggestionsVisible = streetSuggestions.classList.contains('visible');

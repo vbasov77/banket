@@ -81,10 +81,7 @@ class ObjRepository extends Repository
         return Obj::where('user_id', Auth::user()->id)->first();
     }
 
-    /**
-     * @param int $userId
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection|\Illuminate\Support\Collection
-     */
+
     public function findMyObj(int $userId)
     {
         return Obj::with([

@@ -15,18 +15,25 @@
                     <div class="mb-2">
                         <div class="form-group">
                             <label for="city">Город:</label>
-                            <input type="text" id="city" name="city" autocomplete="false" class="form-control"
+                            <input type="text" data-city-id="" id="city" name="city" autocomplete="false" class="form-control"
                                    placeholder="Начните вводить город">
                             <div id="city-suggestions" class="suggestions-list"></div>
                         </div>
-                        <br>
+
+                        <div class="form-group">
+                            <label for="district">Район:</label>
+                            <input autocomplete="false" type="text" id="district" name="district" class="form-control"
+                                   placeholder="Начните вводить район" disabled>
+                            <div id="district-suggestions" class="suggestions-list"></div>
+                        </div>
+
                         <div class="form-group">
                             <label for="street">Улица:</label>
                             <input autocomplete="false" type="text" id="street" name="street" class="form-control"
                                    placeholder="Начните вводить улицу" disabled>
                             <div id="street-suggestions" class="suggestions-list"></div>
                         </div>
-                        <br>
+
                         <div class="form-group">
                             <label for="house-number">Номер дома:</label>
                             <input autocomplete="false" type="text" id="house-number" name="house_number"
@@ -34,7 +41,7 @@
                                    placeholder="Введите номер дома"
                                    disabled>
                         </div>
-                        <br>
+
                     </div>
 
                     <button type="button" id="save-address" class="btn btn-outline-secondary btn-sm mb-2"
@@ -42,8 +49,6 @@
                         на карте
                     </button>
                 </form>
-
-                <p class="text-muted mt-2">Кликните на карте для быстрого добавления точки</p>
             </div>
         </div>
     </div>

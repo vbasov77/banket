@@ -199,7 +199,7 @@
     background: #ffffff; /* Чистый белый фон */
     border-radius: 14px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Лёгкая тень */
-    padding: 16px 20px;
+    padding: 25px 35px;
     margin-bottom: 24px;
     border: 1px solid #eaeaea; /* Светло-серая граница */
     transition: all 0.3s ease;
