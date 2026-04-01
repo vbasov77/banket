@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\AddressSubjController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\CityDistrictController;
+use App\Http\Controllers\CityController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,6 +30,9 @@ use App\Http\Controllers\CityDistrictController;
 */
 
 
+Route::get('/get-cities', [CityController::class, 'getCities'])->name('get-cities');
+Route::post('/set-city', [CityController::class, 'setCity'])->name('set-city')->middleware('web');;
+Route::get('/api/districts-by-city', [CityController::class, 'getDistrictsByCity'])->name('api.districts.by.city');
 Route::get('/city-district', [CityDistrictController::class, 'create'])->name('city-district.create');
 Route::post('/city-district', [CityDistrictController::class, 'store'])->name('city-district.store');
 
@@ -102,9 +106,6 @@ Route::get('/test', [TestController::class, 'test'])->name("test");
 Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities");
 Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');
-
-Route::get('/home', 'HomeController@index')->middleware(['auth', 'verified'])->name('home');
-
 
 Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth');
 Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth');

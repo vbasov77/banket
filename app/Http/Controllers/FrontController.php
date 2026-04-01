@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 
 use App\Services\ObjService;
+use Illuminate\Http\Request;
 
 
 class FrontController extends Controller
@@ -20,10 +21,9 @@ class FrontController extends Controller
         $this->objService = new ObjService();
     }
 
-    public function show()
+    public function show(Request $request)
     {
         $data = $this->objService->findObjsWithDetails();
-
         return view('front', ['data' => $data]);
     }
 
