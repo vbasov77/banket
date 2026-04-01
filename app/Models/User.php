@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -53,19 +55,36 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->id == $userId;
     }
 
-    public function myObjId()
+    /**
+     * @return mixed
+     */
+    public function myObjId(): mixed
     {
-       return Obj::where('user_id', $this->id)->value('id');
+        return Obj::where('user_id', $this->id)->value('id');
     }
 
-    public function favorites()
+    /**
+     * @return HasMany
+     */
+    public function favorites(): HasMany
     {
         return $this->hasMany(FavoriteSubj::class);
     }
 
-    public function favoriteRestaurants()
+    /**
+     * @return BelongsToMany
+     */
+    public function favoriteRestaurants(): BelongsToMany
     {
         return $this->belongsToMany(Subj::class, 'favorites_subj');
+    }
+
+    /**
+     * @return BelongsToMany
+     */
+    public function city(): BelongsToMany
+    {
+        return $this->belongsToMany(City::class, 'user_city');
     }
 
 }

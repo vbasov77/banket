@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Obj\EditObjRequest;
 use App\Http\Requests\Subj\CreateSubjRequest;
 use App\Http\Requests\Subj\EditSubjRequest;
+use App\Models\City;
 use App\Models\ImgObj;
 use App\Models\ImgSubj;
 use App\Models\Obj;
 use App\Models\Subj;
+use App\Models\UserCity;
 use App\Services\DetailsObjService;
 use App\Services\ImgObjService;
 use App\Services\ImgSubjService;
@@ -80,8 +82,9 @@ class SubjController extends Controller
         ]);
     }
 
-    public function myObj(): View
+    public function myObj(Request $request): View
     {
+
         $objId = $this->objService->findIdObjByUserId(Auth::user()->id);
         $data = null;
 

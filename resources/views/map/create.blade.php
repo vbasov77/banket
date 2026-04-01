@@ -2,6 +2,7 @@
 @section('content')
     @push('styles')
         <link href="{{ asset('subjs/css/search_address.css') }}" rel="stylesheet">
+        <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
     @endpush
     <div class="container mt-4">
         <div class="row">
@@ -63,7 +64,7 @@
         window.myObjUrl = "{{ route('my.obj') }}";
 
     </script>
-    <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
+
     <script src="{{asset('map/leaflet/js/leaflet.js')}}" defer></script>
     <script src="{{asset('map/js/search_address_subj.js')}}" defer></script>
     <script src="{{asset('map/js/main_subj.js')}}" defer></script>

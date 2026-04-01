@@ -62,8 +62,9 @@ class Subj extends Model
 
     public function groupAddressObj()
     {
-        return $this->hasOne(GroupAddressObj::class, 'subj_id');
+        return $this->hasOne(GroupAddressObj::class, 'subj_id', 'id');
     }
+
 
     public function favoritedByUsers()
     {

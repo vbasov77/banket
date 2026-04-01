@@ -3,6 +3,40 @@
         text-decoration: none;
     }
 </style>
+
+<style>
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+    }
+
+    .modal.hidden {
+        display: none;
+    }
+
+    .modal-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .city-selector {
+        margin-left: 10px;
+    }
+</style>
+
 <nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,7 +47,13 @@
                     <a href="{{ route('front') }}">
                         <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
                     </a>
+                    <div class="city-selector">
+                        <button type="button" id="openCityModal" class="city-btn">
+                            {{ session('user_city', "Санкт-Петербург")}}
+                        </button>
+                    </div>
                 </div>
+                <!-- Кнопка для открытия модального окна -->
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
@@ -31,7 +71,6 @@
                         <x-slot name="trigger">
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                                 <div>{{ Auth::user()->name }}</div>
-
                                 <div class="ms-1">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
                                          viewBox="0 0 20 20">
@@ -133,3 +172,109 @@
         @endif
     </div>
 </nav>
+
+<!-- Модальное окно -->
+<!-- Модальное окно (вне навигации) -->
+<div id="cityModal" class="modal hidden">
+    <div class="modal-overlay" onclick="closeCityModal()"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Выберите город</h3>
+            <button type="button" class="close-btn" onclick="closeCityModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="cities-list" id="citiesList">
+                <div class="loading">Загрузка городов...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const cityModalData = {
+        getCitiesUrl: '{{ route("get-cities") }}',
+        setCityUrl: '{{ route("set-city") }}',
+        csrfToken: document.querySelector('meta[name="csrf-token"]').content
+    };
+
+    function openCityModal() {
+        const modal = document.getElementById('cityModal');
+        if (modal) {
+            modal.style.display = 'block'; // Гарантированно показываем
+            loadCities();
+        }
+    }
+
+    function closeCityModal() {
+        const modal = document.getElementById('cityModal');
+        if (modal) {
+            modal.style.display = 'none'; // Гарантированно скрываем
+        }
+    }
+
+    function loadCities() {
+        const citiesList = document.getElementById('citiesList');
+        citiesList.innerHTML = '<div class="loading">Загрузка городов...</div>';
+
+        fetch(cityModalData.getCitiesUrl)
+            .then(response => response.json())
+            .then(data => renderCities(data.cities));
+    }
+
+    function renderCities(cities) {
+        const currentCity = '{{ session("city", "Санкт-Петербург") }}';
+        const citiesList = document.getElementById('citiesList');
+
+        citiesList.innerHTML = cities.map(city => `
+            <div class="city-item ${city.name === currentCity ? 'selected' : ''}"
+                data-city-id="${city.id}"
+                data-city-name="${city.name}">
+                ${city.name}
+            </div>`
+        ).join('');
+
+        citiesList.addEventListener('click', handleCityClick);
+    }
+
+    function handleCityClick(event) {
+        const cityItem = event.target.closest('.city-item');
+        if (cityItem) {
+            selectCity(cityItem.dataset.cityId, cityItem.dataset.cityName);
+        }
+    }
+
+    function selectCity(cityId, cityName) {
+        fetch(cityModalData.setCityUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': cityModalData.csrfToken
+            },
+            body: JSON.stringify({
+                city: cityName,
+                city_id: cityId
+            })
+        })
+            .then(() => {
+                document.querySelector('.city-btn').innerHTML = `${cityName}`;
+                closeCityModal();
+                window.location.href = '/';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const openButton = document.getElementById('openCityModal');
+        if (openButton) {
+            openButton.addEventListener('click', openCityModal);
+        }
+
+        document.addEventListener('click', event => {
+            const modal = document.getElementById('cityModal');
+            const openButton = document.getElementById('openCityModal');
+            if (modal && !modal.contains(event.target) && openButton !== event.target) {
+                closeCityModal();
+            }
+        });
+    });
+</script>
