@@ -44,6 +44,8 @@ class SubjRepository extends Repository
     s.features,
     s.text_subj,
     s.published,
+    gao.latitude,
+    gao.longitude,    
     CASE
         WHEN asub.subj_id IS NOT NULL THEN TRUE
         WHEN aobj.obj_id IS NOT NULL THEN TRUE
@@ -107,6 +109,7 @@ LEFT JOIN objs o ON s.obj_id = o.id
 LEFT JOIN details_obj do ON o.id = do.obj_id
 LEFT JOIN address_subjs asub ON s.id = asub.subj_id
 LEFT JOIN address_objs aobj ON o.id = aobj.obj_id
+LEFT JOIN group_address_objs gao ON o.id = gao.obj_id
 WHERE s.id = ?  -- ID ресторана
 LIMIT 1;";
             $userId = Auth::id();
@@ -136,6 +139,8 @@ LIMIT 1;";
                 'image_paths' => $this->parseJsonArray($result->image_paths_json),
                 'related_subjs' => $this->parseJsonArray($result->related_subjs_json),
                 'is_favorite' => $result->is_favorite,
+                'latitude' => $result->latitude,
+                'longitude' => $result->longitude,
             ];
         } catch (QueryException $e) {
             throw $e;
@@ -195,7 +200,7 @@ LIMIT 1;";
         // 1. Получаем obj и subjs БЕЗ фото
         $obj = Obj::with([
             'detailsObj:*',
-            'subjsAll' => function ($query) {
+            'subjects' => function ($query) {
                 $query->select([
                     'id', 'obj_id', 'name_subj',
                     'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'text_subj', 'published', 'features'
@@ -213,7 +218,7 @@ LIMIT 1;";
         }
 
         // 2. Вручную загружаем primaryImg для КАЖДОГО subj
-        foreach ($obj->subjsAll as $subj) {
+        foreach ($obj->subjects as $subj) {
             $subj->primaryImg = $subj->primaryImg() // используем отношение
             ->select(['subj_id', 'path', 'position']) // явно указываем поля
             ->first(); // получаем одно фото

@@ -362,6 +362,8 @@
                             </div>
                         @endif
                     @endauth
+
+                    @include('blocks.card_subj')
                 </section>
             </div>
         </div>

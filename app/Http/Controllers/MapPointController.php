@@ -11,6 +11,7 @@ use App\Services\SubjService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use function Symfony\Component\Translation\t;
 
 class MapPointController extends Controller
@@ -76,77 +77,99 @@ class MapPointController extends Controller
     }
 
 
-    public
-    function addSubjectToMap(Request $request)
+    public function addSubjectToMap(Request $request)
     {
-        $subjId = (int) $request->subj_id;
-        $subjBool = AddressSubj::where('subj_id', $subjId)->exists();
+        // Валидация входных данных
+        $validated = $request->validate([
+            'city_id' => 'required|exists:cities,id',
+            'district_id' => 'required|exists:districts,id',
+            'street' => 'required|string|max:255',
+            'houseNumber' => 'required|string|max:50',
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+            'subj_id' => 'required|integer|exists:subjs,id',
+            'obj_id' => 'required|integer'
+        ]);
 
-        if ($subjBool) {
-            return response()->json(['success' => false, 'message' => 'Адрес уже существует']);
+        $subjId = (int)$validated['subj_id'];
+        $objId = (int)$validated['obj_id']; // Получаем ID объекта
+
+        // Проверяем, не существует ли уже адрес для этого субъекта
+        if (AddressSubj::where('subj_id', $subjId)->exists()) {
+            return response()->json(['success' => false, 'message' => 'Address already exists']);
         }
 
-        $newSubject = [
-            'city' => (int) $request->city,
-            'district' => (int) $request->district,
-            'address' => $request->street . "; " . $request->houseNumber,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'subj_id' => $subjId,
-        ];
+        DB::beginTransaction();
 
-        // ИЩЕМ ГРУППЫ СРЕДИ ВСЕХ СУБЪЕКТОВ (убираем where('subj_id', $subjId))
-        $allGroups = GroupAddressObj::all();
-        $assignedGroup = null;
+        try {
+            // Создаём POINT-значение для location (только для поиска групп)
+            $location = DB::raw("POINT({$validated['longitude']}, {$validated['latitude']})");
 
-        foreach ($allGroups as $group) {
-            $distance = $this->mapService->calculateDistance(
-                $group->latitude,
-                $group->longitude,
-                $newSubject['latitude'],
-                $newSubject['longitude']
-            );
-
-            if ($distance <= 50) {
-                $assignedGroup = $group;
-                break; // нашли подходящую группу — выходим из цикла
-            }
-        }
-
-        if ($assignedGroup) {
-            // Добавляем субъекта в существующую группу
-            AddressSubj::create([
-                'city' => $newSubject['city'],
-                'district' => $newSubject['district'],
-                'address' => $newSubject['address'],
-                'latitude' => $assignedGroup->latitude, // используем центральные координаты группы
-                'longitude' => $assignedGroup->longitude,
-                'group_id' => $assignedGroup->id,
-                'subj_id' => $subjId
-            ]);
-        } else {
-            // Создаём новую группу для этого субъекта
-            $newGroup = GroupAddressObj::create([
-                'city' => $newSubject['city'],
-                'district' => $newSubject['district'],
-                'address' => $newSubject['address'],
-                'latitude' => $newSubject['latitude'],
-                'longitude' => $newSubject['longitude'],
+            $newSubject = [
+                'city_id' => (int)$validated['city_id'],
+                'district_id' => (int)$validated['district_id'],
+                'address' => $validated['street'] . '; ' . $validated['houseNumber'],
+                'latitude' => $validated['latitude'],
+                'longitude' => $validated['longitude'],
                 'subj_id' => $subjId,
-            ]);
+            ];
 
-            AddressSubj::create([
-                'city' => $newSubject['city'],
-                'district' => $newSubject['district'],
-                'address' => $newSubject['address'],
-                'latitude' => $newSubject['latitude'],
-                'longitude' => $newSubject['longitude'],
-                'group_id' => $newGroup->id,
-                'subj_id' => $subjId
-            ]);
+            // Ищем группу в радиусе 50 метров ДЛЯ КОНКРЕТНОГО ОБЪЕКТА
+            $assignedGroup = GroupAddressObj::selectRaw(
+                '*, ST_Distance_Sphere(location, POINT(?, ?)) AS distance_meters',
+                [$validated['longitude'], $validated['latitude']]
+            )
+                ->where('obj_id', $objId) // ВАЖНО: фильтруем только группы нужного объекта
+                ->havingRaw('ST_Distance_Sphere(location, POINT(?, ?)) <= 50', [$validated['longitude'], $validated['latitude']])
+                ->orderBy('distance_meters')
+                ->first();
+
+            if ($assignedGroup) {
+                // Добавляем субъекта в существующую группу нужного объекта
+                AddressSubj::create([
+                    'city_id' => $newSubject['city_id'],
+                    'district_id' => $newSubject['district_id'],
+                    'address' => $newSubject['address'],
+                    'latitude' => $newSubject['latitude'],
+                    'longitude' => $newSubject['longitude'],
+                    'group_id' => $assignedGroup->id,
+                    'subj_id' => $subjId
+                ]);
+            } else {
+                // Создаём новую группу для конкретного объекта с location
+                $newGroup = GroupAddressObj::create([
+                    'city_id' => $newSubject['city_id'],
+                    'district_id' => $newSubject['district_id'],
+                    'address' => $newSubject['address'],
+                    'latitude' => $newSubject['latitude'],
+                    'longitude' => $newSubject['longitude'],
+                    'location' => $location,
+                    'obj_id' => $objId // Привязываем группу к конкретному объекту
+                ]);
+
+                // Добавляем субъект в новую группу
+                AddressSubj::create([
+                    'city_id' => $newSubject['city_id'],
+                    'district_id' => $newSubject['district_id'],
+                    'address' => $newSubject['address'],
+                    'latitude' => $newSubject['latitude'],
+                    'longitude' => $newSubject['longitude'],
+                    'group_id' => $newGroup->id,
+                    'subj_id' => $subjId
+                ]);
+            }
+
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Адрес добавлен']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error adding subject to map: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error adding subject to map'
+            ], 500);
         }
-
-        return response()->json(['success' => true, 'message' => 'Адрес добавлен']);
     }
 
     public function destroy(Request $request)

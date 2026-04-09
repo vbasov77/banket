@@ -31,4 +31,11 @@ class DetailsObj extends Model
     {
         return $this->belongsTo(Obj::class, 'obj_id');
     }
+
+
+
+    public function subj()
+    {
+        return $this->belongsTo(Subj::class, 'obj_id', 'obj_id');
+    }
 }
