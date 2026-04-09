@@ -59,13 +59,14 @@ async function showAddressForm(latlng, address) {
     // Генерируем HTML формы с подставленными координатами и реальным адресом
     const formHTML = `<form id="popupForm">
         <input type="hidden" name="_token" value="${window.csrfToken}">
-        <input type="hidden" name="city" value="${selectedCityId}">
-        <input type="hidden" name="district" value="${selectedDistrictId}">
+        <input type="hidden" name="city_id" value="${selectedCityId}">
+        <input type="hidden" name="district_id" value="${selectedDistrictId}">
         <input type="hidden" name="street" value="${selectedStreet}">
         <input type="hidden" name="houseNumber" value="${houseNumberInput.value}">
         <input type="hidden" name="latitude" value="${latlng.lat.toFixed(6)}">
         <input type="hidden" name="longitude" value="${latlng.lng.toFixed(6)}">
         <input type="hidden" name="subj_id" value="${window.subjId}">
+        <input type="hidden" name="obj_id" value="${window.objId}">
         <span><b>${window.nameSubj}</b></span><br><br>
         <span>Мы здесь 🙂</span><br><br>
         <button type="submit" class="btn btn-sm btn-success">Сохранить</button>
@@ -90,15 +91,15 @@ async function handleFormSubmit(e) {
         return;
     }
 
-    const cityField = form.querySelector('[name="city"]');
-    const districtField = form.querySelector('[name="district"]');
+    const cityIdField = form.querySelector('[name="city_id"]');
+    const districtIdField = form.querySelector('[name="district_id"]');
     const streetField = form.querySelector('[name="street"]');
     const houseNumberField = form.querySelector('[name="houseNumber"]');
     const latitude = form.querySelector('[name="latitude"]').value;
     const longitude = form.querySelector('[name="longitude"]').value;
 
-    if (!cityField.value || !districtField || !streetField || !houseNumberField ||  !latitude || !longitude) {
-        alert('Недостаточно данных для сохранения метки.');
+    if (!cityIdField?.value || !districtIdField?.value || !streetField?.value || !houseNumberField?.value) {
+        alert('Заполните все обязательные поля.');
         return;
     }
 

@@ -17,12 +17,13 @@ class GroupAddressObj extends Model
 
     // Поля, доступные для массового заполнения
     protected $fillable = [
-        'city',
-        'district',
+        'city_id',
+        'district_id',
         'address',
         'latitude',
         'longitude',
-        'subj_id'
+        'obj_id',
+        'location'
     ];
 
     // Типы данных атрибутов
@@ -76,5 +77,10 @@ class GroupAddressObj extends Model
             'id',        // Локальный ключ в GroupAddressObj
             'obj_id'     // Локальный ключ в AddressSubj
         );
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class, 'district_id');
     }
 }

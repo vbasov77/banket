@@ -18,8 +18,8 @@ return new class extends Migration
             $table->foreign('subj_id')
                 ->references('id')->on('subjs')
                 ->onDelete('cascade');
-            $table->integer('city');
-            $table->integer('district');
+            $table->integer('city_id');
+            $table->integer('district_id');
             $table->json('address');
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);

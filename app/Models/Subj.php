@@ -71,6 +71,10 @@ class Subj extends Model
         return $this->belongsToMany(User::class, 'favorites');
     }
 
+    public function detailObj()
+    {
+        return $this->hasOne(DetailsObj::class, 'obj_id', 'obj_id');
+    }
 
 
 }

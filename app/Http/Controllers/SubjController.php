@@ -64,21 +64,23 @@ class SubjController extends Controller
 
     public function store(CreateSubjRequest $request)
     {
-
         $subj = Subj::create($request->validated());
         if ($subj) {
             return redirect()->route('edit.img_subj', ['id' => $subj->id]);
         }
     }
 
-
     public function show(Request $request): View
     {
         $id = $request->id;
         $subj = $this->subjService->findById($id);
-
+        $nearestObjects = null;
+        if (!empty($subj['longitude'])) {
+            $nearestObjects = $this->subjService->findNearestObjects($subj['latitude'], $subj['longitude'], $subj['obj']['obj_id']);
+        }
         return view('objects.subjects.show', [
             'subj' => $subj,
+            'nearestObjects' => $nearestObjects
         ]);
     }
 

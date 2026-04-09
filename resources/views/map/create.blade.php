@@ -57,6 +57,7 @@
         // Передаём данные из Blade в JavaScript
         window.csrfToken = "{{ csrf_token() }}";
         window.subjId = "{{ $subj->id }}";
+        window.objId = "{{ $subj->obj_id }}";
         window.nameSubj = "{{ $subj->name_subj }}";
 
         // Статические URL маршрутов

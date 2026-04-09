@@ -1,26 +1,15 @@
-<!-- resources/views/cities/index.blade.php -->
-<div>
-    <p>Текущий город: <strong>{{ $currentCity->name }}</strong></p>
+<form id="popupForm" action="{{route('map_subj.points.store')}}" method="post">
+    @csrf
 
-    @guest
-        <p>Для неавторизованных пользователей по умолчанию установлен Санкт‑Петербург</p>
-    @endguest
-
-    <form method="POST" action="{{ route('city.store') }}">
-        @csrf
-        <select name="city_id" required>
-            <option value="">Выберите город</option>
-            @foreach($cities as $city)
-                <option value="{{ $city->id }}"
-                        {{ $currentCity->id == $city->id ? 'selected' : '' }}>
-                    {{ $city->name }}
-                </option>
-            @endforeach
-        </select>
-        <button type="submit">Сохранить город</button>
-    </form>
-
-    @if(session('success'))
-        <div style="color: green;">{{ session('success') }}</div>
-    @endif
-</div>
+    <input type="hidden" name="city_id" value="1">
+    <input type="hidden" name="district_id" value="20">
+    <input type="hidden" name="street" value="улица Садовая">
+    <input type="hidden" name="houseNumber" value="11">
+    <input type="hidden" name="latitude" value="60.06635400">
+    <input type="hidden" name="longitude" value="30.46451600">
+    <input type="hidden" name="subj_id" value="5">
+    <input type="hidden" name="obj_id" value="2">
+    <span><b>Зирка</b></span><br>
+    <span>Мы здесь 🙂</span><br>
+    <button type="submit" class="btn btn-sm btn-success">Сохранить</button>
+</form>

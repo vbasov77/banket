@@ -179,8 +179,6 @@
             width: 100%; /* Занимаем всю доступную ширину родителя */
         }
     </style>
-
-
     @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">

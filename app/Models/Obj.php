@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ImgObj;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Obj extends Model
@@ -31,10 +32,6 @@ class Obj extends Model
         return $this->hasMany(DetailsObj::class, 'obj_id');
     }
 
-    public function subjsAll() {
-        return $this->hasMany(Subj::class, 'obj_id', 'id');
-    }
-
     public function subjs() {
         return $this->hasMany(Subj::class, 'obj_id', 'id')
             ->where('published', '=', 1);
@@ -58,9 +55,12 @@ class Obj extends Model
         return $this->hasOne(ImgObj::class, 'obj_id', 'id');
     }
 
-    public function addressSubjs()
+    /**
+     * @return HasMany
+     */
+    public function groupAddressObjs(): HasMany
     {
-        return $this->hasMany(AddressSubj::class, 'obj_id');
+        return $this->hasMany(GroupAddressObj::class, 'obj_id');
     }
 
 }

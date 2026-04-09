@@ -189,7 +189,7 @@ class SearchRepository extends Repository
             // 1. Формируем строку для CASE WHEN
             $caseWhenParts = [];
             foreach ($districtIds as $index => $id) {
-                $caseWhenParts[] = "WHEN ga.district = {$id} THEN " . ($index + 1);
+                $caseWhenParts[] = "WHEN ga.district_id = {$id} THEN " . ($index + 1);
             }
             $caseSql = "CASE " . implode(" ", $caseWhenParts) . " ELSE 999999 END";
 
@@ -197,12 +197,12 @@ class SearchRepository extends Repository
             // INNER JOIN гарантирует, что в результат попадут ТОЛЬКО те объекты,
             // у которых есть запись в таблице group_address_objs с выбранным районом.
             $query->join('subjs as s', 'objs.id', '=', 's.obj_id')
-                ->join('group_address_objs as ga', 's.id', '=', 'ga.subj_id');
+                ->join('group_address_objs as ga', 'objs.id', '=', 'ga.obj_id');
 
             // 3. Добавляем фильтр WHERE, чтобы исключить объекты, у которых district не в списке
             // Это дублирует логику INNER JOIN, но делает её явной и безопасной на случай,
             // если в БД есть адреса с district_id = 0 или NULL.
-            $query->whereIn('ga.district', $districtIds);
+            $query->whereIn('ga.district_id', $districtIds);
 
             // 4. Группируем по ID объекта, чтобы убрать дубликаты (так как один объект может иметь несколько залов/адресов)
             $query->groupBy('objs.id');
