@@ -18,8 +18,8 @@
                         </div>
                         <!-- Сетка карточек -->
                         <div class="row">
-                            @if(!empty($data['subjs_all']))
-                                @foreach($data['subjs_all'] as $value)
+                            @if(!empty($data['subjects']))
+                                @foreach($data['subjects'] as $value)
                                     <div class="col-12 col-sm-8 col-md-6 col-lg-4 restaurants-grid">
                                         <div class="restaurant-card opacity"
                                              data-id="{{ $value['id'] }}">

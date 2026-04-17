@@ -24,6 +24,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'is_admin'
     ];
 
     /**
@@ -86,5 +87,11 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(City::class, 'user_city');
     }
+
+    public function obj()
+    {
+        return $this->hasOne(Obj::class, 'user_id');
+    }
+
 
 }

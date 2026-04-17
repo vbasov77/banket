@@ -20,15 +20,21 @@ return new class extends Migration
             $table->decimal('longitude', 11, 8)->nullable(false); // до 8 знаков после запятой
             $table->unsignedBigInteger('obj_id')->nullable(false);
 
+            // Поле для хранения геометрии (POINT или другие геометрические объекты)
+            $table->geometry('location')->nullable(false);
+
             // Индексы для ускорения поиска
             $table->index('obj_id');
             $table->index(['latitude', 'longitude']);
+            // SPATIAL‑индекс для поля geometry
+            $table->spatialIndex('location', 'idx_group_location');
 
             // Внешний ключ на таблицу объектов (если есть)
             $table->foreign('obj_id')
                 ->references('id')
                 ->on('objs')
                 ->onDelete('cascade');
+
             $table->timestamp('created_at')->useCurrent();
         });
     }

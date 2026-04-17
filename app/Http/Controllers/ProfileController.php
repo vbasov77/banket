@@ -37,12 +37,19 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+    public function show(): \Illuminate\View\View
+    {
+        return view('profile.show', [
+            'user' => auth()->user()
+        ]);
+    }
+
     /**
      * Delete the user's account.
      */
     public function destroy(Request $request): RedirectResponse
     {
-        $request->validateWithBag('userDeletion', [
+        $request->validate([
             'password' => ['required', 'current_password'],
         ]);
 
@@ -50,11 +57,14 @@ class ProfileController extends Controller
 
         Auth::logout();
 
+        // Безопасное удаление сессии
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         $user->delete();
 
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return Redirect::to('/');
+        return redirect('/')->with('status', 'Account deleted successfully.');
     }
 }

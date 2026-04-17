@@ -77,6 +77,8 @@ class VkService extends Service
     }
 
 
+
+
     /**
      * @param int $groupId
      * @param string $accessToken

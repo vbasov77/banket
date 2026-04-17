@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\FavoriteSubj;
 use App\Models\Subj;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 

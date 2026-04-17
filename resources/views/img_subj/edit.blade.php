@@ -513,6 +513,7 @@
     }
 
     async function sendStoreImg(url, files) {
+        console.log(url);
         let response = await fetch(url, {
             method: 'POST',
             body: files,

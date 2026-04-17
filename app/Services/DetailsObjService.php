@@ -4,6 +4,7 @@
 namespace App\Services;
 
 use App\Repositories\DetailsObjRepository;
+use Illuminate\Support\Facades\Log;
 
 
 class DetailsObjService extends Service
@@ -50,6 +51,7 @@ class DetailsObjService extends Service
     public function store(array $data): mixed
     {
         $newData = $this->getValidate($data);
+
         return $this->detailsRepository->store($newData);
     }
 

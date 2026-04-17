@@ -8,9 +8,13 @@
                 <div class="col-lg-12">
                     <form action="{{route('store.details_obj')}}" method="post">
                         @csrf
-                        <h3>Добавьте детали вашего объекта {{$obj->name_obj}}</h3>
-                        <br>
-                        <input type="hidden" name="obj_id" value="{{$obj->id}}">
+                        @if($obj)
+                            <h3>Добавьте детали вашего объекта {{ $obj->name_obj }}</h3>
+                            <input type="hidden" name="obj_id" value="{{ $obj->id }}">
+                        @else
+                            <h3>Добавьте детали нового объекта</h3>
+                            <input type="hidden" name="obj_id" value="">
+                        @endif
                         @if ($errors->any())
                             <div class="alert alert-danger">
                                 <ul>

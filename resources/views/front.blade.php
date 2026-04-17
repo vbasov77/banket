@@ -1,7 +1,6 @@
 @extends('layouts.app', ['title' => "Банкетные залы"])
 @section('content')
 
-    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <style>
@@ -179,6 +178,9 @@
             width: 100%; /* Занимаем всю доступную ширину родителя */
         }
     </style>
+
+    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
+
     @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">

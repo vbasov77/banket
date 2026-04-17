@@ -5,21 +5,29 @@ namespace Tests\Feature\Auth;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
+    use WithoutMiddleware;
 
-    public function test_reset_password_link_screen_can_be_rendered(): void
+    public function testResetPasswordLinkScreenCanBeRendered(): void
     {
         $response = $this->get('/forgot-password');
+
+        if ($response->status() === 500) {
+            dump('Response content:', $response->getContent());
+            dump('Session data:', session()->all());
+            dump('Headers:', $response->headers->all());
+        }
 
         $response->assertStatus(200);
     }
 
-    public function test_reset_password_link_can_be_requested(): void
+    public function testResetPasswordLinkCanBeRequested(): void
     {
         Notification::fake();
 
@@ -30,7 +38,7 @@ class PasswordResetTest extends TestCase
         Notification::assertSentTo($user, ResetPassword::class);
     }
 
-    public function test_reset_password_screen_can_be_rendered(): void
+    public function testResetPasswordScreenCanBeRendered(): void
     {
         Notification::fake();
 

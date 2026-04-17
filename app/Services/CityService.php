@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Exceptions\CitySearchException;
 use App\Models\City;
 use App\Models\UserCity;
+use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class CityService
@@ -48,6 +51,83 @@ class CityService
         return $defaultCity;
     }
 
+    /**
+     * Поиск городов по запросу
+     *
+     * @param string $query Строка поиска (минимум 2 символа)
+     * @param int $limit Максимальное количество результатов (по умолчанию 10)
+     * @return array<array{id: int, name: string}>
+     * @throws CitySearchException
+     */
+    public function findCity(string $query, int $limit = 10): array
+    {
+        // Валидация входных данных
+        $cleanQuery = trim($query);
+
+        if (empty($cleanQuery)) {
+            throw new CitySearchException(
+                'Запрос не может быть пустым',
+                400
+            );
+        }
+
+        if (strlen($cleanQuery) < 2) {
+            throw new CitySearchException(
+                'Запрос слишком короткий. Минимальная длина — 2 символа.',
+                400
+            );
+        }
+
+        // Защита от потенциально опасных символов (опционально)
+        if (preg_match('/[^\p{L}\p{N}\s-]/u', $cleanQuery)) {
+            throw new CitySearchException(
+                'Запрос содержит недопустимые символы',
+                422
+            );
+        }
+
+        try {
+            $cities = City::select('id', 'name')
+                ->where('name', 'ilike', '%' . $cleanQuery . '%') // регистронезависимый поиск (PostgreSQL)
+                // Для MySQL: ->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $cleanQuery . '%'])
+                ->orderBy('name')
+                ->limit($limit)
+                ->get()
+                ->map(function ($city) {
+                    return [
+                        'id' => $city->id,
+                        'name' => $city->name,
+                    ];
+                })->toArray();
+
+            return $cities;
+
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error('Database error in CityService::findCity', [
+                'query' => $cleanQuery,
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            throw new CitySearchException(
+                'Ошибка при поиске городов. Пожалуйста, попробуйте позже.',
+                500
+            );
+        } catch (\Exception $e) {
+            Log::channel('error_file')->critical('Unexpected error in CityService::findCity', [
+                'query' => $cleanQuery,
+                'exception' => $e::class,
+                'message' => $e->getMessage(),
+            ]);
+
+            throw new CitySearchException(
+                'Внутренняя ошибка сервиса поиска городов.',
+                500
+            );
+        }
+    }
     /**
      * @param int $cityId
      * @return void

@@ -23,39 +23,44 @@ class CityController extends Controller
         return response()->json(['cities' => $cities]);
     }
 
-    public function setCity(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function setCity(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'city' => 'required|string',
-            'city_id' => 'required|integer',
-        ]);
+        try {
+            $validated = $request->validate([
+                'city' => 'required|string',
+                'city_id' => 'required|integer',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors(),
+                'message' => 'Ошибка валидации данных'
+            ], 422);
+        }
 
         $cityName = $validated['city'];
         $cityId = $validated['city_id'];
 
         Session::forget('selected_filters');
-
-        // Сохраняем в сессию
         Session::put('user_city', $cityName);
         $request->session()->save();
 
-        // Если пользователь не авторизован, возвращаем успех без работы с БД
         if (!Auth::check()) {
             return response()->json(['success' => true]);
         }
 
         try {
-            // Используем updateOrCreate для упрощения логики
             UserCity::updateOrCreate(
                 ['user_id' => Auth::id()],
                 ['city_id' => $cityId]
             );
-
             return response()->json(['success' => true]);
-
         } catch (\Exception $e) {
             Log::error('Ошибка при сохранении города пользователя: ' . $e->getMessage());
-
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла ошибка при сохранении города'
@@ -63,30 +68,45 @@ class CityController extends Controller
         }
     }
 
-    public function getDistrictsByCity(Request $request)
+    /**
+     * @return JsonResponse
+     */
+    public function getDistrictsByCity(): JsonResponse
     {
-        $cityName = session('user_city', 'Санкт-Петербург');
+        try {
+            $cityName = session('user_city', 'Санкт-Петербург');
 
-        // Получаем ID города
-        $city = City::where('name', $cityName)->first();
+            // Получаем ID города
+            $city = City::where('name', $cityName)->first();
+            if (!$city) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Город не найден'
+                ], 404);
+            }
 
+            // Получаем районы для этого города
+            $districts = District::where('city_id', $city->id)
+                ->select('id', 'name')
+                ->get();
 
-        if (!$city) {
             return response()->json([
-                'success' => false,
-                'message' => 'Город не найден'
-            ], 404);
+                'success' => true,
+                'districts' => $districts
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Критическая ошибка в getDistrictsByCity:', [
+                'message' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Произошла ошибка',
+                'message' => 'Пожалуйста, попробуйте ещё раз',
+                'debug' => env('APP_DEBUG', false) ? $e->getMessage() : null
+            ], 500);
         }
-
-        // Получаем районы для этого города
-        $districts = District::where('city_id', $city->id)
-            ->select('id', 'name')
-            ->get();
-
-        return response()->json([
-            'success' => true,
-            'districts' => $districts
-        ]);
     }
 
 
