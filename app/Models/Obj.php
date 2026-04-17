@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ImgObj;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,16 +10,20 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Obj extends Model
 {
+    use HasFactory;
+
     public $timestamps = false;
     protected $fillable = ['user_id', 'name_obj', 'phone_obj',];
 
     protected $table = 'objs';
 
-    public function detailsObj() {
+    public function detailsObj()
+    {
         return $this->hasOne(DetailsObj::class, 'obj_id', 'id');
     }
 
-    public function addressObj() {
+    public function addressObj()
+    {
         return $this->hasOne(AddressObj::class, 'obj_id', 'id');
     }
 
@@ -32,12 +37,14 @@ class Obj extends Model
         return $this->hasMany(DetailsObj::class, 'obj_id');
     }
 
-    public function subjs() {
+    public function subjs()
+    {
         return $this->hasMany(Subj::class, 'obj_id', 'id')
             ->where('published', '=', 1);
     }
 
-    public function firstImgSubj() {
+    public function firstImgSubj()
+    {
         return $this->hasOne(ImgSubj::class, 'subj_id', 'id')
             ->orderBy('position', 'asc');
     }

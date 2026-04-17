@@ -11,8 +11,74 @@ class Carousel {
         this.slidesToScroll = 2;
         this.observer = null;
 
+        // Свойства для drag-and-drop
+        this.isDragging = false;
+        this.startX = 0;
+        this.scrollLeft = 0;
+
         this.init();
     }
+
+    handleMouseDown(e) {
+        e.preventDefault();
+        this.isDragging = true;
+        this.startX = e.pageX - this.carousel.offsetLeft;
+        this.scrollLeft = this.carousel.scrollLeft;
+        this.carousel.style.cursor = 'grabbing';
+    }
+
+    handleMouseMove(e) {
+        if (!this.isDragging) return;
+        e.preventDefault();
+
+        const x = e.pageX - this.carousel.offsetLeft;
+        const walk = (x - this.startX) * 2; // Коэффициент чувствительности
+        this.carousel.scrollLeft = this.scrollLeft - walk;
+    }
+
+    handleMouseUp() {
+        this.isDragging = false;
+        this.carousel.style.cursor = 'grab';
+    }
+
+    handleMouseLeave() {
+        this.isDragging = false;
+        this.carousel.style.cursor = 'grab';
+    }
+
+    showControls() {
+        if (this.nextBtn) {
+            this.nextBtn.classList.add('visible');
+        }
+        // Если нужно показывать и «Назад» при наведении:
+        // if (this.prevBtn) {
+        //     this.prevBtn.classList.add('visible');
+        // }
+    }
+
+    hideControlsOnWrapperLeave(e) {
+        const related = e.relatedTarget;
+        if (related && (related === this.prevBtn || related === this.nextBtn)) {
+            return;
+        }
+        this.hideControls();
+    }
+
+    hideControls() {
+        if (this.nextBtn) {
+            this.nextBtn.classList.remove('visible');
+        }
+        if (this.prevBtn) {
+            const scrollLeft = this.carousel.scrollLeft;
+            if (scrollLeft > 0) {
+                this.prevBtn.classList.add('visible');
+            } else {
+                this.prevBtn.classList.remove('visible');
+            }
+        }
+    }
+
+
 
     init() {
         this.waitForImages().then(() => {
@@ -39,6 +105,28 @@ class Carousel {
 
                 this.carousel.addEventListener('scroll', () => this.updateButtons());
                 this.setupMutationObserver();
+                // Обработчики для drag-and-drop
+                this.carousel.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                this.carousel.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                document.addEventListener('mouseleave', this.handleMouseLeave.bind(this));
+
+                this.wrapper.addEventListener('mouseenter', () => this.showControls());
+                this.wrapper.addEventListener('mouseleave', (e) => this.hideControlsOnWrapperLeave(e));
+
+                if (this.prevBtn) {
+                    this.prevBtn.addEventListener('mouseenter', (e) => {
+                        e.stopPropagation();
+                        this.showControls();
+                    });
+                }
+                if (this.nextBtn) {
+                    this.nextBtn.addEventListener('mouseenter', (e) => {
+                        e.stopPropagation();
+                        this.showControls();
+                    });
+                }
+
             }, 50); // Уменьшили задержку для более быстрого отклика
         });
     }
@@ -150,12 +238,13 @@ class Carousel {
         const carouselWidth = this.carousel.offsetWidth;
 
         if (this.prevBtn) {
-            this.prevBtn.classList.toggle('visible', scrollLeft > 0);
+            const shouldBeVisiblePrev = scrollLeft > 0;
+            this.prevBtn.classList.toggle('visible', shouldBeVisiblePrev);
         }
 
         if (this.nextBtn) {
-            this.nextBtn.classList.toggle('visible',
-                scrollLeft + carouselWidth < contentWidth - 5);
+            const isAtEnd = scrollLeft + carouselWidth >= contentWidth - 5;
+            this.nextBtn.classList.toggle('visible', !isAtEnd);
         }
     }
 

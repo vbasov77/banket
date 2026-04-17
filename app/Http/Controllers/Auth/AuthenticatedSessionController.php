@@ -18,7 +18,9 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): View
     {
-        return view('auth.login');
+        return view('auth.login', [
+            'errors' => session()->get('errors') ?? new \Illuminate\Support\MessageBag()
+        ]);
     }
 
     /**
@@ -28,7 +30,13 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
+        // Безопасная работа с сессией: проверяем инициализацию
+        if ($request->hasSession()) {
+            $session = $request->session();
+            if ($session->isStarted()) {
+                $session->regenerate();
+            }
+        }
 
         $cityService->findUserCity($request);
 
@@ -41,9 +49,17 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+
+        // Безопасная работа с сессией: проверяем, что сессия установлена и запущена
+        if ($request->hasSession()) {
+            $session = $request->session();
+            if ($session->isStarted()) {
+                $session->invalidate();
+                $session->regenerateToken();
+            }
+        }
 
         return redirect('/');
     }
+
 }

@@ -21,7 +21,7 @@ class ImgSubj extends Migration
                 ->onDelete('cascade');
             $table->bigInteger('photo_id');
             $table->string('path');
-            $table->string('position');
+            $table->integer('position');
             $table->timestamp('created_at')->useCurrent();
         });
     }

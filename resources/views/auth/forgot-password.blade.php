@@ -4,7 +4,10 @@
     </div>
 
     <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    @if(session('status'))
+        <x-auth-session-status class="mb-4" :status="session('status')" />
+    @endif
+
 
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
@@ -13,7 +16,10 @@
         <div>
             <x-input-label for="email" :value="__('Email')" />
             <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            @if(isset($errors) && $errors->has('email'))
+                <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            @endif
+
         </div>
 
         <div class="flex items-center justify-end mt-4">

@@ -14,18 +14,17 @@ use PHPUnit\Exception;
 
 class DetailsObjController extends Controller
 {
-    private $objService;
-    private $imgService;
-    private $detailsObjService;
+    private ObjService $objService;
+    private ImgObjService $imgService;
+    private DetailsObjService $detailsObjService;
 
 
-    public function __construct()
+    public function __construct(ObjService $objService, ImgObjService $imgService, DetailsObjService $detailsObjService)
     {
-        $this->objService = new ObjService();
-        $this->imgService = new ImgObjService();
-        $this->detailsObjService = new DetailsObjService();
+        $this->objService = $objService;
+        $this->imgService = $imgService;
+        $this->detailsObjService = $detailsObjService;
     }
-
 
     /**
      * Display a listing of the resource.
@@ -51,7 +50,7 @@ class DetailsObjController extends Controller
     public function store(CreateDetailsObjRequest $request)
     {
         $data = $request->validated();
-        $newObject = $this->detailsObjService->store($data);
+        $this->detailsObjService->store($data);
 
         return redirect()->route('create.subj');
     }

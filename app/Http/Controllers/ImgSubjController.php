@@ -50,7 +50,6 @@ class ImgSubjController extends Controller
 
     public function imgSubjStore(Request $request)
     {
-        
         if ($request->file('img')) {
             $data = $this->imgSubjService->ImgSubjStore($request, $request->id);
             $res = ['path' => $data[0], 'id' => $data[1], 'message' => null];
@@ -59,14 +58,23 @@ class ImgSubjController extends Controller
     }
 
 
-    public function destroy(Request $request)
+    public function destroy($id)
     {
-        if ($request->id) {
-            ImgSubj::where('id', $request->id)->delete();
-            $res = ['answer' => 'ok'];
-
-            return response()->json($res);
+        // Проверяем корректность ID: число и ≥ 1
+        if (!is_numeric($id) || $id < 1) {
+            return response()->json(['error' => 'Invalid ID format'], 400);
         }
 
+        $imgSubj = ImgSubj::find($id);
+
+        if (!$imgSubj) {
+            return response()->json(['error' => 'Image not found'], 404);
+        }
+
+        $imgSubj->delete();
+
+        return response()->json(['answer' => 'ok'], 200);
     }
+
+
 }

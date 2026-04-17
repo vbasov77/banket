@@ -52,10 +52,12 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__ . '/auth.php';
 
@@ -72,7 +74,7 @@ Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.pu
 
 Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
-Route::post('/api/save-address', [AddressSubjController::class, 'saveAddress']);
+//Route::post('/api/save-address', [AddressSubjController::class, 'saveAddress']);
 Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
 Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
@@ -99,7 +101,7 @@ Route::delete('/delete_obj_img/id{id}', [ImgObjController::class, 'destroy'])->n
 
 Route::get('/edit_img_subj/id{id}', [ImgSubjController::class, 'edit'])->name("edit.img_subj")->middleware('auth');
 Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name('img_subj.store');
-Route::delete('/delete_subj_img/id{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy');
+Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy');
 Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change');
 
 Route::get('/test', [TestController::class, 'test'])->name("test");
@@ -107,8 +109,8 @@ Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.ci
 Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');
 
-Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth');
-Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth');
+Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth.api');
+Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth.api');
 Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
 
 
@@ -124,9 +126,10 @@ Route::get('/test-log', function () {
 });
 
 Route::get('/test-error-basic', function () {
-    Log::error('ТЕСТ: Базовая ошибка для laravel-errors.log');
+    Log::channel('error_file')->error('ТЕСТ: Базовая ошибка для laravel-errors.log');
     return 'Ошибка записана в laravel-errors.log (проверьте файл)';
 });
+
 
 
 Route::get('/clear', function () {
