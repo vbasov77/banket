@@ -6,45 +6,119 @@ use App\Models\AddressSubj;
 use App\Models\GroupAddressObj;
 use App\Models\MapPoint;
 use App\Models\Subj;
+use App\Repositories\AddressSubjRepository;
+use App\Repositories\MapRepository;
 use App\Services\MapService;
 use App\Services\SubjService;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\Factory;
+use Illuminate\View\View;
 use function Symfony\Component\Translation\t;
 
 class MapPointController extends Controller
 {
-    private $mapService;
-    private $subjService;
+    private MapService $mapService;
+    private SubjService $subjService;
+    private AddressSubjRepository $addressSubjRepository;
+    protected MapRepository $mapRepository;
 
-    public function __construct()
+    public function __construct(MapService $mapService, SubjService $subjService, AddressSubjRepository $addressSubjRepository, MapRepository $mapRepository)
     {
-        $this->mapService = new MapService();
-        $this->subjService = new SubjService();
+        $this->mapService = $mapService;
+        $this->subjService = $subjService;
+        $this->addressSubjRepository = $addressSubjRepository;
+        $this->mapRepository = $mapRepository;
     }
 
-    public function show(Request $request)
+    /**
+     * @param Request $request
+     * @return Application|Factory|View|null
+     */
+    public function show(Request $request): Application|Factory|View|null
     {
-        $subjId = $request->id;
-        $map = AddressSubj::where('subj_id', $subjId)->first();
-        $map['data_subj'] = $this->subjService->findById($subjId);
+        try {
+            $subjId = $request->id;
 
-        return view('map.show', ['map' => $map]);
+            if (!$subjId) {
+                Log::channel('error_file')->error('Missing subject ID in request');
+                abort(400, 'Subject ID is required');
+            }
+
+            // Выносим логику получения карты в репозиторий
+            $map = $this->addressSubjRepository->findBySubjId($subjId);
+
+            if (!$map) {
+                Log::channel('error_file')->error(
+                    'Address not found for subject ID: ' . $subjId
+                );
+                abort(404, 'Address not found');
+            }
+
+            $map['data_subj'] = $this->subjService->findById($subjId);
+
+            if (!$map['data_subj']) {
+                Log::channel('error_file')->error(
+                    'Subject not found for ID: ' . $subjId
+                );
+                abort(404, 'Subject not found');
+            }
+
+            return view('map.show', ['map' => $map]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in MapController@show: ' . $e->getMessage() .
+                ' | Subj ID: ' . ($subjId ?? 'unknown')
+            );
+            abort(500, 'Internal server error');
+        }
     }
 
-    public function index()
+
+    /**
+     * @return Application|Factory|View|null
+     */
+    public function index(): Application|Factory|View|null
     {
-        $points = MapPoint::all();
-        return view('map.index', compact('points'));
+        try {
+            $points = $this->mapRepository->getAllPoints();
+
+            if (!$points) {
+                Log::channel('error_file')->error(
+                    'No map points found in MapController@index'
+                );
+                // Даже если точек нет, отдаём пустую коллекцию — это не ошибка 500
+                $points = collect();
+            }
+
+            return view('map.index', compact('points'));
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in MapController@index: ' . $e->getMessage()
+            );
+            abort(500, 'Internal server error');
+        }
     }
 
-    public function getMapData()
-    {
-        $groups = $this->mapService->getMapData();
 
-        return view('map.index', ['groups' => $groups]);
+    /**
+     * @return Application|Factory|View|null
+     */
+    public function getMapData(): Application|Factory|View|null
+    {
+        try {
+            $groups = $this->mapService->getMapData();
+
+            return view('map.index', ['groups' => $groups]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in MapController@getMapData: ' . $e->getMessage()
+            );
+            abort(500, 'Internal server error');
+        }
     }
 
 
@@ -77,7 +151,11 @@ class MapPointController extends Controller
     }
 
 
-    public function addSubjectToMap(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function addSubjectToMap(Request $request): JsonResponse
     {
         // Валидация входных данных
         $validated = $request->validate([

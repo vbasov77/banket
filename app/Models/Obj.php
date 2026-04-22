@@ -70,4 +70,10 @@ class Obj extends Model
         return $this->hasMany(GroupAddressObj::class, 'obj_id');
     }
 
+    public function districts()
+    {
+        return $this->belongsToMany(District::class, 'group_address_objs', 'obj_id', 'district_id')
+            ->withPivot(['city_id', 'address', 'latitude', 'longitude']);
+    }
+
 }

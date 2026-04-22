@@ -22,16 +22,14 @@ use Illuminate\View\View;
 
 class TestController extends Controller
 {
-    private $imgObjService;
-    private $imageService;
+    protected ImgObjService $imgObjService;
 
-    private $imgSubjService;
+    protected ImgSubjService $imgSubjService;
 
-    public function __construct()
+    public function __construct(ImgObjService $imgObjService, ImgSubjService $imgSubjService)
     {
-        $this->imgObjService = new ImgObjService();
-        $this->imageService = new ImageService();
-        $this->imgSubjService = new ImgSubjService();
+        $this->imgObjService = $imgObjService;
+        $this->imgSubjService = $imgSubjService;
     }
 
 

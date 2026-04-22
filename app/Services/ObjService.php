@@ -3,38 +3,116 @@
 
 namespace App\Services;
 
+use App\Models\Obj;
 use App\Repositories\ObjRepository;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Log;
+use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Database\QueryException;
+use RuntimeException;
 
 
 class ObjService extends Service
 {
-    private $objRepository;
+    protected ObjRepository $objRepository;
 
-    public function __construct()
+    /**
+     * @param ObjRepository $objRepository
+     */
+    public function __construct(ObjRepository $objRepository)
     {
-        $this->objRepository = new ObjRepository();
+        $this->objRepository = $objRepository;
+    }
+
+    /**
+     * @param array $data
+     * @return Obj
+     * @throws \Exception
+     */
+    public function store(array $data): Obj
+    {
+        try {
+            $obj = Obj::create($data);
+
+            if (!$obj) {
+                throw new RuntimeException('Не удалось создать объект в базе данных');
+            }
+
+            return $obj;
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка при создании объекта: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'insert_data' => $data
+                ]
+            );
+            throw new RuntimeException('Ошибка базы данных при создании объекта', 0, $e);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка при создании объекта в ObjService@store: ' . $e->getMessage(),
+                [
+                    'input_data' => $data,
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
+    }
+
+    /**
+     * @return Obj|null
+     * @throws \Exception
+     */
+    public function findObjByUserId(): ?Obj
+    {
+        try {
+            if (!Auth::check()) {
+                Log::channel('error_file')->warning('User not authenticated in ObjService@findObjByUserId');
+                return null;
+            }
+
+            $obj = $this->objRepository->findObjByUserId();
+
+            if (!$obj) {
+                Log::channel('error_file')->info('No obj found for user', [
+                    'user_id' => Auth::id() ?? 'unknown',
+                ]);
+            }
+
+            return $obj;
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error('Database error in ObjService@findObjByUserId', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'user_id' => Auth::id() ?? 'unknown',
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->critical('Unexpected error in ObjService@findObjByUserId', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'user_id' => Auth::id() ?? 'unknown',
+            ]);
+            throw $e;
+        }
     }
 
     /**
      * @param int $id
      * @return mixed
      */
-    public function findById(int $id)
+    public function findById(int $id): mixed
     {
         return $this->objRepository->findById($id);
     }
 
-
-    /**
-     * @param int $userId
-     * @return mixed
-     */
-    public function findByUserId(int $userId)
-    {
-        return $this->objRepository->findByUserId($userId);
-    }
 
     /**
      * @param array $array
@@ -47,9 +125,33 @@ class ObjService extends Service
     }
 
 
-    public function findObjsWithDetails()
+    /**
+     * @return LengthAwarePaginator
+     * @throws \Exception
+     */
+    public function findObjsWithDetails(): LengthAwarePaginator
     {
-        return $this->objRepository->findObjsWithDetails();
+        try {
+            return $this->objRepository->findObjsWithDetails();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ObjService@findObjsWithDetails: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings()
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ObjService@findObjsWithDetails: ' . $e->getMessage(),
+                [
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
     }
 
     /**
@@ -72,14 +174,52 @@ class ObjService extends Service
         return $objArr;
     }
 
-    public function findIdObjByUserId()
+    /**
+     * @return int|null
+     * @throws AuthenticationException
+     */
+    public function findIdObjByUserId(): ?int
     {
-        return $this->objRepository->findIdObjByUserId();
-    }
+        try {
+            // Проверка авторизации пользователя
+            if (!auth()->check()) {
+                throw new AuthenticationException('Пользователь не авторизован');
+            }
 
-    public function findObjByUserId()
-    {
-        return $this->objRepository->findObjByUserId();
+            $objId = $this->objRepository->findIdObjByUserId();
+
+            if ($objId === null) {
+                Log::channel('error_file')->error(
+                    'Объект не найден для пользователя',
+                    [
+                        'user_id' => auth()->id()
+                    ]
+                );
+                // Это не ошибка — просто объект не найден, возвращаем null
+            }
+
+            return $objId;
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ObjService@findIdObjByUserId: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'user_id' => auth()->id()
+                ]
+            );
+            throw new \RuntimeException('Ошибка базы данных при поиске объекта', 0, $e);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ObjService@findIdObjByUserId: ' . $e->getMessage(),
+                [
+                    'user_id' => auth()->id(),
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
     }
 
     /**

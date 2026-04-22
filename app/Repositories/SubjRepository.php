@@ -4,12 +4,14 @@
 namespace App\Repositories;
 
 
+use App\Models\GroupAddressObj;
 use App\Models\Obj;
 use App\Models\Subj;
 use App\Services\VkService;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SubjRepository extends Repository
 {
@@ -23,6 +25,37 @@ class SubjRepository extends Repository
         $this->vkService = new VkService();
     }
 
+    /**
+     * @return int|null
+     * @throws \Exception
+     */
+    public function findIdObjByUserId(): ?int
+    {
+        try {
+            return Obj::where('user_id', auth()->id())->value('id');
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ObjRepository@findIdObjByUserId: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'user_id' => auth()->id()
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ObjRepository@findIdObjByUserId: ' . $e->getMessage(),
+                [
+                    'user_id' => auth()->id(),
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
+    }
+
 
     public function findByIdForEdit(int $id)
     {
@@ -30,6 +63,88 @@ class SubjRepository extends Repository
 
     }
 
+    /**
+     * @param float $latitude
+     * @param float $longitude
+     * @param int $excludeObjId
+     * @return array
+     * @throws \Exception
+     */
+    public function findNearestObjects(float $latitude, float $longitude, int $excludeObjId): array
+    {
+        try {
+            $groups = GroupAddressObj::with(['district' => function ($query) {
+                $query->select('id', 'name');
+            }])
+                ->select([
+                    'obj_id',
+                    'city_id',
+                    'district_id',
+                    'address',
+                    'latitude',
+                    'longitude',
+                    DB::raw("ST_Distance_Sphere(location, POINT($longitude, $latitude)) / 1000 AS distance_km")
+                ])
+                ->where('obj_id', '!=', $excludeObjId)
+                ->having('distance_km', '<=', 5000)
+                ->orderBy('distance_km')
+                ->limit(5)
+                ->get()
+                ->toArray();
+
+            return $this->formatResults($groups);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в SubjRepository@findNearestObjects: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'exclude_obj_id' => $excludeObjId
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в SubjRepository@findNearestObjects: ' . $e->getMessage(),
+                [
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
+                    'exclude_obj_id' => $excludeObjId,
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
+    }
+
+    /**
+     * @param array $groups
+     * @return array
+     */
+    private function formatResults(array $groups): array
+    {
+        // Логика форматирования результатов
+        return array_map(function ($group) {
+            return [
+                'obj_id' => $group['obj_id'],
+                'city_id' => $group['city_id'],
+                'district' => $group['district'] ?? [],
+                'address' => $group['address'],
+                'latitude' => $group['latitude'],
+                'longitude' => $group['longitude'],
+                'distance_km' => $group['distance_km'] ?? 0,
+            ];
+        }, $groups);
+    }
+
+    /**
+     * @param int $id
+     * @return array|null
+     * @throws \JsonException
+     */
     public function findById(int $id): ?array
     {
         try {

@@ -3,67 +3,108 @@
 namespace App\Http\Controllers;
 
 
+use App\Exceptions\VkApiException;
 use App\Models\ImgObj;
-use App\Services\ImageService;
 use App\Services\ImgObjService;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 use PharIo\Version\Exception;
 
 class ImgObjController extends Controller
 {
-    private $imgObjService;
-    private $imgService;
+    private ImgObjService $imgObjService;
 
-    public function __construct()
+
+    public function __construct(ImgObjService $imgObjService)
     {
-        $this->imgObjService = new ImgObjService();
-        $this->imgService = new ImageService();
+        $this->imgObjService = $imgObjService;
     }
 
-
-    public function edit(Request $request)
-    {
-        $id = $request->id;
-        $img = $this->imgObjService->findImgByObjId($id);
-        if ($img) {
-            return view('img_obj.edit', ['img' => $img]);
-        } else {
-            return view('img_obj.create', ['id' => $id]);
-        }
-    }
 
     /**
      * @param Request $request
-     * @return JsonResponse
+     * @return Application|Factory|View|Response
+     * @throws Exception
      */
-    public function imgOrderChange(Request $request): JsonResponse
+    public function edit(Request $request): Application|Factory|View|Response
     {
-        $data = $request->input('order');
-        foreach ($data as $index => $id) {
-            DB::table('img_obj')->where('id', $id)->update(['position' => $index]);
-        }
+        try {
+            $id = $request->id;
 
-        return response()->json([
-            'message' => 'Порядок изменён.',
-            'alert-type' => 'success'
-        ]);
+            if (!$id) {
+                Log::channel('error_file')->error(
+                    'Отсутствует ID объекта в FavoriteController@edit',
+                    [
+                        'request_data' => $request->all(),
+                        'ip' => $request->ip()
+                    ]
+                );
+                return response()->view('errors.400', [], 400);
+            }
+
+            try {
+                $img = $this->imgObjService->findImgByObjId($id);
+            } catch (\Exception $e) {
+                Log::channel('error_file')->error(
+                    'Ошибка при вызове сервиса в FavoriteController@edit: ' . $e->getMessage(),
+                    [
+                        'obj_id' => $id,
+                        'exception_class' => get_class($e),
+                        'trace' => $e->getTraceAsString(),
+                        'ip' => $request->ip()
+                    ]
+                );
+                throw $e; // Перебрасываем исключение для обработки основным блоком catch
+            }
+
+            if ($img) {
+                return view('img_obj.edit', ['img' => $img]);
+            } else {
+                return view('img_obj.create', ['id' => $id]);
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в FavoriteController@edit: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'obj_id' => $id ?? 'unknown',
+                    'ip' => $request->ip()
+                ]
+            );
+            return response()->view('errors.500', [], 500);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Неожиданная ошибка в FavoriteController@edit: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->all(),
+                    'obj_id' => $id ?? 'unknown',
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString(),
+                    'ip' => $request->ip()
+                ]
+            );
+            return response()->view('errors.500', [], 500);
+        }
     }
 
     /**
      * @param Request $request
      * @return JsonResponse
+     * @throws Exception
      */
     public function store(Request $request): JsonResponse
     {
         try {
             $file = $request->file('img');
-
             // Валидация файла
             if (!$file) {
                 return response()->json([
@@ -74,7 +115,7 @@ class ImgObjController extends Controller
             }
 
             $validator = Validator::make($request->all(), [
-                'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:3072', // до 10 МБ
+                'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:3072',
                 'id' => 'required|integer|min:1'
             ]);
 
@@ -108,14 +149,64 @@ class ImgObjController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (FileNotFoundException $e) {
-            Log::error('Ошибка файловой системы при загрузке изображения: ' . $e->getMessage());
+            Log::channel('error_file')->error(
+                'Ошибка файловой системы при загрузке изображения: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->except(['img']),
+                    'file_name' => $request->file('img')?->getClientOriginalName(),
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString(),
+                    'ip' => $request->ip()
+                ]
+            );
             return response()->json([
                 'success' => false,
                 'message' => 'Не удалось сохранить файл на сервере',
                 'error_code' => 'FILE_SYSTEM_ERROR'
             ], 500);
+        } catch (VkApiException $e) {
+            Log::channel('error_file')->error(
+                'Ошибка API ВКонтакте при загрузке изображения: ' . $e->getMessage(),
+                [
+                    'obj_id' => $request->id,
+                    'exception_class' => get_class($e),
+                    'vk_error_code' => $e->getErrorCode(),
+                    'trace' => $e->getTraceAsString(),
+                    'ip' => $request->ip()
+                ]
+            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при работе с API ВКонтакте',
+                'error_code' => 'VK_API_ERROR'
+            ], 500);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка при сохранении изображения: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'obj_id' => $request->id,
+                    'exception_class' => get_class($e),
+                    'ip' => $request->ip()
+                ]
+            );
+            return response()->json([
+                'success' => false,
+                'message' => 'Ошибка при сохранении данных в базу',
+                'error_code' => 'DATABASE_ERROR'
+            ], 500);
         } catch (\Exception $e) {
-            Log::error('Неожиданная ошибка при загрузке изображения: ' . $e->getMessage());
+            Log::channel('error_file')->error(
+                'Неожиданная ошибка при загрузке изображения: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->except(['img']),
+                    'obj_id' => $request->id ?? 'unknown',
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString(),
+                    'ip' => $request->ip()
+                ]
+            );
             return response()->json([
                 'success' => false,
                 'message' => 'Произошла непредвиденная ошибка',
@@ -123,7 +214,6 @@ class ImgObjController extends Controller
             ], 500);
         }
     }
-
 
     /**
      * @param Request $request
@@ -194,7 +284,7 @@ class ImgObjController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function destroy(Request $request)
+    public function destroy(Request $request): JsonResponse
     {
         // 1. Валидация ID
         if (!is_numeric($request->id) || $request->id <= 0) {

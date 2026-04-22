@@ -5,7 +5,11 @@ namespace App\Repositories;
 
 
 use App\Models\GroupAddressObj;
+use App\Models\MapPoint;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class MapRepository extends Repository
 {
@@ -14,30 +18,74 @@ class MapRepository extends Repository
      */
     public function getMapData(): JsonResponse
     {
-        $groups = GroupAddressObj::with('subjects:id,address,latitude,longitude,group_id,subj_id')
-            ->select('id', 'address as title', 'latitude', 'longitude')
-            ->get()
-            ->map(function ($group) {
-                return [
-                    'id' => $group->id,
-                    'latitude' => $group->latitude,
-                    'longitude' => $group->longitude,
-                    'subjects_count' => $group->subjects->count(),
-                    'subjects' => $group->subjects->map(function ($subject) {
-                        return [
-                            'id' => $subject->id,
-                            'address' => $subject->address,
-                            'latitude' => $subject->latitude,
-                            'longitude' => $subject->longitude,
-                            'subj_id' => $subject->subj_id
-                        ];
-                    })
-                ];
-            });
+        try {
+            $groups = GroupAddressObj::with('subjects:id,address,latitude,longitude,group_id,subj_id')
+                ->select('id', 'address as title', 'latitude', 'longitude')
+                ->get()
+                ->map(function ($group) {
+                    // Проверка существования отношений перед доступом
+                    $subjectsCount = $group->relationLoaded('subjects')
+                        ? $group->subjects->count()
+                        : 0;
 
-        return response()->json($groups);
+                    $subjectsData = $group->relationLoaded('subjects')
+                        ? $group->subjects->map(function ($subject) {
+                            return [
+                                'id' => $subject->id,
+                                'address' => $subject->address,
+                                'latitude' => $subject->latitude,
+                                'longitude' => $subject->longitude,
+                                'subj_id' => $subject->subj_id
+                            ];
+                        })
+                        : [];
+
+                    return [
+                        'id' => $group->id,
+                        'latitude' => $group->latitude,
+                        'longitude' => $group->longitude,
+                        'subjects_count' => $subjectsCount,
+                        'subjects' => $subjectsData
+                    ];
+                });
+
+            return response()->json($groups);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in MapRepository@getMapData: ' . $e->getMessage()
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in MapRepository@getMapData: ' . $e->getMessage()
+            );
+            throw $e;
+        }
+    }
+    /**
+     * @return Collection
+     * @throws \Exception
+     */
+    public function getAllPoints(): Collection
+    {
+        try {
+            return MapPoint::all();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in MapRepository@getAllPoints: ' . $e->getMessage()
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in MapRepository@getAllPoints: ' . $e->getMessage()
+            );
+            throw $e;
+        }
     }
 
+    /**
+     * @return Collection
+     */
     public function findMap()
     {
         return GroupAddressObj::with([

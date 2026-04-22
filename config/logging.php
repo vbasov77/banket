@@ -27,8 +27,8 @@ return [
 
         'info_file' => [
             'driver' => 'single',
-            'path' => storage_path('logs/laravel.log'),
-            'level' => 'error',
+            'path' => storage_path('logs/laravel-info.log'),
+            'level' => 'info',
             'locking' => false,
         ],
 

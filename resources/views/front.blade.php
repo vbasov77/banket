@@ -222,6 +222,10 @@
                                                                         <h3 class="details-title">{{ $data[$i]['subjs_data'][$j]['name_subj']}}</h3>
                                                                         <!-- Вместимость в одной строке -->
                                                                         <div class="detail">
+                                                                            <span class="detail-label">Район:</span>
+                                                                            <span class="detail-value">{{ $data[$i]['subjs_data'][$j]['district_name'] }}</span>
+                                                                        </div>
+                                                                        <div class="detail">
                                                                             <span class="detail-label">Вместимость:</span>
                                                                             <span class="detail-value">до: {{ $data[$i]['subjs_data'][$j]['capacity_to'] }} чел.</span>
                                                                         </div>

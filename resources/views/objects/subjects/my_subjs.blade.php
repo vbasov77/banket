@@ -9,6 +9,11 @@
         <div class="container px-4">
             <div class="row">
                 <div class="col-12">
+                    @if(!empty($error))
+                        <div class="alert alert-danger">
+                            {{$error}}
+                        </div>
+                    @endif
                     @if($data)
                         <div class="row mb-4">
                             <div class="col-12">
@@ -22,7 +27,7 @@
                                 @foreach($data['subjects'] as $value)
                                     <div class="col-12 col-sm-8 col-md-6 col-lg-4 restaurants-grid">
                                         <div class="restaurant-card opacity"
-                                             data-id="{{ $value['id'] }}">
+                                             data-id="{{ $value['id'] }}" style="@if($value['published'] == 0) opacity: .7; @endif">
                                             <!-- Изображение -->
                                             <div class="position-relative">
                                                 <div class="restaurant-image">
@@ -30,7 +35,7 @@
 
                                                         <img src="{{ $value['primaryImg']->path . '&cs=360x0' }}"
                                                              class="card-img-top" alt="Фото субъекта"
-                                                             style="height: 200px; object-fit: cover; @if($value['published'] == 0) opacity: .7; @endif">
+                                                             style="height: 200px; object-fit: cover;">
                                                     @else
                                                         <img src="{{ asset('images/no_image/no_image.jpg') }}"
                                                              class="card-img-top" alt="Нет фото"

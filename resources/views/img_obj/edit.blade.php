@@ -42,7 +42,9 @@
             </div>
         </div>
     </div>
-
+    <script>
+        window.updateImgObj = '{{route('img_obj.update')}}';
+    </script>
     <script src="{{asset('js/jquery/3.6.0/jquery.min.js')}}"></script>
     <script src="{{asset('js/croppie/croppie.js')}}"></script>
     <script src="{{asset('js/croppie/main_edit.js')}}" defer></script>

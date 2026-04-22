@@ -42,7 +42,9 @@
             </div>
         </div>
     </div>
-
+    <script>
+        window.storeImgObj = '{{route('img_obj.store')}}';
+    </script>
     <script src="{{asset('js/jquery/3.6.0/jquery.min.js')}}"></script>
     <script src="{{asset('js/croppie/croppie.js')}}"></script>
     <script src="{{asset('js/croppie/main_create.js')}}" defer></script>
