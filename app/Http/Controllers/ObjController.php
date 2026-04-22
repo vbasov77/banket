@@ -10,31 +10,21 @@ use App\Services\ObjService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use PHPUnit\Exception;
 
 class ObjController extends Controller
 {
-    private $objService;
-    private $imgService;
+    private ObjService $objService;
+    private ImgObjService $imgService;
 
 
-    public function __construct()
+    public function __construct(ObjService $objService, ImgObjService $imgService)
     {
-        $this->objService = new ObjService();
-        $this->imgService = new ImgObjService();
-    }
-
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
+        $this->objService = $objService;
+        $this->imgService = $imgService;
     }
 
 
@@ -43,15 +33,94 @@ class ObjController extends Controller
      */
     public function create(): View
     {
-        return view('objects.create', ['user' => Auth::id()]);
+        try {
+            $userId = Auth::id();
+
+            // Проверка авторизации пользователя
+            if ($userId === null) {
+                Log::channel('error_file')->error(
+                    'Попытка доступа к objects.create без авторизации'
+                );
+                abort(403, 'Доступ запрещён: требуется авторизация');
+            }
+
+            return view('objects.create', ['user' => $userId]);
+        } catch (\Illuminate\View\ViewException $e) {
+            // Ошибки рендеринга шаблона (не найден шаблон, синтаксическая ошибка и т. д.)
+            Log::channel('error_file')->error(
+                'Ошибка рендеринга шаблона objects.create: ' . $e->getMessage(),
+                [
+                    'user_id' => $userId ?? 'unknown',
+                    'exception_code' => $e->getCode(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
+            );
+            abort(500, 'Ошибка загрузки страницы — шаблон недоступен');
+        } catch (\Exception $e) {
+            // Общий обработчик для любых других непредвиденных ошибок
+            Log::channel('error_file')->error(
+                'Неожиданная ошибка в DetailsObjController@create: ' . $e->getMessage(),
+                [
+                    'user_id' => $userId ?? 'unknown',
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            abort(500, 'Внутренняя ошибка сервера');
+        }
     }
 
 
-    public function store(CreateObjRequest $request)
+    /**
+     * @param CreateObjRequest $request
+     * @return RedirectResponse
+     * @throws ValidationException
+     */
+    public function store(CreateObjRequest $request): RedirectResponse
     {
-        $obj = Obj::create($request->validated());
-        if ($obj) {
+        try {
+            $obj = $this->objService->store($request->validated());
+
             return redirect()->route("create.details_obj", ['obj' => $obj]);
+        } catch (ValidationException $e) {
+            Log::channel('error_file')->error(
+                'Ошибка валидации в ObjController@store: ' . $e->getMessage(),
+                [
+                    'errors' => $e->errors(),
+                    'user_id' => auth()->id()
+                ]
+            );
+            throw $e;
+        } catch (\RuntimeException $e) {
+            Log::channel('error_file')->error(
+                'Бизнес‑ошибка при создании объекта: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->validated(),
+                    'user_id' => auth()->id(),
+                    'exception_code' => $e->getCode()
+                ]
+            );
+
+            return redirect()
+                ->back()
+                ->withErrors(['error' => $e->getMessage()])
+                ->withInput();
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Неожиданная ошибка в ObjController@store: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->validated(),
+                    'user_id' => auth()->id(),
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+
+            return redirect()
+                ->back()
+                ->withErrors(['error' => 'Произошла внутренняя ошибка сервера'])
+                ->withInput();
         }
     }
 

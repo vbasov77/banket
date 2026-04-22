@@ -53,7 +53,7 @@ class SearchController extends Controller
     public function searchResults(Request $request)
     {
         $data = $this->searcService->searchResults($request);
-
+dd($data);
         return \view('front', ['data' => $data['data'], 'pagination' => $data['pagination']]);
     }
 

@@ -18,6 +18,37 @@ const streetSuggestions = document.getElementById('street-suggestions');
 
 saveButton.disabled = true;
 
+function showErrorAlert(message) {
+    // Создаём контейнер для алерта, если его ещё нет
+    let alertContainer = document.getElementById('error-alert');
+    if (!alertContainer) {
+        alertContainer = document.createElement('div');
+        alertContainer.id = 'error-alert';
+        alertContainer.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 10000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        document.body.appendChild(alertContainer);
+    }
+
+    // Устанавливаем сообщение и показываем
+    alertContainer.textContent = message;
+    alertContainer.style.display = 'block';
+
+    // Автоматически скрываем через 5 секунд
+    setTimeout(() => {
+        alertContainer.style.display = 'none';
+    }, 5000);
+}
+
+
 // Функция debounce
 function debounce(func, wait) {
     let timeout;
@@ -57,6 +88,7 @@ function showSuggestions(suggestionsList, data) {
     suggestionsList.classList.add('visible');
 }
 
+
 // Обработчик для города
 cityInput.addEventListener('input', debounce(async (e) => {
     const query = e.target.value;
@@ -75,28 +107,61 @@ cityInput.addEventListener('input', debounce(async (e) => {
     try {
         const response = await fetch(`/api/cities?q=${encodeURIComponent(query)}`);
 
+        // Обработка сетевых ошибок (нет соединения, CORS и т. д.)
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.status >= 500) {
+                // Ошибки сервера 5xx
+                console.error('Server error in city search:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: response.url
+                });
+                showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+            } else if (response.status === 404) {
+                // Нет результатов
+                citySuggestions.innerHTML = '<li class="error">Города не найдены</li>';
+                citySuggestions.classList.add('visible');
+            } else {
+                // Другие HTTP‑ошибки (4xx)
+                console.warn('Client error in city search:', {
+                    status: response.status,
+                    statusText: response.statusText
+                });
+                showErrorAlert('Ошибка загрузки данных. Проверьте запрос.');
+            }
+            return;
         }
 
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error('Expected JSON, but got:', text.substring(0, 200));
-            throw new Error('Invalid response format: expected JSON');
+            showErrorAlert('Ошибка формата данных. Попробуйте позже.');
+            return;
         }
 
         const cities = await response.json();
+
+        // Дополнительная проверка структуры данных
+        if (!Array.isArray(cities)) {
+            console.error('Invalid data structure from server:', cities);
+            showErrorAlert('Ошибка данных с сервера. Попробуйте позже.');
+            return;
+        }
+
         showSuggestions(citySuggestions, cities);
         setupMapClickHandler();
 
     } catch (error) {
-        console.error('Error fetching cities:', error);
-        citySuggestions.innerHTML = '<li class="error">Ошибка загрузки городов</li>';
-        citySuggestions.classList.add('visible');
+        // Сетевые ошибки (нет интернета, прерванное соединение и т. д.)
+        console.error('Network error or unexpected error in city search:', error);
+
+        if (error.name === 'TypeError' && error.message.includes('failed to fetch')) {
+            showErrorAlert('Проверьте подключение к интернету.');
+        } else {
+            showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+        }
     }
-
-
 }, 300));
 
 // Обработчик для района
@@ -114,25 +179,60 @@ districtInput.addEventListener('input', debounce(async (e) => {
             `/api/districts?city_data_city_id=${encodeURIComponent(selectedCityId)}&q=${encodeURIComponent(query)}`
         );
 
+        // Обработка сетевых и HTTP‑ошибок
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.status >= 500) {
+                // Ошибки сервера 5xx
+                console.error('Server error in district search:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: response.url
+                });
+                showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+            } else if (response.status === 404) {
+                // Нет результатов
+                districtSuggestions.innerHTML = '<li class="error">Районы не найдены</li>';
+                districtSuggestions.classList.add('visible');
+            } else {
+                // Другие HTTP‑ошибки (4xx)
+                console.warn('Client error in district search:', {
+                    status: response.status,
+                    statusText: response.statusText
+                });
+                showErrorAlert('Ошибка загрузки данных. Проверьте запрос.');
+            }
+            return;
         }
 
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error('Expected JSON, but got:', text.substring(0, 200));
-            throw new Error('Invalid response format: expected JSON');
+            showErrorAlert('Ошибка формата данных. Попробуйте позже.');
+            return;
         }
 
         const districts = await response.json();
-        console.log(districts);
+
+        // Дополнительная проверка структуры данных
+        if (!Array.isArray(districts)) {
+            console.error('Invalid data structure from server:', districts);
+            showErrorAlert('Ошибка данных с сервера. Попробуйте позже.');
+            return;
+        }
+
         showSuggestions(districtSuggestions, districts);
         setupMapClickHandler();
+
     } catch (error) {
-        console.error('Error fetching districts:', error);
-        districtSuggestions.innerHTML = '<li class="error">Ошибка загрузки районов</li>';
-        districtSuggestions.classList.add('visible');
+        // Сетевые ошибки (нет интернета, прерванное соединение и т. д.)
+        console.error('Network error or unexpected error in district search:', error);
+
+        if (error.name === 'TypeError' && error.message.includes('failed to fetch')) {
+            showErrorAlert('Проверьте подключение к интернету.');
+        } else {
+            showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+        }
     }
 }, 300));
 
@@ -152,26 +252,69 @@ streetInput.addEventListener('input', debounce(async (e) => {
             `/api/streets?city=${encodeURIComponent(selectedCity)}&q=${encodeURIComponent(query)}`
         );
 
+        // Обработка HTTP‑ошибок (4xx, 5xx)
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.status >= 500) {
+                // Ошибки сервера 5xx
+                console.error('Server error in street search:', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    url: response.url
+                });
+                showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+            } else if (response.status === 404) {
+                // Нет результатов
+                streetSuggestions.innerHTML = '<li class="error">Улицы не найдены</li>';
+                streetSuggestions.classList.add('visible');
+            } else {
+                // Другие HTTP‑ошибки (4xx)
+                console.warn('Client error in street search:', {
+                    status: response.status,
+                    statusText: response.statusText
+                });
+                showErrorAlert('Ошибка загрузки данных. Проверьте запрос.');
+            }
+            return;
         }
 
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error('Expected JSON, but got:', text.substring(0, 200));
-            throw new Error('Invalid response format: expected JSON');
+            showErrorAlert('Ошибка формата данных. Попробуйте позже.');
+            return;
         }
 
         const streets = await response.json();
+
+        // Дополнительная проверка структуры данных
+        if (!Array.isArray(streets)) {
+            console.error('Invalid data structure from server:', streets);
+            showErrorAlert('Ошибка данных с сервера. Попробуйте позже.');
+            return;
+        }
+
         showSuggestions(streetSuggestions, streets);
         setupMapClickHandler();
+
     } catch (error) {
-        console.error('Error fetching streets:', error);
+        // Сетевые ошибки (нет интернета, прерванное соединение и т. д.)
+        console.error('Network error or unexpected error in street search:', error);
+
+        if (error.name === 'TypeError' && error.message.includes('failed to fetch')) {
+            // Конкретная ошибка отсутствия интернета
+            showErrorAlert('Проверьте подключение к интернету.');
+        } else {
+            // Все остальные ошибки
+            showErrorAlert('Непредвиденная ошибка, попробуйте чуть позже.');
+        }
+
+        // Показываем ошибку в подсказках
         streetSuggestions.innerHTML = '<li class="error">Ошибка загрузки улиц</li>';
         streetSuggestions.classList.add('visible');
     }
 }, 300));
+
 
 // Обработчик для номера дома
 houseNumberInput.addEventListener('input', () => {

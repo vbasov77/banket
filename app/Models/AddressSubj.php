@@ -40,5 +40,11 @@ class AddressSubj extends Model
     {
         return $this->belongsTo(Subj::class, 'subj_id');
     }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class, 'district_id', 'id');
+    }
+
 }
 

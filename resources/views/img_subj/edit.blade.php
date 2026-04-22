@@ -93,17 +93,17 @@
             position: absolute;
             top: 12px;
             right: 12px;
-            opacity: 0;
+            /*opacity: 0;*/
             transition: opacity 0.3s ease;
             pointer-events: none;
             width: 32px;
             height: 32px;
         }
 
-        .post_list_ul li:hover .round-popup {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        /*.post_list_ul li:hover .round-popup {*/
+        /*    opacity: 1;*/
+        /*    pointer-events: auto;*/
+        /*}*/
 
         .close {
             width: 100%;
@@ -266,7 +266,6 @@
                 <h3 style="color:green">{{ session('message') }}</h3>
             @endif
         </div>
-
         <section>
             <div class="container px-4 px-lg-5">
                 <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -333,6 +332,7 @@
 </div>
 
 <script>
+    window.imgSubjStore = '{{route('img_subj.store')}}';
     function del() {
         // Удаляем предыдущие обработчики, чтобы избежать дублирования
         let buttons = document.querySelectorAll('.close');
@@ -349,7 +349,7 @@
     function handleDeleteClick(e) {
         if (confirm('Подтвердите удаление')) {
             const id = e.target.getAttribute('data-id');
-            sendDel('/delete_subj_img/id' + id, id);
+            sendDel('/delete_subj_img/' + id, id);
         } else {
             alert('Удаление отменено');
         }
@@ -551,7 +551,7 @@
 
     input.addEventListener('change', function (e) {
         const files = e.target.files;
-        const url = '/img_subj_store';
+        const url = window.imgSubjStore;
 
         for (const file of files) {
             // Генерируем уникальный ID для макета
@@ -630,235 +630,6 @@
     });
 
 </script>
-{{--<script>--}}
-{{--    function del() {--}}
-{{--        let button = document.querySelectorAll('.close');--}}
-{{--        for (var i = 0; i < button.length; i++) {--}}
-{{--            button[i].addEventListener('click', function (e) {--}}
 
-{{--                if (confirm('Подтвердите удаление')) {--}}
-{{--                    const id = e.target.getAttribute('data-id');--}}
-{{--                    sendDel('/delete_subj_img/id' + id, id);--}}
-{{--                } else {--}}
-{{--                    alert('Удаление отменено');--}}
-{{--                }--}}
-{{--            });--}}
-{{--        }--}}
-{{--    }--}}
-
-
-{{--    async function sendDel(url, id) {--}}
-{{--        let response = await fetch(url, {--}}
-{{--            method: 'DELETE',--}}
-{{--            headers: {--}}
-{{--                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')--}}
-{{--            }--}}
-{{--        });--}}
-{{--        let result = await response.json();--}}
-{{--        if (result.answer === 'ok') {--}}
-{{--            document.getElementById(id).remove();--}}
-{{--            sortable();--}}
-{{--        } else {--}}
-{{--            alert(result);--}}
-{{--        }--}}
-{{--    }--}}
-
-{{--    del();--}}
-
-
-{{--    function sortable() {--}}
-{{--        // Получаем все элементы списка в текущем порядке (включая перетащенные)--}}
-{{--        const items = document.querySelectorAll('.post_list_ul li');--}}
-
-{{--        items.forEach((item, index) => {--}}
-{{--            // Находим элемент с номером--}}
-{{--            const posNum = item.querySelector('.pos_num');--}}
-
-{{--            if (posNum) {--}}
-{{--                // Присваиваем номер по порядку (начиная с 1)--}}
-{{--                posNum.textContent = index + 1;--}}
-{{--            }--}}
-{{--        });--}}
-{{--    }--}}
-
-{{--    function createUploadPlaceholder(fileId) {--}}
-{{--        const li = document.createElement('li');--}}
-{{--        li.className = 'ui-state-default myClass';--}}
-{{--        li.id = `upload-${fileId}`;--}}
-{{--        li.dataset.id = fileId;--}}
-
-{{--        li.innerHTML = `--}}
-{{--    <div class="upload-placeholder">Загружается...</div>--}}
-{{--    <img class="zoom img-fluid box3 del loading" src="" alt="Фото">--}}
-{{--    <span class="pos_num"></span> <!-- ДОБАВЛЕНО! -->--}}
-{{--    <div class="round-popup">--}}
-{{--      <button type="button" class="close"><span data-id="${fileId}">&times;</span></button>--}}
-{{--    </div>--}}
-{{--  `;--}}
-
-{{--        document.querySelector('.post_list_ul').appendChild(li);--}}
-{{--        return li;--}}
-{{--    }--}}
-
-
-{{--    // Обновляет макет реальным фото--}}
-{{--    function updateWithRealImage(placeholderLi, photoData) {--}}
-{{--        const img = placeholderLi.querySelector('.zoom');--}}
-{{--        const placeholder = placeholderLi.querySelector('.upload-placeholder');--}}
-
-{{--        // Сохраняем .pos_num (он нужен для нумерации)--}}
-{{--        const posNum = placeholderLi.querySelector('.pos_num');--}}
-
-{{--        // Обновляем данные изображения--}}
-{{--        img.src = photoData.path + '&cs=240x0';--}}
-{{--        img.alt = photoData.name || 'Фото';--}}
-{{--        img.setAttribute('data-file', photoData.id);--}}
-
-
-{{--        // Удаляем ТОЛЬКО макет-заглушку, а не весь контент--}}
-{{--        if (placeholder) {--}}
-{{--            placeholder.remove();--}}
-{{--        }--}}
-
-{{--        // Восстанавливаем .pos_num, если он был удалён--}}
-{{--        if (!posNum) {--}}
-{{--            const newPosNum = document.createElement('span');--}}
-{{--            newPosNum.className = 'pos_num';--}}
-{{--            placeholderLi.insertBefore(newPosNum, img); // Вставляем перед img--}}
-{{--        }--}}
-
-{{--        img.classList.remove('loading');--}}
-
-{{--        // Остальные обновления--}}
-{{--        placeholderLi.id = photoData.id;--}}
-{{--        placeholderLi.dataset.id = photoData.id;--}}
-
-{{--        const closeBtn = placeholderLi.querySelector('.close span');--}}
-{{--        closeBtn.dataset.id = photoData.id;--}}
-
-{{--        sortable();--}}
-{{--        del();--}}
-{{--    }--}}
-
-
-{{--    async function sendStoreImg(url, files) {--}}
-{{--        let response = await fetch(url, { /* ... */});--}}
-{{--        let result = await response.json();--}}
-
-{{--        if (result.path) {--}}
-{{--            const text = `<li class="ui-state-default myClass" id="${result.id}" data-id="${result.id}">--}}
-{{--<span class="pos_num">${result.id}</span>--}}
-{{--<img class="zoom img-fluid box3 del" src="${result.path}/" data-file="${result.id}"> <!-- Оставляем пустым! -->--}}
-{{--        <div class="round-popup">--}}
-{{--          <button type="button" class="close"><span data-id="${result.id}">&times;</span></button>--}}
-{{--        </div>--}}
-{{--      </li>`;--}}
-
-{{--            document.querySelector('.post_list_ul').insertAdjacentHTML('beforeend', text);--}}
-
-{{--            // Вызываем updateWithRealImage для заполнения data-file--}}
-{{--            const newLi = document.getElementById(result.id);--}}
-{{--            updateWithRealImage(newLi, {--}}
-{{--                id: result.id,--}}
-{{--                path: result.path,--}}
-{{--                name: 'Новое фото' // Можно взять из File.name--}}
-{{--            });--}}
-
-{{--            sortable();--}}
-{{--            del();--}}
-{{--        }--}}
-{{--    }--}}
-
-
-{{--    let input = document.getElementById('files');--}}
-
-{{--    input.addEventListener('change', function (e) {--}}
-{{--        const files = e.target.files;--}}
-{{--        const url = '/img_subj_store';--}}
-
-{{--        for (const file of files) {--}}
-{{--            // Генерируем уникальный ID для макета--}}
-{{--            const fileId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;--}}
-
-{{--            // Создаём макет--}}
-{{--            const placeholderLi = createUploadPlaceholder(fileId);--}}
-
-{{--            // Отправляем файл--}}
-{{--            const formData = new FormData();--}}
-{{--            formData.append('img', file);--}}
-{{--            formData.append('id', {{ $subj }});--}}
-
-{{--            fetch(url, {--}}
-{{--                method: 'POST',--}}
-{{--                body: formData,--}}
-{{--                headers: {--}}
-{{--                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content--}}
-{{--                }--}}
-{{--            })--}}
-{{--                .then(response => response.json())--}}
-{{--                .then(result => {--}}
-{{--                    if (result.path) {--}}
-{{--                        // Обновляем макет реальным фото--}}
-{{--                        updateWithRealImage(placeholderLi, {--}}
-{{--                            id: result.id,--}}
-{{--                            path: result.path,--}}
-{{--                            name: file.name--}}
-{{--                        });--}}
-{{--                    } else {--}}
-{{--                        alert('Ошибка загрузки: ' + (result.message || 'Неизвестный ответ'));--}}
-{{--                        placeholderLi.remove(); // Удаляем макет при ошибке--}}
-{{--                    }--}}
-{{--                })--}}
-{{--                .catch(error => {--}}
-{{--                    console.error('Ошибка отправки:', error);--}}
-{{--                    alert('Не удалось отправить файл');--}}
-{{--                    placeholderLi.remove();--}}
-{{--                });--}}
-{{--        }--}}
-
-{{--        this.value = ''; // Очищаем input--}}
-{{--    });--}}
-
-
-{{--    $(document).ready(function () {--}}
-{{--        // Инициализируем Sortable с поддержкой тач--}}
-{{--        $("#post_sortable").sortable({--}}
-
-{{--            placeholder: "ui-state-highlight",--}}
-{{--            forcePlaceholderSize: true, // Улучшает визуал на мобильных--}}
-{{--            tolerance: "pointer",     // Более точное срабатывание на касание--}}
-{{--            update: function (event, ui) {--}}
-{{--                var post_order_ids = [];--}}
-{{--                $('#post_sortable li').each(function () {--}}
-{{--                    post_order_ids.push($(this).data("id"));--}}
-{{--                });--}}
-
-{{--                $.ajax({--}}
-{{--                    type: "POST",--}}
-{{--                    url: "{{ route('img_subj.order_change') }}",--}}
-{{--                    dataType: "json",--}}
-{{--                    data: {--}}
-{{--                        order: post_order_ids,--}}
-{{--                        _token: "{{ csrf_token() }}"--}}
-{{--                    },--}}
-{{--                    success: function (response) {--}}
-{{--                        toastr.success(response.message);--}}
-{{--                        sortable(); // Обновляем номера позиций--}}
-{{--                    },--}}
-{{--                    error: function (xhr, status, error) {--}}
-{{--                        console.log(xhr.responseText);--}}
-{{--                        toastr.error("Ошибка сохранения порядка");--}}
-{{--                    }--}}
-
-{{--                });--}}
-
-
-{{--            }--}}
-
-{{--        }).disableSelection(); // Защищает от выделения текста при перетаскивании--}}
-{{--    });--}}
-
-
-{{--</script>--}}
 </body>
 </html>

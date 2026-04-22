@@ -5,7 +5,9 @@ namespace App\Services;
 
 
 use App\Repositories\MapRepository;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 
 class MapService extends Service
 {
@@ -19,9 +21,25 @@ class MapService extends Service
     }
 
 
+    /**
+     * @return JsonResponse
+     * @throws \Exception
+     */
     public function getMapData(): JsonResponse
     {
-        return $this->mapRepository->getMapData();
+        try {
+            return $this->mapRepository->getMapData();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in MapService@getMapData: ' . $e->getMessage()
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in MapService@getMapData: ' . $e->getMessage()
+            );
+            throw $e;
+        }
     }
 
     function calculateDistance(float $lat1, float $lng1, float $lat2, float $lng2): float

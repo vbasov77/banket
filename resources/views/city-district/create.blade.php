@@ -30,6 +30,7 @@
                           placeholder="Адмиралтейский;&#10;Василеостровский;&#10;Выборгский;&#10;" required>{{ old('districts') }}</textarea>
             </div>
             <button type="submit" class="btn btn-primary">Добавить</button>
+            <br>
         </form>
     </div>
 

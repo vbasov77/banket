@@ -9,6 +9,7 @@ use App\Models\District;
 use App\Models\Obj;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class SearchRepository extends Repository
 {
@@ -93,33 +94,44 @@ class SearchRepository extends Repository
         // --- НОВЫЙ БЛОК: Получение параметров для сортировки по районам ---
         // 1. Получаем ID города из сессии (название города)
         $userCityName = session('user_city');
+
         // Находим ID города по названию (кэшируем, чтобы не грузить БД каждый раз)
         $cityId = Cache::remember('city_id_' . $userCityName, 3600, function () use ($userCityName) {
             return City::where('name', $userCityName)->value('id');
         });
 
-        // 2. Получаем выбранные районы из GET-запроса (массив ID)
-        // Ожидаем формат: ?districts[]=1&districts[]=5
-        $districtIds = $request->input('district');
-
-        // Валидация: если переданы районы, проверяем, что они относятся к текущему городу
-        if (!empty($districtIds) && is_array($districtIds)) {
-            // Фильтруем только районы, которые принадлежат городу пользователя
-            $validDistrictIds = District::where('city_id', $cityId)
-                ->whereIn('name', $districtIds)
-                ->pluck('id')
-                ->values() // Пересобираем ключи массива для правильного использования в SQL
-                ->toArray();
-
-            // Если переданных районов нет в этом городе, очищаем фильтр (или можно оставить пустым, сортировка не сработает)
-            $districtIds = $validDistrictIds;
-        } else {
+        if (!$cityId) {
             $districtIds = [];
+        } else {
+            // 2. Получаем выбранные районы из GET-запроса (массив ID)
+            $districtIds = $this->getDistrictIds($request->input('district', []), $cityId);
+
+            if (!is_array($districtIds)) {
+                $districtIds = [$districtIds];
+            }
+            $districtIds = array_filter($districtIds, 'is_numeric');
+
+            // Валидация: если переданы районы, проверяем, что они относятся к текущему городу
+            if (!empty($districtIds)) {
+                // Фильтруем только районы, которые принадлежат городу пользователя
+                $validDistrictIds = District::where('city_id', $cityId)
+                    ->whereIn('id', $districtIds)
+                    ->pluck('id')
+                    ->toArray();
+                $districtIds = $validDistrictIds;
+
+            } else {
+                $districtIds = [];
+            }
+
+
         }
         // --------------------------------------------------------------
 
         // Дополнительно проверяем фильтры в текущем GET-запросе
-        if ($request->has('for_events')) $forEventsFilter = $request->input('for_events');
+        if ($request->has('for_events')) {
+            $forEventsFilter = $request->input('for_events');
+        }
         if ($request->has('capacity_to')) {
             $capacityToFilter = $request->input('capacity_to');
             session(['selected_filters.capacity_to' => $capacityToFilter]);
@@ -139,21 +151,24 @@ class SearchRepository extends Repository
                     'alcohol', 'more', 'payment_methods', 'text_obj');
             },
             'subjs' => function ($query) use ($cityId) {
-                // Добавляем select для district, чтобы потом можно было использовать его (опционально)
                 $query->select(
                     'id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_to', 'site_type', 'features', 'text_subj'
-                );
+                )->with(['addressSubj' => function ($q) {
+                    $q->select('id', 'subj_id', 'district_id')
+                        ->with(['district' => function ($d) {
+                            $d->select('id', 'name');
+                        }]);
+                }]);
 
-                // Опционально: жесткий фильтр по городу на уровне запроса, если нужно ускорить
-                // if ($cityId) {
-                //     $query->whereHas('addressObj', function($q) use ($cityId) {
-                //         $q->where('city', $cityId);
-                //     });
-                // }
+            },
+            'subjs.imgSubjFirst',
+            'subjs.imgSubjs' => function ($q) {
+                $q->select('subj_id', 'path')->orderBy('position')->take(5);
             }
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
+
 
         // Применяем фильтры
         if (!is_null($forEventsFilter)) {
@@ -184,36 +199,25 @@ class SearchRepository extends Repository
             });
         }
 
-        // --- ЛОГИКА СОРТИРОВКИ ПО РАЙОНАМ (NATIVE SQL) ---
-        if (!empty($districtIds)) {
-            // 1. Формируем строку для CASE WHEN
-            $caseWhenParts = [];
+        // --- ЛОГИКА СОРТИРОВКИ ПО РАЙОНАМ ---
+        if (!empty($districtIds) && $cityId) {
+            $caseBindings = [];
+            $caseParts = [];
+
             foreach ($districtIds as $index => $id) {
-                $caseWhenParts[] = "WHEN ga.district_id = {$id} THEN " . ($index + 1);
+                $caseParts[] = "WHEN ga.district_id = ? THEN " . ($index + 1);
+                $caseBindings[] = $id;
             }
-            $caseSql = "CASE " . implode(" ", $caseWhenParts) . " ELSE 999999 END";
 
-            // 2. Делаем INNER JOIN вместо LEFT JOIN.
-            // INNER JOIN гарантирует, что в результат попадут ТОЛЬКО те объекты,
-            // у которых есть запись в таблице group_address_objs с выбранным районом.
+            $caseSql = "CASE " . implode(" ", $caseParts) . " ELSE 999999 END";
+
             $query->join('subjs as s', 'objs.id', '=', 's.obj_id')
-                ->join('group_address_objs as ga', 'objs.id', '=', 'ga.obj_id');
-
-            // 3. Добавляем фильтр WHERE, чтобы исключить объекты, у которых district не в списке
-            // Это дублирует логику INNER JOIN, но делает её явной и безопасной на случай,
-            // если в БД есть адреса с district_id = 0 или NULL.
-            $query->whereIn('ga.district_id', $districtIds);
-
-            // 4. Группируем по ID объекта, чтобы убрать дубликаты (так как один объект может иметь несколько залов/адресов)
-            $query->groupBy('objs.id');
-
-            // 5. Добавляем сортировку через агрегатную функцию MIN()
-            $query->orderByRaw("MIN({$caseSql}) ASC");
-
-            // 6. Добавляем вторичную сортировку по ID объекта
-            $query->orderBy('objs.id', 'ASC');
+                ->join('group_address_objs as ga', 'objs.id', '=', 'ga.obj_id')
+                ->whereIn('ga.district_id', $districtIds)
+                ->groupBy('objs.id')
+                ->orderByRaw("MIN({$caseSql}) ASC", $caseBindings)
+                ->orderBy('objs.id', 'ASC');
         } else {
-            // Если районы не выбраны, сортируем по умолчанию
             $query->orderBy('objs.id', 'desc');
         }
         // ----------------------------------------------------
@@ -224,13 +228,11 @@ class SearchRepository extends Repository
         // Трансформация данных
         $transformedData = $paginated->getCollection()->map(function ($obj) {
             $subjsData = $obj->subjs->map(function ($subj) {
-                $subj->load([
-                    'imgSubjFirst:subj_id,path',
-                    'imgSubjs' => function ($q) {
-                        $q->select('subj_id', 'path')->orderBy('position')->take(5);
-                    }
-                ]);
 
+                // Извлекаем название района через addressSubj → district
+                $districtName = $subj->addressSubj && $subj->addressSubj->district
+                    ? $subj->addressSubj->district->name
+                    : null;
                 return [
                     'id' => $subj->id,
                     'name_subj' => $subj->name_subj,
@@ -242,6 +244,7 @@ class SearchRepository extends Repository
                     'text_subj' => $subj->text_subj,
                     'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
                     'image_paths' => $subj->imgSubjs->pluck('path')->toArray(),
+                    'district_name' => $districtName
                 ];
             })->toArray();
 
@@ -252,7 +255,7 @@ class SearchRepository extends Repository
                 'phone_obj' => $obj->phone_obj,
                 'for_events' => $obj->detailsObj ? $obj->detailsObj->for_events : null,
                 'subjs_data' => $subjsData,
-                'details_obj' => $obj->detailsObj->toArray(),
+                'details_obj' => $obj->detailsObj ? $obj->detailsObj->toArray() : null,
             ];
         })->toArray();
 
@@ -278,9 +281,36 @@ class SearchRepository extends Repository
             'meta' => [
                 'query_params' => $request->all(),
                 'timestamp' => now()->toDateTimeString(),
+                'city_id' => $cityId, // Добавляем ID города для отладки
+                'user_city' => $userCityName, // Название города пользователя
+                'applied_district_filters' => !empty($districtIds), // Флаг применения фильтра по районам
             ]
         ];
     }
+
+    private function getDistrictIds(array $districtInput, int $cityId): array
+    {
+        $resultIds = [];
+
+        foreach ($districtInput as $item) {
+            if (is_numeric($item)) {
+                // Если уже ID — просто добавляем
+                $resultIds[] = (int)$item;
+            } elseif (is_string($item) && !empty(trim($item))) {
+                // Ищем ID по названию района
+                $districtId = District::where('city_id', $cityId)
+                    ->where('name', trim($item))
+                    ->value('id');
+
+                if ($districtId) {
+                    $resultIds[] = $districtId;
+                }
+            }
+        }
+
+        return array_unique($resultIds); // Убираем дубликаты
+    }
+
 }
 
 

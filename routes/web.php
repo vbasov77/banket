@@ -1,22 +1,22 @@
 <?php
 
-use Illuminate\Support\Facades\Artisan;
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AddressSubjController;
+use App\Http\Controllers\CityController;
+use App\Http\Controllers\CityDistrictController;
+use App\Http\Controllers\DetailsObjController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FrontController;
-use App\Http\Controllers\ObjController;
 use App\Http\Controllers\ImgObjController;
 use App\Http\Controllers\ImgSubjController;
-use App\Http\Controllers\TestController;
-use App\Http\Controllers\SubjController;
-use App\Http\Controllers\DetailsObjController;
-use App\Http\Controllers\SearchController;
 use App\Http\Controllers\MapPointController;
+use App\Http\Controllers\ObjController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SubjController;
+use App\Http\Controllers\TestController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
-use App\Http\Controllers\AddressSubjController;
-use App\Http\Controllers\FavoriteController;
-use App\Http\Controllers\CityDistrictController;
-use App\Http\Controllers\CityController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -74,7 +74,6 @@ Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.pu
 
 Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
-//Route::post('/api/save-address', [AddressSubjController::class, 'saveAddress']);
 Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
 Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
@@ -112,7 +111,6 @@ Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img
 Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth.api');
 Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth.api');
 Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
-
 
 Route::get('/test-log', function () {
     // Тестовая запись на русском

@@ -17,6 +17,235 @@ class CityService
     const DEFAULT_CITY_ID = 1; // ID Санкт‑Петербурга в базе
 
     /**
+     * Получает список всех городов
+     */
+    public function getCities(): array
+    {
+        try {
+            $cities = City::all();
+
+            if ($cities->isEmpty()) {
+                return [
+                    'success' => true,
+                    'message' => 'Городов не найдено в базе данных.',
+                    'cities' => [],
+                    'count' => 0,
+                    'http_status' => 200
+                ];
+            }
+
+            $responseData = $cities->map(function ($city) {
+                return [
+                    'id' => $city->id,
+                    'name' => $city->name
+                ];
+            });
+
+            return [
+                'success' => true,
+                'message' => 'Список городов получен успешно.',
+                'cities' => $responseData,
+                'count' => $cities->count(),
+                'http_status' => 200
+            ];
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::channel('error_file')->error('Database query error while retrieving cities', [
+                'error' => $e->getMessage(),
+                'code' => $e->getCode()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Произошла ошибка при получении данных из базы данных.',
+                'details' => [
+                    'error_code' => $e->getCode(),
+                    'error_message' => $e->getMessage()
+                ],
+                'http_status' => 500
+            ];
+
+        } catch (\Exception $e) {
+            Log::channel('error_file')->critical('Unexpected error in CityService::getCities', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Внутренняя ошибка сервера.',
+                'details' => [
+                    'error' => $e->getMessage()
+                ],
+                'http_status' => 500
+            ];
+
+        } catch (\Throwable $e) {
+            Log::channel('error_file')->emergency('Fatal error in CityService::getCities', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Произошла критическая ошибка на сервере. Пожалуйста, попробуйте позже.',
+                'error_code' => 'FATAL_ERROR',
+                'http_status' => 500
+            ];
+        }
+    }
+
+    /**
+     * Устанавливает город для пользователя (авторизованного или гостя)
+     */
+    public function setCity(Request $request): array
+    {
+        try {
+            // Валидация входных данных
+            $validated = $request->validate([
+                'city' => 'required|string|min:1|max:255',
+                'city_id' => 'required|integer|min:1',
+            ]);
+
+            $cityName = $validated['city'];
+            $cityId = $validated['city_id'];
+
+            // Проверка существования города
+            $cityExists = City::where('id', $cityId)->exists();
+            if (!$cityExists) {
+                Log::channel('error_file')->warning('Attempt to set non-existent city', [
+                    'city_id' => $cityId,
+                    'city_name' => $cityName,
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'Указанный город не найден в системе',
+                    'details' => [
+                        'provided_city_id' => $cityId,
+                        'provided_city_name' => $cityName,
+                    ],
+                    'http_status' => 404
+                ];
+            }
+
+            // Очистка и установка сессии
+            Session::forget('selected_filters');
+            Session::put('user_city', $cityName);
+            $request->session()->save();
+
+            // Если пользователь не авторизован
+            if (!Auth::check()) {
+                return [
+                    'success' => true,
+                    'message' => 'Город успешно установлен',
+                    'data' => [
+                        'city' => $cityName,
+                        'city_id' => $cityId,
+                        'user_type' => 'guest'
+                    ],
+                    'http_status' => 200
+                ];
+            }
+
+            // Для авторизованных пользователей — сохраняем связь с городом
+            try {
+                $updateResult = UserCity::updateOrCreate(
+                    ['user_id' => Auth::id()],
+                    ['city_id' => $cityId]
+                );
+
+                return [
+                    'success' => true,
+                    'message' => 'Город успешно сохранён для пользователя',
+                    'data' => [
+                        'user_id' => Auth::id(),
+                        'city' => $cityName,
+                        'city_id' => $cityId,
+                        'action' => $updateResult->wasRecentlyCreated ? 'created' : 'updated'
+                    ],
+                    'http_status' => 200
+                ];
+
+            } catch (\Illuminate\Database\QueryException $e) {
+                Log::channel('error_file')->error('Database error while saving user city preference', [
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'query' => $e->getQuery(),
+                    'bindings' => $e->getBindings(),
+                    'user_id' => Auth::id(),
+                    'city_id' => $cityId,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Произошла ошибка при сохранении города в базе данных',
+                    'details' => [
+                        'error_code' => $e->getCode(),
+                        'error_type' => 'database_error',
+                        'technical_message' => $e->getMessage()
+                    ],
+                    'http_status' => 500
+                ];
+            } catch (\Exception $e) {
+                Log::channel('error_file')->critical('Unexpected error while saving user city', [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'user_id' => Auth::id(),
+                    'city_id' => $cityId,
+                ]);
+
+                return [
+                    'success' => false,
+                    'message' => 'Произошла внутренняя ошибка при сохранении города',
+                    'details' => [
+                        'error' => $e->getMessage(),
+                        'error_type' => 'application_error'
+                    ],
+                    'http_status' => 500
+                ];
+            }
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::channel('error_file')->warning('Validation error in CityService::setCity', [
+                'errors' => $e->errors(),
+                'input' => $request->all(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Ошибка валидации данных',
+                'errors' => $e->errors(),
+                'details' => [
+                    'validation_rules' => [
+                        'city' => 'обязательное строковое поле (1–255 символов)',
+                        'city_id' => 'обязательное целое число ≥ 1'
+                    ],
+                ],
+                'http_status' => 422
+            ];
+        } catch (\Throwable $e) {
+            Log::channel('error_file')->emergency('Fatal error in CityService::setCity', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'input' => $request->all(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Произошла критическая ошибка на сервере. Пожалуйста, попробуйте позже.',
+                'error_code' => 'FATAL_ERROR',
+                'http_status' => 500
+            ];
+        }
+    }
+
+
+    /**
      * @return City
      */
     public function getUserCity(): City
@@ -51,45 +280,28 @@ class CityService
         return $defaultCity;
     }
 
-    /**
-     * Поиск городов по запросу
-     *
-     * @param string $query Строка поиска (минимум 2 символа)
-     * @param int $limit Максимальное количество результатов (по умолчанию 10)
-     * @return array<array{id: int, name: string}>
-     * @throws CitySearchException
-     */
+
     public function findCity(string $query, int $limit = 10): array
     {
-        // Валидация входных данных
         $cleanQuery = trim($query);
 
+        // Валидация запроса
         if (empty($cleanQuery)) {
-            throw new CitySearchException(
-                'Запрос не может быть пустым',
-                400
-            );
+            return [];
         }
 
         if (strlen($cleanQuery) < 2) {
-            throw new CitySearchException(
-                'Запрос слишком короткий. Минимальная длина — 2 символа.',
-                400
-            );
+            return [];
         }
 
-        // Защита от потенциально опасных символов (опционально)
-        if (preg_match('/[^\p{L}\p{N}\s-]/u', $cleanQuery)) {
-            throw new CitySearchException(
-                'Запрос содержит недопустимые символы',
-                422
-            );
+        // Проверка на недопустимые символы (опционально)
+        if (!preg_match('/^[a-zA-Zа-яА-ЯёЁ\s\-]+$/u', $cleanQuery)) {
+            return [];
         }
 
         try {
             $cities = City::select('id', 'name')
-                ->where('name', 'ilike', '%' . $cleanQuery . '%') // регистронезависимый поиск (PostgreSQL)
-                // Для MySQL: ->whereRaw('LOWER(name) LIKE LOWER(?)', ['%' . $cleanQuery . '%'])
+                ->where('name', 'like', '%' . $cleanQuery . '%')
                 ->orderBy('name')
                 ->limit($limit)
                 ->get()
@@ -98,36 +310,40 @@ class CityService
                         'id' => $city->id,
                         'name' => $city->name,
                     ];
-                })->toArray();
+                })
+                ->toArray(); // Преобразуем в массив
 
             return $cities;
-
         } catch (QueryException $e) {
-            Log::channel('error_file')->error('Database error in CityService::findCity', [
-                'query' => $cleanQuery,
+            Log::error('Database error in findCity', [
+                'query' => $query,
                 'exception' => $e::class,
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'line' => $e->getLine()
             ]);
-
-            throw new CitySearchException(
-                'Ошибка при поиске городов. Пожалуйста, попробуйте позже.',
-                500
-            );
+            return [];
         } catch (\Exception $e) {
-            Log::channel('error_file')->critical('Unexpected error in CityService::findCity', [
-                'query' => $cleanQuery,
+            Log::error('Unexpected error in findCity', [
+                'query' => $query,
                 'exception' => $e::class,
-                'message' => $e->getMessage(),
+                'message' => $e->getMessage()
             ]);
-
-            throw new CitySearchException(
-                'Внутренняя ошибка сервиса поиска городов.',
-                500
-            );
+            return [];
         }
     }
+
+// Реализация метода для извлечения имени таблицы из SQL
+    private function extractTableNameFromQuery(?string $sql): ?string
+    {
+        if (!$sql) {
+            return null;
+        }
+        preg_match('/from\s+`?(\w+)`?/i', $sql, $matches);
+        return $matches[1] ?? null;
+    }
+
+
     /**
      * @param int $cityId
      * @return void

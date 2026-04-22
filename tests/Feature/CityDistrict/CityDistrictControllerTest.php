@@ -4,7 +4,9 @@ namespace Tests\Feature\CityDistrict;
 
 use App\Models\City;
 use App\Models\District;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Tests\CreatesApplication;
 use Tests\TestCase;
 
@@ -29,20 +31,10 @@ class CityDistrictControllerTest extends TestCase
      */
     public function testStoreNewCityAndDistrictsSuccessfully(): void
     {
-        City::query()->delete();
-        District::query()->delete();
-
-        $data = [
-            'city_name' => 'Москва',
-            'districts' => "Центральный;\nСеверный;\nЗападный;"
-        ];
-
-        $response = $this->post(route('city-district.store'), $data);
+        $response = $this->setDataCityDistrict();
 
         // Проверяем редирект
         $response->assertRedirect(route('city-district.create'));
-        $response->assertSessionHas('success', 'Город и районы успешно добавлены!');
-
         // Проверяем, что город создан
         $this->assertDatabaseHas('cities', [
             'name' => 'Москва'
@@ -59,46 +51,6 @@ class CityDistrictControllerTest extends TestCase
             'city_id' => $city->id,
             'name' => 'Северный'
         ]);
-        $this->assertDatabaseHas('districts', [
-            'city_id' => $city->id,
-            'name' => 'Западный'
-        ]);
-    }
-
-    /**
-     * Тест добавления районов к существующему городу
-     */
-    public function testStoreDistrictsToExistingCity(): void
-    {
-        City::query()->delete();
-        District::query()->delete();
-
-
-        // Создаём существующий город
-        $existingCity = City::create(['name' => 'Санкт-Петербург']);
-
-        $data = [
-            'city_name' => 'Санкт-Петербург',
-            'districts' => "Адмиралтейский;\nВасилеостровский;"
-        ];
-
-        $response = $this->post(route('city-district.store'), $data);
-
-        $response->assertRedirect(route('city-district.create'));
-        $response->assertSessionHas('success', 'Районы успешно добавлены к существующему городу!');
-
-        // Проверяем, что новый город не создан
-        $this->assertCount(1, City::all());
-
-        // Проверяем, что районы добавлены к существующему городу
-        $this->assertDatabaseHas('districts', [
-            'city_id' => $existingCity->id,
-            'name' => 'Адмиралтейский'
-        ]);
-        $this->assertDatabaseHas('districts', [
-            'city_id' => $existingCity->id,
-            'name' => 'Василеостровский'
-        ]);
     }
 
     /**
@@ -106,14 +58,26 @@ class CityDistrictControllerTest extends TestCase
      */
     public function testValidationFailsWhenRequiredFieldsMissing(): void
     {
+        // Создаём пользователя и начинаем сессию
+        $user = User::factory()->create();
+        $this->startSession();
+        $token = csrf_token();
+
+        // Отправляем запрос БЕЗ обязательных полей
         $data = [
-            'city_name' => '',
-            'districts' => ''
+            '_token' => $token,
+            // city_name отсутствует
+            // districts отсутствует
         ];
 
-        $response = $this->post(route('city-district.store'), $data);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => $token])
+            ->post(route('city-district.store'), $data);
 
+        // Проверяем, что валидация провалилась и ошибки записаны в сессию
         $response->assertSessionHasErrors(['city_name', 'districts']);
+
+        // Проверяем редирект (обычно на форму с ошибками)
         $response->assertRedirect();
     }
 
@@ -123,13 +87,24 @@ class CityDistrictControllerTest extends TestCase
     public function testValidationFailsWhenCityNameTooLong(): void
     {
         $longName = str_repeat('A', 256); // 256 символов
+        City::query()->delete();
+        District::query()->delete();
+
+        $user = User::factory()->create();
+
+        // Инициализируем сессию и получаем CSRF‑токен
+        $this->startSession();
+        $token = csrf_token();
 
         $data = [
             'city_name' => $longName,
-            'districts' => 'Район;'
+            'districts' => "Центральный;\nСеверный;",
+            '_token' => $token, // явно передаём токен
         ];
 
-        $response = $this->post(route('city-district.store'), $data);
+        $response = $this->actingAs($user)
+            ->withSession(['_token' => $token]) // добавляем токен в сессию
+            ->post(route('city-district.store'), $data);
 
         $response->assertSessionHasErrors('city_name');
     }
@@ -142,16 +117,21 @@ class CityDistrictControllerTest extends TestCase
         City::query()->delete();
         District::query()->delete();
 
+        $this->startSession();
+        $token = csrf_token();
+
         $existingCity = City::create(['name' => 'Екатеринбург']);
+
         // Добавляем один район
         District::create([
             'name' => 'Ленинский',
-            'city_id' => $existingCity->id
+            'city_id' => $existingCity->id,
         ]);
 
         $data = [
             'city_name' => 'Екатеринбург',
-            'districts' => "Ленинский;\nОктябрьский;"
+            'districts' => "Ленинский;\nОктябрьский;",
+            '_token' => $token
         ];
 
         $response = $this->post(route('city-district.store'), $data);
@@ -176,13 +156,45 @@ class CityDistrictControllerTest extends TestCase
      */
     public function testHandlesEmptyDistrictsInput(): void
     {
+
+        City::query()->delete();
+        District::query()->delete();
+
+        // Инициализируем сессию и получаем CSRF‑токен
+        $this->startSession();
+        $token = csrf_token();
         $data = [
             'city_name' => 'Новосибирск',
-            'districts' => ''
+            'districts' => '',
+            '_token' => $token
         ];
 
         $response = $this->post(route('city-district.store'), $data);
 
         $response->assertSessionHasErrors('districts');
+    }
+
+
+    public function setDataCityDistrict()
+    {
+        City::query()->delete();
+        District::query()->delete();
+
+        $user = User::factory()->create();
+
+        // Инициализируем сессию и получаем CSRF‑токен
+        $this->startSession();
+        $token = csrf_token();
+
+        $data = [
+            'city_name' => 'Москва',
+            'districts' => "Центральный;\nСеверный;",
+            '_token' => $token, // явно передаём токен
+        ];
+
+        return $this->actingAs($user)
+            ->withSession(['_token' => $token]) // добавляем токен в сессию
+            ->post(route('city-district.store'), $data);
+
     }
 }

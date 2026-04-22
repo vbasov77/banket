@@ -2,75 +2,65 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
-use App\Models\District;
+use App\Services\CityDistrictService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\View\View;
 
 class CityDistrictController extends Controller
 {
-    public function create()
+    protected CityDistrictService $cityDistrictService;
+
+    public function __construct(CityDistrictService $cityDistrictService)
+    {
+        $this->cityDistrictService = $cityDistrictService;
+    }
+
+    /**
+     * @return View
+     */
+    public function create(): View
     {
         return view('city-district.create');
     }
 
-    public function store(Request $request)
+    /**
+     * Добавление города и районов
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function store(Request $request): RedirectResponse
     {
+        // Валидация входных данных
         $validator = Validator::make($request->all(), [
             'city_name' => 'required|string|max:255',
             'districts' => 'required|string',
         ]);
 
         if ($validator->fails()) {
+            Log::channel('error_file')->warning('Validation failed in CityDistrictController@store', [
+                'errors' => $validator->errors()->all(),
+                'input' => $request->except(['_token']),
+            ]);
+
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        $cityName = trim($request->city_name);
+        // Вызов сервиса
+        $result = $this->cityDistrictService->storeCityAndDistricts($request->all());
 
-        // Проверка существования города
-        $existingCity = City::where('name', $cityName)->first();
-
-        if ($existingCity) {
-            // Город уже существует — используем его
-            $city = $existingCity;
-            $message = 'Районы успешно добавлены к существующему городу!';
+        // Обработка результата
+        if ($result['success']) {
+            return redirect()->route('city-district.create')
+                ->with('success', $result['message']);
         } else {
-            // Города нет — создаём новый
-            $city = City::create([
-                'name' => $cityName,
-            ]);
-            $message = 'Город и районы успешно добавлены!';
+            return redirect()->back()
+                ->with('error', $result['message'])
+                ->withInput();
         }
-
-        // Обрабатываем многострочный ввод районов с ";" в конце
-        $districtLines = preg_split('/\r\n|\r|\n/', $request->districts);
-        $districtNames = [];
-
-        foreach ($districtLines as $line) {
-            $cleanLine = trim(rtrim($line, ';'));
-            if (!empty($cleanLine)) {
-                $districtNames[] = $cleanLine;
-            }
-        }
-
-        // Сохраняем районы (проверяем, нет ли уже таких у этого города)
-        foreach ($districtNames as $districtName) {
-            // Проверяем существование района для данного города
-            $existingDistrict = District::where('city_id', $city->id)
-                ->where('name', $districtName)
-                ->first();
-
-            if (!$existingDistrict) {
-                // Района нет — добавляем
-                $city->districts()->create([
-                    'name' => $districtName,
-                ]);
-            }
-            // Если район уже есть — пропускаем его
-        }
-
-        return redirect()->route('city-district.create')
-            ->with('success', $message);
-    }}
+    }
+}

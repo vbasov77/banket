@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Repositories\ObjRepository;
+use App\Services\ObjService;
+use App\Services\Service;
 use Doctrine\DBAL\Types\Type;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +17,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Сначала регистрируем репозиторий
+        $this->app->singleton(ObjRepository::class, function () {
+            return new ObjRepository();
+        });
+
+        // Затем регистрируем сервис с внедрением репозитория
+        $this->app->singleton(ObjService::class, function ($app) {
+            return new ObjService($app->make(ObjRepository::class));
+        });
+
+        $this->app->bind(Service::class, ObjService::class);
     }
 
     /**

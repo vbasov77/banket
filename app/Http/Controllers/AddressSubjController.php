@@ -18,16 +18,16 @@ use Illuminate\Support\Str;
 
 class AddressSubjController extends Controller
 {
-    private $mapService;
-    private $subjService;
+    private MapService $mapService;
+    private SubjService $subjService;
 
-    private $cityService;
+    private CityService $cityService;
 
-    public function __construct()
+    public function __construct(MapService $mapService, SubjService $subjService, CityService $cityService)
     {
-        $this->mapService = new MapService();
-        $this->subjService = new SubjService();
-        $this->cityService = new CityService();
+        $this->mapService = $mapService;
+        $this->subjService = $subjService;
+        $this->cityService = $cityService;
     }
 
 
@@ -39,11 +39,11 @@ class AddressSubjController extends Controller
     {
         $query = $request->input('q');
 
-        // Валидация входных данных
+        // Input validation
         if (!$query || strlen($query) < 2) {
             return response()->json([
                 'error' => 'validation_failed',
-                'message' => 'Запрос слишком короткий',
+                'message' => 'Query is too short',
                 'details' => [
                     'field' => 'q',
                     'min_length' => 2,
@@ -53,25 +53,14 @@ class AddressSubjController extends Controller
         }
 
         try {
-            // Поиск городов в локальной базе данных
+            // Search cities in local database
             $cities = $this->cityService->findCity($query);
 
-            if ($cities->isEmpty()) {
-                return response()->json([
-                    'error' => 'not_found',
-                    'message' => 'Города не найдены',
-                    'query' => $query
-                ], 404);
+            if (empty($cities)) { // Проверка на пустой массив
+                return response()->json([], 404); // Возвращаем пустой массив при отсутствии результатов
             }
 
-            return response()->json([
-                'data' => $cities,
-                'meta' => [
-                    'total' => $cities->count(),
-                    'query' => $query,
-                    'timestamp' => now()->toIso8601String()
-                ]
-            ]);
+            return response()->json($cities); // Просто возвращаем массив без дополнительной обёртки
 
         } catch (QueryException $e) {
             Log::channel('error_file')->error('Database error in city search', [
@@ -87,7 +76,7 @@ class AddressSubjController extends Controller
 
             return response()->json([
                 'error' => 'database_error',
-                'message' => 'Ошибка при поиске городов. Пожалуйста, попробуйте позже.',
+                'message' => 'Error while searching for cities. Please try again later.',
                 'correlation_id' => (string) Str::uuid()
             ], 500);
 
@@ -121,7 +110,7 @@ class AddressSubjController extends Controller
 
             return response()->json([
                 'error' => 'internal_server_error',
-                'message' => 'Внутренняя ошибка сервера. Пожалуйста, обратитесь к администратору.',
+                'message' => 'Internal server error. Please contact the administrator.',
                 'correlation_id' => $correlationId
             ], 500);
         }
@@ -178,9 +167,6 @@ class AddressSubjController extends Controller
             // Здесь сохраняем данные в БД
             // Например:
             // Address::create($validated);
-
-            Log::info('Address saved successfully', $validated);
-
             return response()->json([
                 'success' => true,
                 'message' => 'Адрес успешно сохранён',

@@ -68,7 +68,6 @@ class Subj extends Model
         return $this->hasOne(GroupAddressObj::class, 'subj_id', 'id');
     }
 
-
     public function favoritedByUsers()
     {
         return $this->belongsToMany(User::class, 'favorites');
@@ -79,6 +78,20 @@ class Subj extends Model
         return $this->hasOne(DetailsObj::class, 'obj_id', 'obj_id');
     }
 
+    public function districts()
+    {
+        return $this->belongsToMany(District::class, 'group_address_objs', 'subj_id', 'district_id');
+    }
+
+    public function district()
+    {
+        return $this->belongsToThrough(
+            District::class,
+            [AddressSubj::class],
+            ['subj_id', 'district_id'],
+            ['id', 'id']
+        );
+    }
 
 }
 
