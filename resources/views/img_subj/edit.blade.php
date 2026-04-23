@@ -93,17 +93,17 @@
             position: absolute;
             top: 12px;
             right: 12px;
-            /*opacity: 0;*/
+            opacity: 0;
             transition: opacity 0.3s ease;
             pointer-events: none;
             width: 32px;
             height: 32px;
         }
 
-        /*.post_list_ul li:hover .round-popup {*/
-        /*    opacity: 1;*/
-        /*    pointer-events: auto;*/
-        /*}*/
+        .post_list_ul li:hover .round-popup {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
         .close {
             width: 100%;

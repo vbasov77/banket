@@ -14,6 +14,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubjController;
 use App\Http\Controllers\TestController;
+use App\Http\Controllers\GroupAddressObjController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
@@ -30,22 +31,26 @@ use Illuminate\Support\Facades\Route;
 */
 
 
+Route::get('/group_address/{id}', [GroupAddressObjController::class, 'show'])->name('group.address.show');
+
+
 Route::get('/get-cities', [CityController::class, 'getCities'])->name('get-cities');
-Route::post('/set-city', [CityController::class, 'setCity'])->name('set-city')->middleware('web');;
+Route::post('/set-city', [CityController::class, 'setCity'])->name('set-city');
 Route::get('/api/districts-by-city', [CityController::class, 'getDistrictsByCity'])->name('api.districts.by.city');
 Route::get('/city-district', [CityDistrictController::class, 'create'])->name('city-district.create');
 Route::post('/city-district', [CityDistrictController::class, 'store'])->name('city-district.store');
 
-Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
-Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
-//Route::get('/map', [MapPointController::class, 'index'])->name('map.index');
-Route::get('/map_create/subj{id}', [MapPointController::class, 'create'])->name('map.create')->middleware('author');
-Route::get('/map_edit/subj{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('author');
-Route::get('/show_map/id{id}', [MapPointController::class, 'show'])->name('show.map');
-//Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
+Route::get('/map_edit/subj{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('auth');
 Route::post('/map/points', [MapPointController::class, 'addSubjectToMap'])->name('map_subj.points.store');
-Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destroy'])->name('destroy.map.address');
+Route::get('/map_create/subj{id}', [MapPointController::class, 'create'])->name('map.create')->middleware('auth');
+Route::get('/show_map/id{id}', [MapPointController::class, 'show'])->name('show.map');
+Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destroy'])->name('destroy.map.address')->middleware('auth');
 
+
+//Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
+//Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
+//Route::get('/map', [MapPointController::class, 'index'])->name('map.index');
+//Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -65,9 +70,14 @@ Route::get('/', [FrontController::class, 'show'])->name("front");
 
 Route::get('/create_subj', [SubjController::class, 'create'])->name("create.subj")->middleware('auth');
 Route::get('/show_subj/id{id}', [SubjController::class, 'show'])->name("show.subj");
-Route::get('/edit_subj/id{id}', [SubjController::class, 'edit'])->name("edit.subj")->middleware('auth');
+
+Route::get('/edit_subj/id{id}', [SubjController::class, 'edit'])->name("edit.subj")
+    ->middleware('auth');
 Route::post('/store_subj', [SubjController::class, 'store'])->name("store.subj")->middleware('auth');
-Route::post('/update_subj', [SubjController::class, 'update'])->name("update.subj")->middleware('auth');
+Route::post('/update_subj', [SubjController::class, 'update'])
+    ->name('update.subj')
+    ->middleware('auth');
+
 Route::get('/my_obj', [SubjController::class, 'myObj'])->name("my.obj")->middleware('auth');
 Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('auth');
 Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('auth');

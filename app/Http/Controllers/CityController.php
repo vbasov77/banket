@@ -18,25 +18,31 @@ use Illuminate\Support\Facades\Session;
 class CityController extends Controller
 {
     protected CityService $cityService;
+    protected DistrictService $districtService;
 
-    public function __construct(CityService $cityService)
+    public function __construct(CityService $cityService, DistrictService $districtService)
     {
         $this->cityService = $cityService;
+        $this->districtService = $districtService;
     }
+
     /**
-     *
+     * Получение списка городов для фильтра в панели навигации
      * @return JsonResponse
      */
     public function getCities(): JsonResponse
     {
         $result = $this->cityService->getCities();
-
         return response()->json(
             $result,
             $result['http_status'] ?? 200
         );
     }
 
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function setCity(Request $request): JsonResponse
     {
         $result = $this->cityService->setCity($request);
@@ -53,8 +59,7 @@ class CityController extends Controller
     public function getDistrictsByCity(): JsonResponse
     {
         try {
-            $districtService = new DistrictService();
-            $result = $districtService->getDistrictsByCity();
+            $result = $this->districtService->getDistrictsByCity();
 
             return response()->json($result, $result['code'] ?? 200);
 

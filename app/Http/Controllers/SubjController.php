@@ -2,36 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\Obj\EditObjRequest;
 use App\Http\Requests\Subj\CreateSubjRequest;
 use App\Http\Requests\Subj\EditSubjRequest;
-use App\Models\City;
-use App\Models\ImgObj;
-use App\Models\ImgSubj;
-use App\Models\Obj;
 use App\Models\Subj;
-use App\Models\UserCity;
-use App\Services\DetailsObjService;
-use App\Services\ImgObjService;
-use App\Services\ImgSubjService;
 use App\Services\ObjService;
 use App\Services\SubjService;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use PHPUnit\Exception;
 
 class SubjController extends Controller
 {
     private SubjService $subjService;
     private ObjService $objService;
-
 
     public function __construct(ObjService  $objService,
                                 SubjService $subjService)
@@ -143,6 +135,10 @@ class SubjController extends Controller
     }
 
 
+    /**
+     * @param Request $request
+     * @return View
+     */
     public function show(Request $request): View
     {
         try {
@@ -156,6 +152,7 @@ class SubjController extends Controller
                     $subj['longitude'],
                     $subj['obj']['obj_id']
                 );
+
             }
 
             return view('objects.subjects.show', [
@@ -222,7 +219,7 @@ class SubjController extends Controller
         $objId = $this->objService->findIdObjByUserId(Auth::user()->id);
         $data = null;
         $error = null;
-        if(!empty($request->error)){
+        if (!empty($request->error)) {
             $error = $request->error;
         }
 
@@ -233,66 +230,216 @@ class SubjController extends Controller
         return \view('objects.subjects.my_subjs', ['data' => $data, 'error' => $error]);
     }
 
-    public function edit(Request $request)
+    /**
+     * Редактирование субъекта
+     * @param Request $request
+     * @return Application|Factory|View|RedirectResponse
+     */
+    public function edit(Request $request): Application|Factory|View|RedirectResponse
     {
-        $id = $request->id;
-        $subj = $this->subjService->findByIdForEdit($id);
-        $images = $this->subjService->existsImg($id);
+        try {
+            $id = $request->id;
 
-        return \view('objects.subjects.edit', ['subj' => $subj, 'images' => $images]);
+            // Получаем субъект для проверки прав
+            $subj = Subj::find($id);
+
+            if (!$subj) {
+                Log::channel('error_file')->warning('Attempt to edit non-existent subj', [
+                    'subj_id' => $id,
+                    'user_id' => auth()->id()
+                ]);
+
+                return back()->withErrors(['error' => 'Указанный субъект не найден']);
+            }
+
+            // Проверка прав доступа через существующий Gate 'can-access'
+            if (!Gate::allows('can-access', $subj)) {
+                Log::channel('error_file')->warning('Unauthorized subj edit attempt', [
+                    'subj_id' => $id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => $subj->user_id ?? 'null',
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
+                ]);
+
+                return back()->withErrors(['error' => 'У вас нет прав для редактирования этого субъекта']);
+            }
+
+            // Если права есть — загружаем данные для формы редактирования
+            $subjData = $this->subjService->findByIdForEdit($id);
+            $images = $this->subjService->existsImg($id);
+
+            return view('objects.subjects.edit', [
+                'subj' => $subjData,
+                'images' => $images
+            ]);
+
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Unexpected error in Subj edit', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->id,
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['error' => 'Произошла непредвиденная ошибка при загрузке формы редактирования']);
+        }
     }
 
 
-    public function update(EditSubjRequest $request)
+    /**
+     * @param EditSubjRequest $request
+     * @return RedirectResponse
+     */
+    public function update(EditSubjRequest $request): RedirectResponse
     {
         try {
-            $this->subjService->update($request->validated(), (int)$request->input('subj_id'));
+            $subjId = (int)$request->input('subj_id');
 
+            // Получаем субъект для проверки прав
+            $subj = Subj::find($subjId);
+
+            if (!$subj) {
+                Log::channel('error_file')->warning('Attempt to update non-existent subj', [
+                    'subj_id' => $subjId,
+                    'user_id' => auth()->id(),
+                    'input_data' => $request->validated()
+                ]);
+
+                return back()->withErrors(['error' => 'Указанный субъект не найден'])->withInput();
+            }
+
+            // Проверка прав доступа через существующий Gate 'can-access'
+            if (!Gate::allows('can-access', $subj)) {
+                Log::channel('error_file')->warning('Unauthorized subj update attempt', [
+                    'subj_id' => $subjId,
+                    'user_id' => auth()->id(),
+                    'attempted_data' => $request->validated(),
+                    'model_user_id' => $subj->user_id ?? 'null',
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
+                ]);
+
+                return back()->withErrors(['error' => 'У вас нет прав для редактирования этого субъекта'])->withInput();
+            }
+
+            // Если права есть — выполняем обновление
+            $this->subjService->update($request->validated(), $subjId);
             return redirect()->route('my.obj');
-        } catch (Exception $e) {
-            return "No";
+
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error('Database query error in Subj update', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->input('subj_id'),
+                'user_id' => auth()->id(),
+                'input_data' => $request->validated()
+            ]);
+            return back()->withErrors(['error' => 'Ошибка базы данных при обновлении'])->withInput();
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Unexpected error in Subj update', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->input('subj_id'),
+                'user_id' => auth()->id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return back()->withErrors(['error' => 'Произошла непредвиденная ошибка'])->withInput();
         }
     }
 
     /**
-     * Remove the specified resource from storage.
-     *
-     * @param int $id
-     * @return \Illuminate\Http\Response
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function destroy($id)
-    {
-        //
-    }
-
-    public function takeOff(Request $request)
+    public function takeOff(Request $request): JsonResponse
     {
         try {
-            Subj::where('id', $request->id)->update(['published' => 0]);
+            $subj = Subj::with('obj')->findOrFail($request->id);
+
+            if (!Gate::allows('can-access', $subj)) {
+                Log::channel('error_file')->error('Unauthorized takeOff attempt for Subj', [
+                    'user_id' => auth()->id(),
+                    'subj_id' => $subj->id,
+                    'obj_owner_id' => $subj->obj?->user_id
+                ]);
+                return response()->json([
+                    'answer' => 'error',
+                    'message' => 'У вас нет прав для выполнения этого действия'
+                ], 403);
+            }
+
+            $subj->update(['published' => 0]);
+
             return response()->json([
                 'answer' => 'ok',
                 'message' => 'Публикация снята'
             ]);
-        } catch (Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException  $e) {
             return response()->json([
                 'answer' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'Объект не найден'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Error in takeOff', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->id,
+                'user_id' => auth()->id()
+            ]);
+            return response()->json([
+                'answer' => 'error',
+                'message' => 'Произошла ошибка при снятии публикации'
             ], 500);
         }
     }
 
-    public function published(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function published(Request $request): JsonResponse
     {
         try {
-            Subj::where('id', $request->id)->update(['published' => 1]);
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json([
+                    'answer' => 'error',
+                    'message' => 'Неавторизованный доступ'
+                ], 401);
+            }
+
+
+            $subj = Subj::with('obj')->findOrFail($request->id);
+            Log::channel('info_file')->info($subj);
+
+            // Проверка прав: админ ИЛИ владелец связанного Obj
+            if (!Gate::allows('can-access', $subj)) {
+                Log::channel('error_file')->error('Unauthorized publish attempt', [
+                    'user_id' => $user->id,
+                    'subj_id' => $subj->id,
+                    'obj_owner_id' => $subj->obj?->user_id
+                ]);
+                return response()->json([
+                    'answer' => 'error',
+                    'message' => 'У вас нет прав для выполнения этого действия'
+                ], 403);
+            }
+
+            $subj->update(['published' => 1]);
+
             return response()->json([
                 'answer' => 'ok',
-                'message' => 'Публикация снята'
+                'message' => 'Публикация опубликована' // Исправлено сообщение
             ]);
-        } catch (Exception $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'answer' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'Объект не найден'
+            ], 404);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Error in publish', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->id,
+                'user_id' => auth()->id()
+            ]);
+            return response()->json([
+                'answer' => 'error',
+                'message' => 'Произошла ошибка при публикации'
             ], 500);
         }
     }

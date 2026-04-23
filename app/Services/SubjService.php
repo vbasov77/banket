@@ -310,14 +310,26 @@ class SubjService extends Service
     }
 
     /**
-     * @param array $array
+     * @param array $data
      * @param int $id
      * @return void
+     * @throws \Exception
      */
-    public function update(array $array, int $id): void
+    public function update(array $data, int $id): void
     {
-        $this->subjRepository->update($array, $id);
+        try {
+            $this->subjRepository->update($data, $id);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Error in SubjService update', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $id,
+                'data' => $data,
+                'user_id' => auth()->id() ?? 'guest'
+            ]);
+            throw $e; // Перебрасываем исключение дальше
+        }
     }
+
 
     public function findMySubjs(int $objId)
     {

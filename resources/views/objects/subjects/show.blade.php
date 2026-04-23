@@ -109,7 +109,7 @@
     @endif
     <div style="padding-bottom: 50px" class="container mt-5">
         <div class="row justify-content-center">
-            <div class="col-lg-10">
+            <div class="col-12">
                 <!-- Hero section -->
 
                 <section class="hero-section p-4 mb-5">
@@ -362,8 +362,9 @@
                             </div>
                         @endif
                     @endauth
-
-                    @include('blocks.card_subj')
+                    @if($nearestObjects)
+                        @include('blocks.card_subj')
+                    @endif
                 </section>
             </div>
         </div>

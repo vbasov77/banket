@@ -6,27 +6,42 @@ namespace App\Http\Controllers;
 
 
 use App\Services\ObjService;
+use App\Services\UserCityService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
+use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Factory;
 
 
 class FrontController extends Controller
 {
     private ObjService $objService;
+    protected UserCityService $userCityService;
 
     /**
-     * FrontController constructor.
+     * @param ObjService $objService
+     * @param UserCityService $userCityService
      */
-    public function __construct(ObjService $objService)
+    public function __construct(ObjService $objService, UserCityService $userCityService)
     {
         $this->objService = $objService;
+        $this->userCityService = $userCityService;
     }
 
-    public function show()
+    /**
+     * @return Application|Factory|View|Response
+     */
+    public function show(Request $request): Application|Factory|View|Response
     {
+        $this->userCityService->checkSessionUserCity($request);
+
         try {
-            $data = $this->objService->findObjsWithDetails();
+            $data = $this->objService->findObjsWithDetails($request);
 
             return view('front', ['data' => $data]);
         } catch (QueryException $e) {

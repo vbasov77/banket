@@ -12,9 +12,11 @@ use App\Services\MapService;
 use App\Services\SubjService;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\Factory;
 use Illuminate\View\View;
 use function Symfony\Component\Translation\t;
@@ -130,25 +132,92 @@ class MapPointController extends Controller
     }
 
 
-    public
-    function create(Request $request)
+    public function create(Request $request)
     {
-        $subj = Subj::where('id', (int)$request->id)->first();
+        try {
+            $user = auth()->user();
+            if (!$user) {
+                return redirect()->route('login')->with('error', 'Для доступа необходимо авторизоваться');
+            }
 
-        return view('map.create', ['subj' => $subj]);
-    }
+            $subjId = (int)$request->id;
 
-    public function edit(Request $request)
-    {
-        $subjId = $request->id;
-        $map = AddressSubj::where('subj_id', $subjId)->first();
+            // Загружаем Subj с связанным Obj для проверки прав
+            $subj = Subj::with('obj')->find($subjId);
 
-        if ($map) {
-            return view('map.edit', ['map' => $map]);
-        } else {
-            return redirect()->route('map.create', ['id' => $subjId]);
+            if (!$subj) {
+                return response()->json(['answer' => 'error', 'message' => 'Объект не найден'], 404);
+            }
+
+            // Проверка прав: админ ИЛИ владелец связанного Obj
+            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
+            if (!$isOwner) {
+                Log::channel('error_file')->error('Unauthorized create attempt', [
+                    'user_id' => $user->id,
+                    'subj_id' => $subjId,
+                    'obj_owner_id' => $subj->obj?->user_id
+                ]);
+                return redirect()->back()->with('error', 'У вас нет прав для создания карты для этого объекта');
+            }
+
+            return view('map.create', ['subj' => $subj]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Error in create method', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->id,
+                'user_id' => auth()->id()
+            ]);
+            return redirect()->back()->with('error', 'Произошла ошибка при загрузке формы создания');
         }
     }
+
+
+    /**
+     * @param Request $request
+     * @return Application|Factory|View|JsonResponse|RedirectResponse
+     *
+     */
+    public function edit(Request $request): Application|Factory|View|JsonResponse|RedirectResponse
+    {
+        try {
+            $user = auth()->user();
+            $subjId = $request->id;
+
+            // Загружаем Subj с связанным Obj для проверки прав
+            $subj = Subj::with('obj')->find($subjId);
+
+            if (!$subj) {
+                return response()->json(['answer' => 'error', 'message' => 'Объект не найден'], 404);
+            }
+
+            // Проверка прав: админ ИЛИ владелец связанного Obj
+            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
+            if (!$isOwner) {
+                Log::channel('error_file')->error('Unauthorized edit attempt', [
+                    'user_id' => $user->id,
+                    'subj_id' => $subjId,
+                    'obj_owner_id' => $subj->obj?->user_id
+                ]);
+                return redirect()->back()->with('error', 'У вас нет прав для редактирования этого объекта');
+            }
+
+            $map = AddressSubj::where('subj_id', $subjId)->first();
+
+            if ($map) {
+                return view('map.edit', ['map' => $map]);
+            } else {
+                return redirect()->route('map.create', ['id' => $subjId]);
+            }
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Error in edit method', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $request->id,
+                'user_id' => auth()->id()
+            ]);
+            return redirect()->back()->with('error', 'Произошла ошибка при загрузке формы редактирования');
+        }
+    }
+
 
 
     /**
@@ -157,119 +226,142 @@ class MapPointController extends Controller
      */
     public function addSubjectToMap(Request $request): JsonResponse
     {
-        // Валидация входных данных
-        $validated = $request->validate([
-            'city_id' => 'required|exists:cities,id',
-            'district_id' => 'required|exists:districts,id',
-            'street' => 'required|string|max:255',
-            'houseNumber' => 'required|string|max:50',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'subj_id' => 'required|integer|exists:subjs,id',
-            'obj_id' => 'required|integer'
-        ]);
-
-        $subjId = (int)$validated['subj_id'];
-        $objId = (int)$validated['obj_id']; // Получаем ID объекта
-
-        // Проверяем, не существует ли уже адрес для этого субъекта
-        if (AddressSubj::where('subj_id', $subjId)->exists()) {
-            return response()->json(['success' => false, 'message' => 'Address already exists']);
-        }
-
-        DB::beginTransaction();
-
         try {
-            // Создаём POINT-значение для location (только для поиска групп)
-            $location = DB::raw("POINT({$validated['longitude']}, {$validated['latitude']})");
-
-            $newSubject = [
-                'city_id' => (int)$validated['city_id'],
-                'district_id' => (int)$validated['district_id'],
-                'address' => $validated['street'] . '; ' . $validated['houseNumber'],
-                'latitude' => $validated['latitude'],
-                'longitude' => $validated['longitude'],
-                'subj_id' => $subjId,
-            ];
-
-            // Ищем группу в радиусе 50 метров ДЛЯ КОНКРЕТНОГО ОБЪЕКТА
-            $assignedGroup = GroupAddressObj::selectRaw(
-                '*, ST_Distance_Sphere(location, POINT(?, ?)) AS distance_meters',
-                [$validated['longitude'], $validated['latitude']]
-            )
-                ->where('obj_id', $objId) // ВАЖНО: фильтруем только группы нужного объекта
-                ->havingRaw('ST_Distance_Sphere(location, POINT(?, ?)) <= 50', [$validated['longitude'], $validated['latitude']])
-                ->orderBy('distance_meters')
-                ->first();
-
-            if ($assignedGroup) {
-                // Добавляем субъекта в существующую группу нужного объекта
-                AddressSubj::create([
-                    'city_id' => $newSubject['city_id'],
-                    'district_id' => $newSubject['district_id'],
-                    'address' => $newSubject['address'],
-                    'latitude' => $newSubject['latitude'],
-                    'longitude' => $newSubject['longitude'],
-                    'group_id' => $assignedGroup->id,
-                    'subj_id' => $subjId
-                ]);
-            } else {
-                // Создаём новую группу для конкретного объекта с location
-                $newGroup = GroupAddressObj::create([
-                    'city_id' => $newSubject['city_id'],
-                    'district_id' => $newSubject['district_id'],
-                    'address' => $newSubject['address'],
-                    'latitude' => $newSubject['latitude'],
-                    'longitude' => $newSubject['longitude'],
-                    'location' => $location,
-                    'obj_id' => $objId // Привязываем группу к конкретному объекту
-                ]);
-
-                // Добавляем субъект в новую группу
-                AddressSubj::create([
-                    'city_id' => $newSubject['city_id'],
-                    'district_id' => $newSubject['district_id'],
-                    'address' => $newSubject['address'],
-                    'latitude' => $newSubject['latitude'],
-                    'longitude' => $newSubject['longitude'],
-                    'group_id' => $newGroup->id,
-                    'subj_id' => $subjId
-                ]);
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Неавторизованный доступ'
+                ], 401);
             }
 
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Адрес добавлен']);
+            // Валидация входных данных
+            $validated = $request->validate([
+                'city_id' => 'required|exists:cities,id',
+                'district_id' => 'required|exists:districts,id',
+                'street' => 'required|string|max:255',
+                'houseNumber' => 'required|string|max:50',
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'subj_id' => 'required|integer|exists:subjs,id',
+                'obj_id' => 'required|integer'
+            ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error adding subject to map: ' . $e->getMessage());
+            $result = $this->mapService->addSubjectToMap(
+                $validated,
+                $user->id,
+                $user->isAdmin()
+            );
+
+            return response()->json($result, $result['code'] ?? 200);
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error adding subject to map'
+                'message' => 'Ошибка валидации',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Unexpected error in controller addSubjectToMap', [
+                'exception' => $e->getMessage(),
+                'request' => $request->all(),
+                'user_id' => auth()->id()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла непредвиденная ошибка'
             ], 500);
         }
     }
 
-    public function destroy(Request $request)
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function destroy(Request $request): JsonResponse
     {
         try {
-            $subjs = AddressSubj::where('subj_id', $request->id)->get();
-            if (!empty($subjs)) {
-                if (count($subjs) == 1) {
-                    AddressSubj::where('id', $subjs[0]->id)->delete();
-                    GroupAddressObj::where('id', $subjs[0]->group_id)->delete();
-                } else {
-                    AddressSubj::where('id', $subjs[0]->id)->delete();
-                }
+            $user = auth()->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Неавторизованный доступ'
+                ], 401);
             }
 
-            return response()->json(['success' => true, 'message' => "Адрес удалён..."]);
+            $subjId = (int)$request->id;
+
+            // Загружаем AddressSubj с связанными моделями для проверки прав
+            $addressSubjs = AddressSubj::with(['subj.obj'])->where('subj_id', $subjId)->get();
+
+            if ($addressSubjs->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Адреса для удаления не найдены'
+                ], 404);
+            }
+
+            // Проверяем права для первого найденного адреса (предполагаем, что все связаны с одним subj)
+            $firstAddress = $addressSubjs->first();
+            $subj = $firstAddress->subj;
+
+            // Проверка прав: админ ИЛИ владелец связанного Obj
+            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
+            if (!$isOwner) {
+                Log::channel('error_file')->error('Unauthorized destroy attempt', [
+                    'user_id' => $user->id,
+                    'subj_id' => $subjId,
+                    'obj_owner_id' => $subj->obj?->user_id
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'У вас нет прав для удаления этого адреса'
+                ], 403);
+            }
+
+            DB::beginTransaction();
+
+            try {
+                if (count($addressSubjs) == 1) {
+                    // Удаляем адрес и группу (если это последняя запись в группе)
+                    $addressSubjs[0]->delete();
+
+                    // Проверяем, есть ли другие адреса в этой группе
+                    $remainingInGroup = AddressSubj::where('group_id', $addressSubjs[0]->group_id)->count();
+                    if ($remainingInGroup == 0) {
+                        GroupAddressObj::where('id', $addressSubjs[0]->group_id)->delete();
+                    }
+                } else {
+                    // Удаляем только первый найденный адрес
+                    $addressSubjs[0]->delete();
+                }
+
+                DB::commit();
+                return response()->json(['success' => true, 'message' => 'Адрес удалён']);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                Log::channel('error_file')->error('Error during destroy operation', [
+                    'exception' => $e->getMessage(),
+                    'subj_id' => $subjId,
+                    'user_id' => $user->id
+                ]);
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Ошибка при удалении адреса'
+                ], 500);
+            }
         } catch (\Exception $e) {
-
-            return response()->json(['success' => false, 'message' => $e]);
+            Log::channel('error_file')->error('Unexpected error in destroy method', [
+                'exception' => $e->getMessage(),
+                'request' => $request->all(),
+                'user_id' => auth()->id()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Произошла непредвиденная ошибка'
+            ], 500);
         }
-
     }
+
 
 
 }
