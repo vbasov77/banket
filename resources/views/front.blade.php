@@ -182,6 +182,7 @@
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
 
     @include('blocks.nav')
+
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">
             <div class="row justify-content-center">
