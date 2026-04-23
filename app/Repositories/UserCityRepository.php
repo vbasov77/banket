@@ -16,6 +16,6 @@ class UserCityRepository extends Repository
     public function findUserCity(): ?object
     {
         $userId = Auth::user()->id;
-        return UserCity::where('userId', $userId)->first();
+        return UserCity::where('user_id', $userId)->first();
     }
 }

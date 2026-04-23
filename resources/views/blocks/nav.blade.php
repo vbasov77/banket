@@ -149,7 +149,6 @@
         }
     }
 </style>
-
 <style>
     .filter-container {
         width: 100%;
@@ -263,99 +262,46 @@
     }
 
 </style>
-
 <style>
-    /* Базовые стили для кнопки "Показать фильтры" */
+    .horizontal-dropdowns {
+        display: none; /* Изначальная скрытость контейнера фильтров */
+    }
+</style>
+<style>
     .btn-show-filters {
-        background: #4a6fa5;
-        color: white;
-        border: none;
-        padding: 12px 24px;
+        background: linear-gradient(145deg, #ffffff, #f5f5f5);
+        border: 1px solid #e0e0e0;
         border-radius: 8px;
-        font-size: 16px;
-        width: 100%;
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #2d3748;
         cursor: pointer;
-        transition: background-color 0.3s ease;
+        box-shadow: 4px 4px 8px #d9d9d9, -4px -4px 8px #ffffff;
+        transition: all 0.2s ease;
+        outline: none;
     }
 
     .btn-show-filters:hover {
-        background: #3a5a8a;
+        box-shadow: 2px 2px 4px #c8c8c8, -2px -2px 4px #f8f8f8;
+        transform: translateY(-1px);
     }
 
-    /* Скрытие выпадающих списков на мобильных (до md breakpoint) */
-    .horizontal-dropdowns {
-        display: none;
+    .btn-show-filters:active {
+        box-shadow: inset 2px 2px 4px #c8c8c8, inset -2px -2px 4px #f8f8f8;
+        transform: translateY(0);
     }
 
-    /* Показываем выпадающие списки, когда у контейнера есть класс active */
-    .horizontal-dropdowns.active {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    /* Стили для выпадающих контейнеров внутри */
     .horizontal-dropdowns .dropdown-container {
-        flex: 1;
         min-width: 250px;
     }
-
-    /* Кнопки сброса и применения на мобильных */
-    .filter-container .buttons-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .filter-container .button-left,
-    .filter-container .button-right {
-        width: 100%;
-    }
-
-    .btn-reset,
-    .btn-apply {
-        padding: 12px;
-        text-align: center;
-    }
-
-    /* Десктопные стили — показываем всё как есть */
-    @media (min-width: 992px) {
-        .horizontal-dropdowns {
-            display: flex !important;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .btn-show-filters {
-            display: none !important;
-        }
-
-        .filter-container .buttons-wrapper {
-            flex-direction: row;
-            justify-content: space-between;
-        }
-
-        .filter-container .button-left,
-        .filter-container .button-right {
-            width: auto;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .btn-reset,
-        .btn-apply {
-            width: 100%;
-        }
-    }
 </style>
-
 
 <div class="container mt-5">
     <div class="row">
         <div class="col-12">
             <!-- Кнопка для открытия фильтров на мобильных -->
-            <button type="button" class="btn-show-filters mb-3 d-md-none">
+            <button type="button" class="btn-show-filters mb-3">
                 Показать фильтры
             </button>
             <form method="post" action="{{route('search.objs')}}">
@@ -379,22 +325,52 @@
                     <!-- Выпадающее меню: Особенности -->
                     @include('blocks.features')
 
-                </div> <!-- Закрытие horizontal-dropdowns -->
-
-                <div class="filter-container">
-                    <div class="buttons-wrapper">
-                        <div class="button-left">
-                            <button type="reset" class="btn-reset">Сбросить фильтры</button>
-                        </div>
-                        <div class="button-right">
-                            <button type="submit" class="btn-apply">Применить фильтры</button>
+                    <div class="filter-container">
+                        <div class="buttons-wrapper">
+                            <div class="button-left">
+                                <button type="reset" class="btn-reset">Сбросить фильтры</button>
+                            </div>
+                            <div class="button-right">
+                                <button type="submit" class="btn-apply">Применить фильтры</button>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+                </div> <!-- Закрытие horizontal-dropdowns -->
+
+
             </form>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const showFiltersButton = document.querySelector('.btn-show-filters');
+        if (showFiltersButton) {
+            showFiltersButton.addEventListener('click', function () {
+                const dropdowns = document.querySelector('.horizontal-dropdowns');
+                const isCurrentlyHidden = dropdowns.style.display === 'none' || !dropdowns.style.display;
+
+                // Переключаем видимость контейнера с фильтрами
+                dropdowns.style.display = isCurrentlyHidden ? 'flex' : 'none';
+
+                // Обновляем текст кнопки
+                if (isCurrentlyHidden) {
+                    this.textContent = 'Скрыть фильтры';
+                } else {
+                    this.textContent = 'Показать фильтры';
+                }
+
+                // Переключаем класс для иконки (если используется Вариант 3)
+                this.classList.toggle('open', isCurrentlyHidden);
+            });
+        }
+    });
+
+</script>
+
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Инициализация: сохраняем оригинальные тексты кнопок
@@ -661,8 +637,6 @@
         }
     });
 </script>
-
-{{--  --------------------------------------Проверка перед отправкой формы--}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.querySelector('form');
@@ -707,22 +681,4 @@
         });
     });
 </script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const showFiltersBtn = document.querySelector('.btn-show-filters');
-        const dropdownsContainer = document.querySelector('.horizontal-dropdowns');
 
-        if (showFiltersBtn && dropdownsContainer) {
-            showFiltersBtn.addEventListener('click', function () {
-                dropdownsContainer.classList.toggle('active');
-
-                // Меняем текст кнопки
-                if (dropdownsContainer.classList.contains('active')) {
-                    showFiltersBtn.textContent = 'Скрыть фильтры';
-                } else {
-                    showFiltersBtn.textContent = 'Показать фильтры';
-                }
-            });
-        }
-    });
-</script>
