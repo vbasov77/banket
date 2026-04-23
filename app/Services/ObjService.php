@@ -7,6 +7,7 @@ use App\Models\Obj;
 use App\Repositories\ObjRepository;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -129,10 +130,10 @@ class ObjService extends Service
      * @return LengthAwarePaginator
      * @throws \Exception
      */
-    public function findObjsWithDetails(): LengthAwarePaginator
+    public function findObjsWithDetails(Request $request): LengthAwarePaginator
     {
         try {
-            return $this->objRepository->findObjsWithDetails();
+            return $this->objRepository->findObjsWithDetails($request);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ObjService@findObjsWithDetails: ' . $e->getMessage(),

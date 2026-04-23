@@ -58,24 +58,24 @@
                 <div id="map" style="height: 350px; width: 100%; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 20px;"></div>
             </div>
             <div class="col-md-4 col-sm-12">
-                <h3 class="h4 mb-3">{{$map->data_subj['name_subj']}} на карте</h3>
+                <h3 class="h4 mb-3">{{$map['data_subj']['name_subj']}} на карте</h3>
                 <div class="details bg-light p-3 rounded">
                     <div class="details-info">
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">Вместимость:</span>
-                            <span class="detail-value d-block">до {{ $map->data_subj['capacity_to'] }} чел</span>
+                            <span class="detail-value d-block">до {{ $map['data_subj']['capacity_to'] }} чел</span>
                         </div>
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">На фуршет до:</span>
-                            <span class="detail-value d-block">{{ $map->data_subj['furshet'] }} чел</span>
+                            <span class="detail-value d-block">{{ $map['data_subj']['furshet'] }} чел</span>
                         </div>
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">На человека от:</span>
-                            <span class="detail-value d-block">{{ number_format($map->data_subj['per_person'], 0, ' ', ' ') }} ₽/чел</span>
+                            <span class="detail-value d-block">{{ number_format($map['data_subj']['per_person'], 0, ' ', ' ') }} ₽/чел</span>
                         </div>
                         <div class="detail">
                             <span class="detail-label text-muted">Стоимость от:</span>
-                            <span class="detail-value price d-block fw-bold">{{ number_format($map->data_subj['minimum_cost'], 0, ' ', ' ') }} ₽</span>
+                            <span class="detail-value price d-block fw-bold">{{ number_format($map['data_subj']['minimum_cost'], 0, ' ', ' ') }} ₽</span>
                         </div>
                     </div>
                 </div>
@@ -85,8 +85,8 @@
                     <i class="bi bi-telephone fs-1 mb-2"></i>
                     <div id="contact-content" class="contact-content">
                         <h5 class="mb-2" id="trigger-text">Свяжитесь с нами</h5>
-                        <a style="text-decoration: none; color: white;" href="tel:{{ $map->data_subj['obj']['phone_obj'] }}" class="phone-link" id="phone-link">
-                            {{ $map->data_subj['obj']['phone_obj'] }}
+                        <a style="text-decoration: none; color: white;" href="tel:{{ $map['data_subj']['obj']['phone_obj'] }}" class="phone-link" id="phone-link">
+                            {{ $map['data_subj']['obj']['phone_obj'] }}
                         </a>
                     </div>
                 </div>

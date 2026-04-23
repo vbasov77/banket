@@ -19,12 +19,21 @@ class Subj extends Model
         'site_type',
         'features',
         'text_subj',
+        'published',
     ];
 
     protected $casts = [
         'site_type' => 'array',
         'features' => 'array',
     ];
+
+    public function firstPhoto()
+    {
+        return $this->hasOne(ImgSubj::class, 'subj_id', 'id')
+            ->orderBy('position', 'asc')
+            ->orderBy('id', 'asc')
+            ->take(1);
+    }
 
     public function imgSubjFirst()
     {
@@ -65,7 +74,14 @@ class Subj extends Model
 
     public function groupAddressObj()
     {
-        return $this->hasOne(GroupAddressObj::class, 'subj_id', 'id');
+        return $this->hasOneThrough(
+            GroupAddressObj::class,
+            AddressSubj::class,
+            'subj_id',  // FK в AddressSubj
+            'id',       // FK в GroupAddressObj
+            'id',       // Local key в Subj
+            'group_id'  // Local key в AddressSubj
+        );
     }
 
     public function favoritedByUsers()

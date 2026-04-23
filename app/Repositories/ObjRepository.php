@@ -5,14 +5,14 @@ namespace App\Repositories;
 
 
 use App\Models\Obj;
-use Illuminate\Database\QueryException;
+use App\Services\UserCityService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ObjRepository extends Repository
 {
-    public function __construct() {} // Пустой конструктор
 
     /**
      * @param int $id
@@ -142,17 +142,33 @@ class ObjRepository extends Repository
     }
 
 
-    public function findObjsWithDetails()
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Pagination\LengthAwarePaginator
+     */
+    public function findObjsWithDetails(Request $request)
     {
+        $userCityService = new UserCityService(new UserCityRepository());
+        $cityId = session('city_id');
+        if (!$cityId) {
+            $userCityService->checkSessionUserCity($request);
+            $cityId = session('city_id');
+        }
+
+        // Фильтрация и пагинация на уровне базы данных
         $paginated = Obj::with([
             'detailsObj' => function ($q) {
                 $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
                     'alcohol', 'more', 'payment_methods', 'text_obj');
             },
-            'subjs' => function ($query) {
+            'subjs' => function ($query) use ($cityId) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj')
-                    ->with(['addressSubj' => function ($q) {
+                    ->whereHas('addressSubj', function ($q) use ($cityId) {
+                        $q->where('city_id', $cityId);
+                    })
+                    ->with(['addressSubj' => function ($q) use ($cityId) {
                         $q->select('id', 'subj_id', 'district_id')
+                            ->where('city_id', $cityId)
                             ->with(['district' => function ($d) {
                                 $d->select('id', 'name');
                             }]);
@@ -163,64 +179,85 @@ class ObjRepository extends Repository
             },
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
+            ->whereHas('subjs.addressSubj', function ($query) use ($cityId) {
+                $query->where('city_id', $cityId);
+            })
             ->paginate(7);
 
-        $paginated->getCollection()->transform(function ($obj) {
-            $obj->subjs->transform(function ($subj) {
-                // Загружаем фото
-                $subj->load([
-                    'imgSubjFirst:subj_id,path',
-                    'imgSubjs' => function ($q) {
-                        $q->select('subj_id', 'path')
-                            ->orderBy('position')
-                            ->take(5);
+        if ($paginated->isEmpty()) {
+            return $paginated; // Возвращаем оригинальный пагинатор, если данных нет
+        }
+
+        // Трансформация данных
+        $transformedData = $paginated->getCollection()->map(function ($obj) {
+            if ($obj->subjs) {
+                $obj->subjs->transform(function ($subj) {
+                    $subj->load([
+                        'imgSubjFirst:subj_id,path',
+                        'imgSubjs' => function ($q) {
+                            $q->select('subj_id', 'path')
+                                ->orderBy('position')
+                                ->take(5);
+                        }
+                    ]);
+
+                    $districtName = null;
+                    if ($subj->addressSubj && $subj->addressSubj->district) {
+                        $districtName = $subj->addressSubj->district->name;
                     }
-                ]);
 
-                // Извлекаем название района через addressSubj → district
-                $districtName = $subj->addressSubj && $subj->addressSubj->district
-                    ? $subj->addressSubj->district->name
-                    : null;
+                    return [
+                        'id' => $subj->id ?? null,
+                        'name_subj' => $subj->name_subj ?? null,
+                        'minimum_cost' => $subj->minimum_cost ?? null,
+                        'per_person' => $subj->per_person ?? null,
+                        'capacity_to' => $subj->capacity_to ?? null,
+                        'site_type' => $subj->site_type ?? null,
+                        'features' => $subj->features ?? null,
+                        'text_subj' => $subj->text_subj ?? null,
+                        'path' => $subj->imgSubjFirst && $subj->imgSubjFirst->path ? $subj->imgSubjFirst->path : null,
+                        'image_paths' => $subj->imgSubjs ? $subj->imgSubjs->pluck('path')->toArray() : [],
+                        'district_name' => $districtName
+                    ];
+                });
+            }
 
-                return [
-                    'id' => $subj->id,
-                    'name_subj' => $subj->name_subj,
-                    'minimum_cost' => $subj->minimum_cost,
-                    'per_person' => $subj->per_person,
-                    'capacity_to' => $subj->capacity_to,
-                    'site_type' => $subj->site_type,
-                    'features' => $subj->features,
-                    'text_subj' => $subj->text_subj,
-                    'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
-                    'image_paths' => $subj->imgSubjs->pluck('path')->toArray(),
-                    'district_name' => $districtName // Строка с названием района субъекта
-                ];
-            });
+            if ($obj->groupAddressObjs) {
+                $obj->groupAddressObjs->transform(function ($groupAddressObjs) {
+                    $groupAddressObjs->load(['district:id,name']);
 
-            $obj->groupAddressObjs->transform(function ($groupAddressObjs) {
-                $groupAddressObjs->load([
-                    'district:id,name',
-                ]);
-
-                return [
-                    'id' => $groupAddressObjs->district->id,
-                    'name' => $groupAddressObjs->district->name,
-                ];
-            });
+                    return [
+                        'id' => $groupAddressObjs->district && $groupAddressObjs->district->id ? $groupAddressObjs->district->id : null,
+                        'name' => $groupAddressObjs->district && $groupAddressObjs->district->name ? $groupAddressObjs->district->name : null,
+                    ];
+                });
+            }
 
             return [
-                'obj_id' => $obj->id,
-                'user_id' => $obj->user_id,
-                'name_obj' => $obj->name_obj,
-                'phone_obj' => $obj->phone_obj,
-                'subjs_data' => $obj->subjs->toArray(),
-                'details_obj' => $obj->detailsObj->toArray(),
-                'districts' => $obj->groupAddressObjs->toArray(),
-                'districts_names' => $obj->groupAddressObjs->pluck('district.name')->toArray(),
+                'obj_id' => $obj->id ?? null,
+                'user_id' => $obj->user_id ?? null,
+                'name_obj' => $obj->name_obj ?? null,
+                'phone_obj' => $obj->phone_obj ?? null,
+                'subjs_data' => $obj->subjs ? $obj->subjs->toArray() : [],
+                'details_obj' => $obj->detailsObj ? $obj->detailsObj->toArray() : [],
+                'districts' => $obj->groupAddressObjs ? $obj->groupAddressObjs->toArray() : [],
+                'districts_names' => $obj->groupAddressObjs ? $obj->groupAddressObjs->pluck('district.name')->toArray() : [],
             ];
         });
 
-        return $paginated;
+// Создаём новый пагинатор с трансформированными данными
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            $transformedData->values(),
+            $paginated->total(),
+            $paginated->perPage(),
+            $paginated->currentPage(),
+            [
+                'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
+                'pageName' => 'page',
+            ]
+        );
+
+        return $paginator;
     }
 
 

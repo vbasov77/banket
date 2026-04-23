@@ -10,7 +10,7 @@ class CheckIsAuthor
      * Handle an incoming request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure  $next
+     * @param  \Closure $next
      * @return mixed
      */
 
@@ -24,6 +24,5 @@ class CheckIsAuthor
         } else {
             return \redirect()->route('login');
         }
-
     }
 }

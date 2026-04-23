@@ -43,6 +43,21 @@ class GroupAddressObj extends Model
         return $this->hasMany(AddressSubj::class, 'group_id');
     }
 
+
+    public function subjs()
+    {
+        return $this->hasManyThrough(
+            Subj::class,
+            AddressSubj::class,
+            'group_id',   // FK в AddressSubj → group_id
+            'id',       // FK в Subj → id
+            'id',       // Local key в GroupAddressObj → id
+            'subj_id'   // Local key в AddressSubj → subj_id
+        );
+    }
+
+
+
     /**
      * Связь: группа адресов принадлежит одному субъекту (Subj)
      * Внешний ключ в текущей таблице — subj_id

@@ -68,5 +68,4 @@
 
     <script src="{{asset('map/leaflet/js/leaflet.js')}}" defer></script>
     <script src="{{asset('map/js/search_address_subj.js')}}" defer></script>
-    <script src="{{asset('map/js/main_subj.js')}}" defer></script>
 @endsection

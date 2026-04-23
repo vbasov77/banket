@@ -73,26 +73,39 @@ class SubjRepository extends Repository
     public function findNearestObjects(float $latitude, float $longitude, int $excludeObjId): array
     {
         try {
-            $groups = GroupAddressObj::with(['district' => function ($query) {
-                $query->select('id', 'name');
-            }])
-                ->select([
-                    'obj_id',
-                    'city_id',
-                    'district_id',
-                    'address',
-                    'latitude',
-                    'longitude',
-                    DB::raw("ST_Distance_Sphere(location, POINT($longitude, $latitude)) / 1000 AS distance_km")
-                ])
-                ->where('obj_id', '!=', $excludeObjId)
-                ->having('distance_km', '<=', 5000)
+            $groups = GroupAddressObj::select([
+                'group_address_objs.id',
+                'group_address_objs.obj_id',
+                'group_address_objs.city_id',
+                'group_address_objs.district_id',
+                'group_address_objs.address',
+                'group_address_objs.latitude',
+                'group_address_objs.longitude',
+                DB::raw("ROUND(ST_Distance_Sphere(group_address_objs.location, POINT(?, ?)) / 1000, 1) AS distance_km"),
+                DB::raw("(
+        SELECT img_subj.path
+        FROM img_subj
+        JOIN subjs ON img_subj.subj_id = subjs.id
+        JOIN address_subjs ON subjs.id = address_subjs.subj_id
+        WHERE address_subjs.group_id = group_address_objs.id
+          AND address_subjs.city_id = group_address_objs.city_id
+          AND address_subjs.district_id = group_address_objs.district_id
+        ORDER BY img_subj.position ASC, img_subj.id ASC
+        LIMIT 1
+    ) AS photo_path"),
+                DB::raw("(SELECT objs.name_obj FROM objs WHERE objs.id = group_address_objs.obj_id LIMIT 1) AS name_obj")
+            ])
+                ->setBindings([$longitude, $latitude])
+                ->where('group_address_objs.obj_id', '!=', $excludeObjId)
+                ->having('distance_km', '<=', 50)
                 ->orderBy('distance_km')
                 ->limit(5)
                 ->get()
                 ->toArray();
 
             return $this->formatResults($groups);
+
+
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в SubjRepository@findNearestObjects: ' . $e->getMessage(),
@@ -129,12 +142,15 @@ class SubjRepository extends Repository
         // Логика форматирования результатов
         return array_map(function ($group) {
             return [
+                'group_id' => $group['id'],
                 'obj_id' => $group['obj_id'],
+                'name_obj' => $group['name_obj'],
                 'city_id' => $group['city_id'],
                 'district' => $group['district'] ?? [],
                 'address' => $group['address'],
                 'latitude' => $group['latitude'],
                 'longitude' => $group['longitude'],
+                'path' => $group['photo_path'],
                 'distance_km' => $group['distance_km'] ?? 0,
             ];
         }, $groups);
@@ -295,11 +311,30 @@ LIMIT 1;";
      * @param array $array
      * @param int $id
      * @return void
+     * @throws \Exception
      */
     public function update(array $array, int $id): void
     {
-        DB::table('subjs')->where('id', $id)->update($array);
+        try {
+            DB::table('subjs')->where('id', $id)->update($array);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error('Database update failed in SubjRepository', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $id,
+                'update_data' => $array,
+                'sql' => $e->getSql(),
+                'bindings' => $e->getBindings()
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Unexpected error in SubjRepository update', [
+                'exception' => $e->getMessage(),
+                'subj_id' => $id
+            ]);
+            throw $e;
+        }
     }
+
 
     /**
      * @param int $id
@@ -341,7 +376,6 @@ LIMIT 1;";
 
         return $obj->toArray();
     }
-
 
 
 }

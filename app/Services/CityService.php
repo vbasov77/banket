@@ -133,6 +133,7 @@ class CityService
             // Очистка и установка сессии
             Session::forget('selected_filters');
             Session::put('user_city', $cityName);
+            Session::put('city_id', $cityId);
             $request->session()->save();
 
             // Если пользователь не авторизован
