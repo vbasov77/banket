@@ -144,7 +144,6 @@ class SubjController extends Controller
         try {
             $id = $request->id;
             $subj = $this->subjService->findById($id);
-
             $nearestObjects = null;
             if (!empty($subj['longitude'])) {
                 $nearestObjects = $this->subjService->findNearestObjects(
