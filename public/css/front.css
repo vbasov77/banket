@@ -1,8 +1,16 @@
+/* Стили для сетки ресторанов */
+.restaurants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    padding: 20px;
+}
+
 .restaurant-card {
     background: white;
-    border-radius: 14px;
+    border-radius: 13px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
+    overflow: clip;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #f0f0f0;
 }
@@ -13,7 +21,7 @@
 }
 
 .restaurant-image {
-    height: 220px;
+    height: 180px;
     overflow: hidden;
     background: #f8f9fa;
 }
@@ -118,7 +126,7 @@
     padding-top: 12px;
 }
 
-/* Адаптивность */
+/* Адаптивность для сетки ресторанов */
 @media (max-width: 768px) {
     .restaurants-grid {
         grid-template-columns: 1fr;
@@ -126,12 +134,30 @@
     }
 
     .restaurant-card {
-        margin-bottom: 16px;
+        margin-bottom: 14px;
     }
 }
 
-@media (min-width: 992px) {
-    .row-cols-lg-4 > * {
-        width: auto;
-    }
+/* Стили для деталей объекта */
+.details-info {
+    padding: 15px;
 }
+
+.details-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* Кнопка «Подробнее» */
+.front-btn {
+    float: right;
+    position: relative;
+}
+
+/* Карточка в карусели (для одиночных объектов) */
+.one .carousel {
+    height: auto;
+}
+

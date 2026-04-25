@@ -77,6 +77,7 @@ LIMIT 1;";
             o.user_id,
             o.name_obj,
             o.phone_obj,
+            dis.name,
             IF(
                 do.for_events IS NOT NULL OR
                 do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
@@ -97,6 +98,7 @@ LIMIT 1;";
 FROM group_address_objs gao
 LEFT JOIN objs o ON gao.obj_id = o.id
 LEFT JOIN details_obj do ON o.id = do.obj_id
+LEFT JOIN districts dis ON gao.district_id = dis.id
 WHERE gao.id = ?
 LIMIT 1;";
 
@@ -113,6 +115,7 @@ LIMIT 1;";
                 'group_id' => $groupResult->group_id,
                 'city_id' => $groupResult->city_id,
                 'district_id' => $groupResult->district_id,
+                'district_name' => $groupResult->name,
                 'address' => $groupResult->address,
                 'latitude' => $groupResult->latitude,
                 'longitude' => $groupResult->longitude,

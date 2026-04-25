@@ -49,7 +49,7 @@ Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destro
 
 //Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
 //Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
-//Route::get('/map', [MapPointController::class, 'index'])->name('map.index');
+Route::get('/maps', [MapPointController::class, 'index'])->name('map.index');
 //Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
 
 Route::get('/dashboard', function () {

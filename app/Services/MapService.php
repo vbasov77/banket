@@ -16,13 +16,13 @@ use Illuminate\Support\Facades\Log;
 class MapService extends Service
 {
 
-    private $mapRepository;
+    private MapRepository $mapRepository;
     private AddressSubjRepository $addressSubjRepository;
 
-    public function __construct(AddressSubjRepository $addressSubjRepository)
+    public function __construct(AddressSubjRepository $addressSubjRepository, MapRepository $mapRepository)
     {
         $this->addressSubjRepository = $addressSubjRepository;
-        $this->mapRepository = new MapRepository();
+        $this->mapRepository = $mapRepository;
     }
 
 

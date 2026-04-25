@@ -176,7 +176,11 @@ class SubjRepository extends Repository
     s.text_subj,
     s.published,
     gao.latitude,
-    gao.longitude,    
+    gao.longitude,  
+    gao.city_id,  
+    gao.district_id,  
+    asub.address,
+    d.name,
     CASE
         WHEN asub.subj_id IS NOT NULL THEN TRUE
         WHEN aobj.obj_id IS NOT NULL THEN TRUE
@@ -241,6 +245,7 @@ LEFT JOIN details_obj do ON o.id = do.obj_id
 LEFT JOIN address_subjs asub ON s.id = asub.subj_id
 LEFT JOIN address_objs aobj ON o.id = aobj.obj_id
 LEFT JOIN group_address_objs gao ON o.id = gao.obj_id
+LEFT JOIN districts d ON gao.district_id = d.id 
 WHERE s.id = ?  -- ID ресторана
 LIMIT 1;";
             $userId = Auth::id();
@@ -256,6 +261,9 @@ LIMIT 1;";
             return [
                 'subj_id' => $result->subj_id,
                 'name_subj' => $result->name_subj,
+                'address' => $result->address,
+                'district_id' => $result->district_id,
+                'district_name' => $result->name,
                 'minimum_cost' => $result->minimum_cost,
                 'per_person' => $result->per_person,
                 'capacity_to' => $result->capacity_to,

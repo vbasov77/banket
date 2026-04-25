@@ -151,7 +151,6 @@ class SubjController extends Controller
                     $subj['longitude'],
                     $subj['obj']['obj_id']
                 );
-
             }
 
             return view('objects.subjects.show', [
@@ -242,6 +241,7 @@ class SubjController extends Controller
             // Получаем субъект для проверки прав
             $subj = Subj::find($id);
 
+
             if (!$subj) {
                 Log::channel('error_file')->warning('Attempt to edit non-existent subj', [
                     'subj_id' => $id,
@@ -253,7 +253,7 @@ class SubjController extends Controller
 
             // Проверка прав доступа через существующий Gate 'can-access'
             if (!Gate::allows('can-access', $subj)) {
-                Log::channel('error_file')->warning('Unauthorized subj edit attempt', [
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
                     'subj_id' => $id,
                     'user_id' => auth()->id(),
                     'model_user_id' => $subj->user_id ?? 'null',
@@ -264,14 +264,13 @@ class SubjController extends Controller
             }
 
             // Если права есть — загружаем данные для формы редактирования
-            $subjData = $this->subjService->findByIdForEdit($id);
+//            $subjData = $this->subjService->findByIdForEdit($id);
             $images = $this->subjService->existsImg($id);
 
             return view('objects.subjects.edit', [
-                'subj' => $subjData,
+                'subj' => $subj,
                 'images' => $images
             ]);
-
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Unexpected error in Subj edit', [
                 'exception' => $e->getMessage(),

@@ -48,7 +48,6 @@ class GroupAddressObjController extends Controller
 
             }
 
-
             return view('objects.groups.show', [
                 'group' => $result['group_details'],
                 'subjs' => $result['subjs'],

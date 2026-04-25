@@ -43,6 +43,10 @@ class GroupAddressObj extends Model
         return $this->hasMany(AddressSubj::class, 'group_id');
     }
 
+    public function subjsHasGroup()
+    {
+        return $this->hasMany(Subj::class, 'obj_id',);
+    }
 
     public function subjs()
     {
@@ -98,6 +102,7 @@ class GroupAddressObj extends Model
     {
         return $this->belongsTo(District::class);
     }
+
 
 
 

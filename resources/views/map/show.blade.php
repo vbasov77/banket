@@ -79,18 +79,43 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="contact-card bg-primary text-white text-center p-4 rounded mt-3" id="contact-card"
-                     style="cursor: pointer; margin: 50px 0 50px 0;">
-                    <i class="bi bi-telephone fs-1 mb-2"></i>
-                    <div id="contact-content" class="contact-content">
-                        <h5 class="mb-2" id="trigger-text">Свяжитесь с нами</h5>
-                        <a style="text-decoration: none; color: white;" href="tel:{{ $map['data_subj']['obj']['phone_obj'] }}" class="phone-link" id="phone-link">
-                            {{ $map['data_subj']['obj']['phone_obj'] }}
-                        </a>
-                    </div>
-                </div>
                 <br>
+                <div>
+                    <span id="phone-masked">+7 (•••)</span>
+                    <a
+                            id="phone-full"
+                            style="display: none; text-decoration: none; color: black; font-weight: 500;"
+                            href="tel:{{ $map['data_subj']['obj']['phone_obj'] }}"
+                    >
+                        {{ $map['data_subj']['obj']['phone_obj'] }}
+                    </a>
+                    <button type="button" id="toggle-phone" class="btn btn-outline-dark btn-sm ms-2">
+                        Показать номер для звонка
+                    </button>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const masked = document.getElementById('phone-masked');
+                        const full = document.getElementById('phone-full');
+                        const button = document.getElementById('toggle-phone');
+
+                        button.addEventListener('click', function() {
+                            if (full.style.display === 'none') {
+                                // Показываем номер
+                                masked.style.display = 'none';
+                                full.style.display = 'inline';
+                                button.textContent = 'Скрыть номер';
+                            } else {
+                                // Скрываем номер
+                                masked.style.display = 'inline';
+                                full.style.display = 'none';
+                                button.textContent = 'Показать номер для звонка';
+                            }
+                        });
+                    });
+
+
+                </script>
             </div>
         </div>
     </div>
@@ -130,15 +155,5 @@
             window.map = map;
         });
     </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const card = document.getElementById('contact-card');
-            const container = document.getElementById('contact-content');
 
-            card.addEventListener('click', function () {
-                // Добавляем класс, который меняет видимость элементов
-                container.classList.add('show-phone');
-            });
-        });
-    </script>
 @endsection

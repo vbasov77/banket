@@ -297,7 +297,7 @@
     }
 </style>
 
-<div class="container mt-5">
+<div class="container mt-3">
     <div class="row">
         <div class="col-12">
             <!-- Кнопка для открытия фильтров на мобильных -->
@@ -337,7 +337,6 @@
                     </div>
 
                 </div> <!-- Закрытие horizontal-dropdowns -->
-
 
             </form>
         </div>

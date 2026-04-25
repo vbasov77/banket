@@ -3,6 +3,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="{{ asset('css/subj/show_subj.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/subj/card_subj.css') }}" rel="stylesheet">
 
 
     <link href="{{ asset('css/modal/modal.css') }}" rel="stylesheet">
@@ -12,7 +13,7 @@
     <link href="{{ asset('css/lightbox/lightbox.css') }}" rel="stylesheet">
     <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">
+{{--    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">--}}
 
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
@@ -28,7 +29,6 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <!-- Hero section -->
-
                 <section class="hero-section p-4 mb-5">
                     <div class="row align-items-center">
                         @include('blocks.favorite')
@@ -120,23 +120,51 @@
                     </div>
                     <div class="col-md-6 mb-4">
                         <div class="bg-light p-4 rounded-10 shadow-sm h-100">
-                            <h4 class="section-title mb-4">Связь</h4>
+                            <h4 class="section-title mb-4">Адрес, Связь</h4>
+                            <p class="lead text-muted mb-4">
+                                Район: {{ $subj['district_name'] }}<br>
+                                Адрес: {{ $subj['address'] }}
+                            </p>
+                            <div>
+                                <span id="phone-masked">+7 (•••)</span>
+                                <a
+                                        id="phone-full"
+                                        style="display: none; text-decoration: none; color: black; font-weight: 500;"
+                                        href="tel:{{ $subj['obj']['phone_obj'] }}"
+                                >
+                                    {{ $subj['obj']['phone_obj'] }}
+                                </a>
+                                <button type="button" id="toggle-phone" class="btn btn-outline-dark btn-sm ms-2">
+                                    Показать номер для звонка
+                                </button>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const masked = document.getElementById('phone-masked');
+                                    const full = document.getElementById('phone-full');
+                                    const button = document.getElementById('toggle-phone');
+
+                                    button.addEventListener('click', function() {
+                                        if (full.style.display === 'none') {
+                                            // Показываем номер
+                                            masked.style.display = 'none';
+                                            full.style.display = 'inline';
+                                            button.textContent = 'Скрыть номер';
+                                        } else {
+                                            // Скрываем номер
+                                            masked.style.display = 'inline';
+                                            full.style.display = 'none';
+                                            button.textContent = 'Показать номер для звонка';
+                                        }
+                                    });
+                                });
+
+
+                            </script>
+
+
                             <div class="d-flex flex-column align-items-center justify-content-center text-center">
                                 <!-- Единая плашка, внутри — два состояния -->
-                                <div class="contact-card" id="contact-card" style="cursor: pointer;">
-                                    <i class="bi bi-telephone fs-2 mb-2"></i>
-                                    <!-- Единый контейнер с фиксированным размером -->
-                                    <div id="contact-content" class="contact-content">
-                                        <!-- Исходный текст -->
-                                        <h5 class="mb-2" id="trigger-text">Свяжитесь с нами</h5>
-                                        <!-- Телефон (скрыт изначально) -->
-                                        <a style="text-decoration: none" href="tel:{{ $subj['obj']['phone_obj'] }}"
-                                           class="phone-link"
-                                           id="phone-link">
-                                            {{ $subj['obj']['phone_obj'] }}
-                                        </a>
-                                    </div>
-                                </div>
                                 @if($subj['map'])
                                     <div class="p-3">
                                         <a href="{{ route('show.map', ['id' => $subj['subj_id']])}}" id="map"
@@ -305,17 +333,6 @@
     <script src="{{ asset('js/parallax/parallax.js') }}" defer></script>
     <script src="{{ asset('js/carousels/carousel.js') }}" defer></script>
     <script src="{{ asset('js/lightbox/lightbox.js') }}" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const card = document.getElementById('contact-card');
-            const container = document.getElementById('contact-content');
-
-            card.addEventListener('click', function () {
-                // Добавляем класс, который меняет видимость элементов
-                container.classList.add('show-phone');
-            });
-        });
-    </script>
 
 @endsection
 
