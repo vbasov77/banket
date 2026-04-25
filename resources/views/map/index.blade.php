@@ -119,7 +119,12 @@
             }).addTo(map);
 
             const groups = @json($groups);
-            console.log('Полученные данные:', groups);
+            console.log(groups);
+
+            if (!groups || groups.length === 0) {
+                console.warn('Нет данных для отображения на карте');
+                return;
+            }
 
             groups.forEach(group => {
                 if (!group.latitude || !group.longitude) {
@@ -131,53 +136,39 @@
                     .addTo(map)
                     .bindPopup(`
             <div class="popup-content">
-                <!-- Список субъектов -->
+                <h5>${group.object[0].name_obj || 'Без адреса'}</h5>
+                <h6>${group.address || 'Без адреса'}</h6>
 
-                <ul class="subjects-list">
-                    ${group.subjects.map(subject => `
+                <!-- Список субъектов -->
+                ${group.subjects && group.subjects.length > 0 ? `
+                    <ul class="subjects-list">
+                ${group.subjects.map(subject => `
                 <li>
                     <a href="/show_subj/id${subject.id}"
                class="subject-link"
                title="Перейти к субъекту ${subject.name_subj}">
                 <div class="subject-card">
                     <strong>${subject.name_subj}</strong><br>
-            На человека: ${subject.per_person}<br>
-            Вместимость до: ${subject.capacity_to} чел.
+            От: ${subject.per_person || 'Не указан'} руб/чел<br>
+            Вместимость до: ${subject.capacity_to || 'Не указан'} чел
                 </div>
             </a>
                 </li>`).join('')}
-                </ul>
-
-                <!-- Информация об уникальных объектах -->
-                ${group.objects.length > 0 ? `
-                <h5>Связанные объекты:</h5>
-                <ul class="objects-list">
-            ${group.objects.map(obj => `
-                <li class="object-item">
-            <strong>${obj.name_obj}</strong><br>
-            Телефон: ${obj.phone_obj || 'Не указан'}
-                </li>`).join('')}
-                </ul>` : ''}
+            </ul>` : '<p>Субъекты не найдены</p>'}
             </div>`);
             });
 
+            // Автомасштабирование карты
             if (groups.length > 0) {
                 const bounds = new L.LatLngBounds();
                 groups.forEach(group => {
                     if (group.latitude && group.longitude) {
                         bounds.extend([group.latitude, group.longitude]);
                     }
-                    group.subjects.forEach(subject => {
-                        if (subject.address_data.latitude && subject.address_data.longitude) {
-                            bounds.extend([
-                                subject.address_data.latitude,
-                                subject.address_data.longitude
-                            ]);
-                        }
-                    });
                 });
                 map.fitBounds(bounds, {padding: [50, 50]});
             }
         });
+
     </script>
 @endsection

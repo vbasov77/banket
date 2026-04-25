@@ -5,6 +5,8 @@
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <link href="{{ asset('css/subj/card_subj.css') }}" rel="stylesheet">
 
+    <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
+    <script src="{{asset('map/leaflet/js/leaflet.js')}}" defer></script>
 
     @if (!empty($subjs[0]['image_paths']) && count($subjs[0]['image_paths']) > 0)
         <div class="parallax-container">
@@ -20,94 +22,96 @@
     <div style="padding-bottom: 50px" class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-12">
-                <section class="hero-section p-4 mb-5">
-                    <div class="row align-items-center">
-                        <h1 class="section-title display-5 fw-bold text-dark mb-3">
-                            {{ $group['obj']['name_obj'] }}
-                        </h1>
+                <div class="row">
+                    <section class="hero-section p-4 mb-5">
+                        <div class="row align-items-center">
+                            <h1 class="section-title display-5 fw-bold text-dark mb-3">
+                                {{ $group['obj']['name_obj'] }}
+                            </h1>
 
-                        <p class="lead text-muted mb-4">
-                            {{ $group['details_obj']['text_obj'] }}
-                        </p>
-                    </div>
-                </section>
-                @if($subjs)
+                            <p class="lead text-muted mb-4">
+                                {{ $group['details_obj']['text_obj'] }}
+                            </p>
+                        </div>
+                    </section>
+                    @if($subjs)
+                        @foreach($subjs as $value)
+                            <div class="col-sm-12 col-md-6 col-lg-4 restaurants-grid">
+                                <div class="restaurant-card"
+                                     data-id="{{ $value['id'] }}">
+                                    <!-- Изображение -->
+                                    <div class="position-relative">
+                                        <div class="restaurant-image">
+                                            @if($value['image_paths'])
 
-                    @foreach($subjs as $value)
-                        <div class="col-12 col-sm-8 col-md-6 col-lg-4 restaurants-grid">
-                            <div class="restaurant-card"
-                                 data-id="{{ $value['id'] }}" >
-                                <!-- Изображение -->
-                                <div class="position-relative">
-                                    <div class="restaurant-image">
-                                        @if($value['image_paths'])
-
-                                            <img src="{{ $value['image_paths'][0] . '&cs=360x0' }}"
-                                                 class="card-img-top" alt="Фото субъекта"
-                                                 style="height: 200px; object-fit: cover;">
-                                        @else
-                                            <img src="{{ asset('images/no_image/no_image.jpg') }}"
-                                                 class="card-img-top" alt="Нет фото"
-                                                 style="height: 200px; object-fit: cover;">
-                                        @endif
+                                                <img src="{{ $value['image_paths'][0] . '&cs=360x0' }}"
+                                                     class="card-img-top" alt="Фото субъекта"
+                                                     style="object-fit: cover;">
+                                            @else
+                                                <img src="{{ asset('images/no_image/no_image.jpg') }}"
+                                                     class="card-img-top" alt="Нет фото"
+                                                     style="height: 200px; object-fit: cover;">
+                                            @endif
+                                        </div>
                                     </div>
-                                </div>
-                                <!-- Тело карточки -->
-                                <div class="restaurant-content">
-                                    <!-- Название -->
-                                    <h5 class="card-title fw-bold mb-3">{{ $value['name_subj'] }}</h5>
+                                    <!-- Тело карточки -->
+                                    <div class="restaurant-content">
+                                        <!-- Название -->
+                                        <h5 class="card-title fw-bold mb-3">{{ $value['name_subj'] }}</h5>
 
-                                    <!-- Характеристики -->
-                                    <div class="details-info">
-                                        <!-- Вместимость -->
-                                        <div class="detail">
-                                            <img src="{{ asset('icons/user.svg') }}"
-                                                 class="detail-label" style="width: 16px; height: 16px;"
-                                                 alt="Вместимость">
-                                            <span class="detail-value">{{ $value['capacity_to'] }} мест</span>
+                                        <!-- Характеристики -->
+                                        <div class="details-info">
+                                            <!-- Вместимость -->
+                                            <div class="detail">
+                                                <img src="{{ asset('icons/user.svg') }}"
+                                                     class="detail-label" style="width: 16px; height: 16px;"
+                                                     alt="Вместимость">
+                                                <span class="detail-value">{{ $value['capacity_to'] }} мест</span>
+                                            </div>
+
+                                            <!-- Стоимость -->
+                                            @if(!empty($value['minimum_cost']))
+                                                <div class="detail">
+                                                    <img src="{{ asset('icons/ruble.svg') }}"
+                                                         class="detail-label" style="width: 16px; height: 16px;"
+                                                         alt="Рубль">
+                                                    <span class="detail-value price">От {{ number_format($value['minimum_cost'], 0, ' ', ' ') }} ₽</span>
+                                                </div>
+                                            @endif
                                         </div>
 
-                                        <!-- Стоимость -->
-                                        @if(!empty($value['minimum_cost']))
-                                            <div class="detail">
-                                                <img src="{{ asset('icons/ruble.svg') }}"
-                                                     class="detail-label" style="width: 16px; height: 16px;"
-                                                     alt="Рубль">
-                                                <span class="detail-value price">От {{ number_format($value['minimum_cost'], 0, ' ', ' ') }} ₽</span>
-                                            </div>
-                                        @endif
-                                    </div>
+                                        <div class="mt-auto">
+                                            <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                                <!-- Контейнер для иконок -->
+                                                <div class="actions d-flex align-items-center gap-3">
 
-                                    <div class="mt-auto">
-                                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
-                                            <!-- Контейнер для иконок -->
-                                            <div class="actions d-flex align-items-center gap-3">
+                                                </div>
 
-                                            </div>
-
-                                            <!-- Статус публикации -->
-                                            <div class="publication-status">
-                                                @if($value['published'] == 0)
-                                                    <span class="badge bg-danger">Не опубликовано</span>
-                                                @else
-                                                    <span class="badge bg-success"><a title="Смотреть субъект {{$value['name_subj']}}"
-                                                                                      class="text-decoration-none text-muted"
-                                                                                      href="{{ route('show.subj', ['id' => $value['id']]) }}">
+                                                <!-- Статус публикации -->
+                                                <div class="publication-status">
+                                                    @if($value['published'] == 0)
+                                                        <span class="badge bg-danger">Не опубликовано</span>
+                                                    @else
+                                                        <span class="badge bg-success"><a
+                                                                    title="Смотреть субъект {{$value['name_subj']}}"
+                                                                    class="text-decoration-none text-muted"
+                                                                    href="{{ route('show.subj', ['id' => $value['id']]) }}">
                                                     <div style="color: white">Посмотреть</div>
                                                 </a></span>
-                                                @endif
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
-                @endif
-               <br>
+                        @endforeach
+                    @endif
+                    <br>
+                </div>
                 @if(!empty($group['details_obj']))
-                    <div class="row g-4">
+                    <div class="row" style="margin-top: 50px; margin-bottom: 50px">
                         <div class="col-12">
                             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                                 <!-- Все блоки особенностей -->
@@ -181,13 +185,64 @@
                         </div> <!-- Закрытие col-12 с особенностями и услугами -->
                     </div> <!-- Закрытие основного row секции -->
                 @endif
-
+                <section style="margin-top: 50px" class="hero-section p-4 mb-5">
+                    <div class="row align-items-center">
+                        <h3 class="section-title fw-bold text-dark mb-3">
+                            Адрес, Контакты
+                        </h3>
+                        <p class="lead text-muted mb-4">
+                            Район: {{ $group['district_name'] }}<br>
+                            Адрес: {{ $group['address'] }}
+                        </p>
+                    </div>
+                </section>
+                @if(!empty($group['latitude']) && !empty($group['longitude']))
+                    <div class="map-container">
+                        <div id="map" style="height: 350px; width: 100%;"></div>
+                    </div>
+                @endif
                 @if($nearestObjects)
                     @include('blocks.card_subj')
                 @endif
-
             </div>
         </div>
     </div>
     <script src="{{ asset('js/parallax/parallax.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Получаем данные из PHP-переменной
+            const mapData = @json($group);
+
+            // Инициализация карты
+            const map = L.map('map').setView([mapData.latitude, mapData.longitude], 13);
+
+            // Добавление слоя OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Создание маркера с балуном
+            const marker = L.marker([mapData.latitude, mapData.longitude]).addTo(map);
+
+            // HTML содержимого балуна с использованием данных из $map
+            const balloonContent = `
+            <div class="custom-balloon">
+                <div class="balloon-title">${mapData.data_subj.name_subj}</div>
+
+            </div>
+        `;
+
+            // Прикрепление балуна к маркеру
+            marker.bindPopup(balloonContent);
+
+            // Автоматическое открытие балуна при загрузке
+            setTimeout(() => {
+                marker.openPopup();
+            }, 500);
+
+            // Сохраняем ссылку на карту в глобальной переменной для использования в других функциях
+            window.map = map;
+        });
+    </script>
+
 @endsection

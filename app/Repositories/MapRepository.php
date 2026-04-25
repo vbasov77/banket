@@ -6,13 +6,26 @@ namespace App\Repositories;
 
 use App\Models\GroupAddressObj;
 use App\Models\MapPoint;
+use App\Services\UserCityService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class MapRepository extends Repository
 {
+    private  UserCityService $userCityService;
+
+    /**
+     * @param UserCityService $userCityService
+     */
+    public function __construct(UserCityService $userCityService)
+    {
+        $this->userCityService = $userCityService;
+    }
+
+
     /**
      * @return JsonResponse
      */
@@ -64,27 +77,6 @@ class MapRepository extends Repository
     }
     /**
      * @return Collection
-     * @throws \Exception
-     */
-    public function getAllPoints(): Collection
-    {
-        try {
-            return MapPoint::all();
-        } catch (QueryException $e) {
-            Log::channel('error_file')->error(
-                'Database query error in MapRepository@getAllPoints: ' . $e->getMessage()
-            );
-            throw $e;
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Unexpected error in MapRepository@getAllPoints: ' . $e->getMessage()
-            );
-            throw $e;
-        }
-    }
-
-    /**
-     * @return Collection
      */
     public function findMap()
     {
@@ -103,7 +95,7 @@ class MapRepository extends Repository
                 $query->select('id', 'user_id', 'name_obj', 'phone_obj');
             }
         ])
-            ->select('id', 'address as title', 'latitude', 'longitude')
+            ->select('id', 'address', 'latitude', 'longitude')
             ->get()
             ->map(function ($group) {
                 // Собираем уникальные объекты группы
@@ -115,7 +107,7 @@ class MapRepository extends Repository
 
                 return [
                     'id' => $group->id,
-                    'title' => $group->title,
+                    'address' => $group->address,
                     'latitude' => (float)$group->latitude,
                     'longitude' => (float)$group->longitude,
                     'subjects_count' => $group->subjects->count(),
@@ -139,7 +131,7 @@ class MapRepository extends Repository
                         ];
                     })->toArray(),
                     // Добавляем уникальные объекты группы
-                    'objects' => $uniqueObjects->map(function ($obj) {
+                    'object' => $uniqueObjects->map(function ($obj) {
                         return [
                             'id' => $obj->id,
                             'user_id' => $obj->user_id,

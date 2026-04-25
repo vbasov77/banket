@@ -80,26 +80,59 @@ class MapPointController extends Controller
     }
 
 
-    /**
-     * @return Application|Factory|View|null
-     */
-    public function index(): Application|Factory|View|null
+    public function index(Request $request)
     {
         try {
-            $points = $this->mapRepository->getAllPoints();
+            // Получаем данные из репозитория
+            $groups = $this->mapRepository->findMap();
 
-            if (!$points) {
-                Log::channel('error_file')->error(
-                    'No map points found in MapController@index'
-                );
-                // Даже если точек нет, отдаём пустую коллекцию — это не ошибка 500
-                $points = collect();
-            }
+            return view('map.index', ['groups' => $groups]);
 
-            return view('map.index', compact('points'));
+//            Log::channel('info_file')->info('MapController@index: raw data from repository', [
+//                'count' => $groups->count(),
+//                'sample_data' => $groups->take(2)->toArray() // первые 2 элемента для примера
+//            ]);
+//
+//            // Очищаем данные: исключаем бинарные поля, экранируем строки, преобразуем координаты
+//            $cleanGroups = $groups->map(function ($group) {
+//                // Обработка связи obj (belongsTo — один объект)
+//                $objData = null;
+//                if (!is_null($group->obj)) {
+//                    $objData = [
+//                        'id' => $group->obj->id,
+//                        'name_obj' => $group->obj->name_obj,
+//                        'phone_obj' => $group->obj->phone_obj,
+//                    ];
+//                }
+//
+//                // Обработка связи subjsHasGroup (hasMany — коллекция)
+//                $subjsData = $group->subjs->map(function ($subjs) {
+//
+//                    return [
+//                        'id' => $subjs->id,
+//                        'address' => $subjs->address,
+//                    ];
+//                })->toArray();
+//
+//                return [
+//                    'group_id' => $group->id,
+//                    'city_id' => $group->city_id,
+//                    'district_id' => $group->district_id,
+//                    'address' => htmlspecialchars($group->address ?? '', ENT_QUOTES, 'UTF-8'),
+//                    'latitude' => (float)$group->latitude,
+//                    'longitude' => (float)$group->longitude,
+//                    'obj_id' => $group->obj_id,
+//                    'obj' => $objData, // одиночный объект или null
+//                    'subjs' => $subjsData, // массив объектов
+//                ];
+//            });
+
+
+
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
-                'Error in MapController@index: ' . $e->getMessage()
+                'Error in MapController@index: ' . $e->getMessage(),
+                ['trace' => $e->getTrace()]
             );
             abort(500, 'Internal server error');
         }
@@ -217,7 +250,6 @@ class MapPointController extends Controller
             return redirect()->back()->with('error', 'Произошла ошибка при загрузке формы редактирования');
         }
     }
-
 
 
     /**
@@ -361,7 +393,6 @@ class MapPointController extends Controller
             ], 500);
         }
     }
-
 
 
 }

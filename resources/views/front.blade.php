@@ -1,174 +1,11 @@
 @extends('layouts.app', ['title' => "Банкетные залы"])
 @section('content')
 
+    {{--    <script src="{{asset('css/bootstrap/bootstrap-icons@1.10.0/bootstrap-icons.css')}}"></script>--}}
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
-    <style>
-        /* Блок деталей */
-
-        .one .carousel {
-            height: auto;
-        }
-
-        .front-btn {
-            float: right;
-            position: relative;
-        }
-    </style>
-
-    <style>
-        @media (max-width: 768px) {
-            /* Скрываем оригинальную кнопку внутри блока */
-        }
-
-        .details-info {
-            padding: 15px;
-        }
-
-    </style>
-
-    <style>
-        .restaurants-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 24px;
-            padding: 20px;
-        }
-
-        .restaurant-card {
-            background: white;
-            border-radius: 13px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            overflow: clip;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #f0f0f0;
-        }
-
-        .restaurant-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        }
-
-        .restaurant-image {
-            height: 180px;
-            overflow: hidden;
-            background: #f8f9fa;
-        }
-
-        .restaurant-image img,
-        .restaurant-image .placeholder {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .placeholder {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: #f0f2f5;
-            color: #6c757d;
-            font-size: 14px;
-        }
-
-        .restaurant-content {
-            padding: 20px;
-        }
-
-        .restaurant-name {
-            margin: 0 0 12px 0;
-            color: #2c3e50;
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .restaurant-features {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .feature-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            color: #495057;
-        }
-
-        .feature-icon {
-            font-size: 16px;
-        }
-
-        .tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .tag {
-            background: #e9ecef;
-            color: #495057;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .features-list {
-            margin-bottom: 16px;
-        }
-
-        .features-list strong {
-            display: block;
-            margin-bottom: 8px;
-            color: #2c3e50;
-        }
-
-        .features-list ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .features-list li {
-            margin-bottom: 4px;
-            color: #495057;
-            font-size: 14px;
-        }
-
-        .restaurant-description {
-            color: #6c757d;
-            line-height: 1.5;
-            font-size: 14px;
-            margin-bottom: 16px;
-            max-height: 80px;
-            overflow: hidden;
-        }
-
-        .restaurant-meta {
-            color: #95a5a6;
-            font-size: 12px;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 12px;
-        }
-
-        /* Адаптивность */
-        @media (max-width: 768px) {
-            .restaurants-grid {
-                grid-template-columns: 1fr;
-                padding: 10px;
-            }
-
-            .restaurant-card {
-                margin-bottom: 14px;
-            }
-        }
-
-
-    </style>
+    <link href="{{ asset('css/front.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
 
     <style>
         .details-title {
@@ -178,15 +15,25 @@
             width: 100%; /* Занимаем всю доступную ширину родителя */
         }
     </style>
-
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
 
-    @include('blocks.nav')
 
+    @if(!empty($data) && count($data) > 0)
+        <div class="parallax-container">
+            <div class="parallax-bg" style="background-image: url('{{ $data[0]['subjs_data'][0]['path'] }}');"></div>
+            <div class="parallax-content">
+                <div class="parallax-title-center">
+                    <h1 class="parallax-title">{!! session('user_city') !!}</h1>
+                </div>
+            </div>
+        </div>
+    @endif
+    @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">
             <div class="row justify-content-center">
-                <div style="margin-top: 60px" class="col-lg-11 col-md-11 col-sm-12">
+                <div style="margin-top: 10px" class="col-lg-11 col-md-11 col-sm-12">
+
                     @if(!empty($data) && count($data) > 0)
                         @php
                             $counter = 0;
@@ -404,4 +251,5 @@
         </div>
     </section>
     <script src="{{ asset('js/carousels/carousel.js') }}" defer></script>
+    <script src="{{ asset('js/parallax/parallax.js') }}" defer></script>
 @endsection
