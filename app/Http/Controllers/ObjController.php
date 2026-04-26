@@ -7,6 +7,7 @@ use App\Http\Requests\Obj\EditObjRequest;
 use App\Models\Obj;
 use App\Services\ImgObjService;
 use App\Services\ObjService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -127,11 +128,43 @@ class ObjController extends Controller
 
     public function show(Request $request): View
     {
-        $obj = $this->objService->findById($request->id);
-        $images = $this->imgService->findImgByObjId($request->id);
+        try {
+            $objId = $request->id;
 
-        return \view('objects.show', ['obj' => $obj, 'images' => $images]);
+            if (!$objId) {
+                Log::channel('error_file')->error(
+                    'Missing object ID in MapController@show'
+                );
+                abort(400, 'Object ID is required');
+            }
+
+            $obj = $this->objService->findById($objId);
+
+            // Проверяем, найден ли объект
+            if (!$obj) {
+                Log::channel('error_file')->error(
+                    'Object not found for ID: ' . $objId
+                );
+                abort(404, 'Object not found');
+            }
+
+            $images = $this->imgService->findImgByObjId($objId);
+
+            // Обрабатываем случай, когда изображений нет (это не ошибка)
+            if ($images === null) {
+                $images = collect(); // Возвращаем пустую коллекцию вместо null
+            }
+
+            return view('objects.show', ['obj' => $obj, 'images' => $images]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in MapController@show: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown']
+            );
+            abort(500, 'Internal server error');
+        }
     }
+
 
 
     /**
@@ -140,27 +173,132 @@ class ObjController extends Controller
      */
     public function edit(Request $request): View
     {
-        $obj = $this->objService->findByIdOnlyObj($request->id);
+        try {
+            $objId = $request->id;
 
-        return \view('objects.edit', ['obj' => $obj]);
+            if (!$objId) {
+                Log::channel('error_file')->error(
+                    'Missing object ID in ObjectsController@edit'
+                );
+                abort(400, 'Object ID is required');
+            }
+
+            $obj = $this->objService->findByIdOnlyObj($objId);
+
+            // Проверяем, найден ли объект
+            if (!$obj) {
+                Log::channel('error_file')->error(
+                    'Object not found for ID: ' . $objId
+                );
+                abort(404, 'Object not found');
+            }
+
+            return view('objects.edit', ['obj' => $obj]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in ObjectsController@edit: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $objId ?? 'unknown']
+            );
+            abort(500, 'Internal server error');
+        }
     }
 
 
     /**
      * @param EditObjRequest $request
-     * @return RedirectResponse|string
+     * @return RedirectResponse
      */
-    public function update(EditObjRequest $request)
+    public function update(EditObjRequest $request): RedirectResponse
     {
         try {
-            $this->objService->update($request->validated(), $request->id);
+            $objId = $request->id;
 
-            return redirect()->route('my.obj');
-        } catch (Exception $e) {
-            return "No";
+            if (!$objId) {
+                Log::channel('error_file')->error(
+                    'Missing object ID in ObjectsController@update'
+                );
+                return redirect()->route('my.obj')->with('error', 'Object ID is required');
+            }
+
+            $this->objService->update($request->validated(), $objId);
+
+            return redirect()->route('my.obj')->with('success', 'Object updated successfully');
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjectsController@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown', 'sql' => $e->getSql()]
+            );
+            return redirect()->route('my.obj')->with('error', 'Database error occurred while updating object');
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in ObjectsController@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown']
+            );
+            return redirect()->route('my.obj')->with('error', 'An error occurred while updating object');
         }
-
     }
+
+    /**
+     * @throws AuthenticationException
+     */
+    public function myObj(Request $request): View
+    {
+        try {
+            $userId = Auth::user()->id;
+
+            // Получаем ID объекта пользователя
+            $objId = $this->objService->findIdObjByUserId($userId);
+
+            $data = null;
+            $error = null;
+
+            if (!empty($request->error)) {
+                $error = $request->error;
+            }
+
+            if ($objId) {
+                // Получаем данные по субъектам
+                $data = $this->objService->findMySubjs($objId);
+
+                // Если данные не получены, логируем ошибку
+                if ($data === null) {
+                    Log::channel('error_file')->error(
+                        'Failed to get subjects data for obj_id: ' . $objId,
+                        [
+                            'user_id' => $userId
+                        ]
+                    );
+                    $error = 'Не удалось загрузить данные по субъектам';
+                }
+            } else {
+                Log::channel('error_file')->error(
+                    'User has no associated object',
+                    [
+                        'user_id' => $userId
+                    ]
+                );
+            }
+
+            return view('objects.subjects.my_subjs', [
+                'data' => $data,
+                'error' => $error
+            ]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in Controller@myObj: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'user_id' => Auth::user()->id ?? 'guest'
+                ]
+            );
+
+            return view('objects.subjects.my_subjs', [
+                'data' => null,
+                'error' => 'Произошла критическая ошибка при загрузке данных'
+            ]);
+        }
+    }
+
 
     /**
      * Remove the specified resource from storage.

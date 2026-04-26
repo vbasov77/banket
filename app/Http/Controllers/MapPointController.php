@@ -80,55 +80,16 @@ class MapPointController extends Controller
     }
 
 
-    public function index(Request $request)
+    /**
+     * @return Application|Factory|View
+     */
+    public function index(): Application|Factory|View
     {
         try {
             // Получаем данные из репозитория
             $groups = $this->mapRepository->findMap();
 
             return view('map.index', ['groups' => $groups]);
-
-//            Log::channel('info_file')->info('MapController@index: raw data from repository', [
-//                'count' => $groups->count(),
-//                'sample_data' => $groups->take(2)->toArray() // первые 2 элемента для примера
-//            ]);
-//
-//            // Очищаем данные: исключаем бинарные поля, экранируем строки, преобразуем координаты
-//            $cleanGroups = $groups->map(function ($group) {
-//                // Обработка связи obj (belongsTo — один объект)
-//                $objData = null;
-//                if (!is_null($group->obj)) {
-//                    $objData = [
-//                        'id' => $group->obj->id,
-//                        'name_obj' => $group->obj->name_obj,
-//                        'phone_obj' => $group->obj->phone_obj,
-//                    ];
-//                }
-//
-//                // Обработка связи subjsHasGroup (hasMany — коллекция)
-//                $subjsData = $group->subjs->map(function ($subjs) {
-//
-//                    return [
-//                        'id' => $subjs->id,
-//                        'address' => $subjs->address,
-//                    ];
-//                })->toArray();
-//
-//                return [
-//                    'group_id' => $group->id,
-//                    'city_id' => $group->city_id,
-//                    'district_id' => $group->district_id,
-//                    'address' => htmlspecialchars($group->address ?? '', ENT_QUOTES, 'UTF-8'),
-//                    'latitude' => (float)$group->latitude,
-//                    'longitude' => (float)$group->longitude,
-//                    'obj_id' => $group->obj_id,
-//                    'obj' => $objData, // одиночный объект или null
-//                    'subjs' => $subjsData, // массив объектов
-//                ];
-//            });
-
-
-
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in MapController@index: ' . $e->getMessage(),
@@ -138,34 +99,11 @@ class MapPointController extends Controller
         }
     }
 
-
     /**
-     * @return Application|Factory|View|null
+     * @param Request $request
+     * @return Application|Factory|JsonResponse|RedirectResponse
      */
-    public function getMapData(): Application|Factory|View|null
-    {
-        try {
-            $groups = $this->mapService->getMapData();
-
-            return view('map.index', ['groups' => $groups]);
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Error in MapController@getMapData: ' . $e->getMessage()
-            );
-            abort(500, 'Internal server error');
-        }
-    }
-
-
-    public function showMap()
-    {
-        $groups = $this->mapService->findMap();
-
-        return view('map.index', compact('groups'));
-    }
-
-
-    public function create(Request $request)
+    public function create(Request $request): Application|Factory|JsonResponse|RedirectResponse
     {
         try {
             $user = auth()->user();
@@ -393,7 +331,6 @@ class MapPointController extends Controller
             ], 500);
         }
     }
-
 
 }
 

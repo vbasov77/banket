@@ -12,22 +12,26 @@ use Illuminate\Http\Request;
 
 class VkService extends Service
 {
-    private $requestRepository;
-    private $keyRepository;
-    private $fileService;
-    private $imgService;
+    private RequestRepository $requestRepository;
+    private KeyRepository $keyRepository;
 
-    public function __construct()
+    private ImageService $imgService;
+
+    public function __construct(RequestRepository $requestRepository, KeyRepository $keyRepository, ImageService $imgService)
     {
-        $this->requestRepository = new RequestRepository();
-        $this->keyRepository = new KeyRepository();
-        $this->fileService = new FileService();
-        $this->imgService = new ImageService();
+        $this->requestRepository = $requestRepository;
+        $this->keyRepository = $keyRepository;
+        $this->imgService = $imgService;
 
 
     }
 
-    public function createOneImgInVk(Request $request, int $groupId)
+    /**
+     * @param Request $request
+     * @param int $groupId
+     * @return array|null
+     */
+    public function createOneImgInVk(Request $request, int $groupId): ?array
     {
         $accessToken = $this->keyRepository->accessToken();
 
@@ -76,15 +80,12 @@ class VkService extends Service
         return null;
     }
 
-
-
-
     /**
      * @param int $groupId
      * @param string $accessToken
      * @return mixed
      */
-    public function server(int $groupId, string $accessToken)
+    public function server(int $groupId, string $accessToken): mixed
     {
         // Получение сервера vk для загрузки изображения.
         $urlGetWallUploadServer = 'https://api.vk.com/method/photos.getWallUploadServer';
@@ -97,67 +98,6 @@ class VkService extends Service
         return json_decode($this->requestRepository->post($urlGetWallUploadServer, $data));
     }
 
-    function getClosestSize(string $originalUrl, int $minWidth, int $maxWidth, int $quality = 96): string
-    {
-        // Шаг 1. Ищем все размеры в URL (шаблон NxM, где N и M — числа)
-        preg_match_all('/(\d+)x(\d+)/', $originalUrl, $matches, PREG_SET_ORDER);
-
-        if (empty($matches)) {
-            // Если размеров не найдено — возвращаем оригинал с новым качеством
-            return preg_replace('/(&quality=\d+)?/', "&quality=$quality", $originalUrl);
-        }
-
-        // Шаг 2. Собираем все найденные ширины
-        $widths = array_map(function ($match) {
-            return (int)$match[1]; // Первая группа — ширина
-        }, $matches);
-
-        // Шаг 3. Фильтруем ширины по диапазону [minWidth, maxWidth]
-        $validWidths = array_filter($widths, function ($width) use ($minWidth, $maxWidth) {
-            return $width >= $minWidth && $width <= $maxWidth;
-        });
-
-        if (empty($validWidths)) {
-            // Если в диапазоне нет ни одного размера — берём ближайший:
-            // - если все ширины < minWidth → берём максимальную из найденных;
-            // - если все ширины > maxWidth → берём минимальную из найденных.
-            $closestWidth = min(array_map(function ($width) use ($minWidth, $maxWidth) {
-                if ($width < $minWidth) {
-                    return $minWidth - $width;
-                }
-                if ($width > $maxWidth) {
-                    return $width - $maxWidth;
-                }
-                return 0;
-            }, $widths));
-
-            // Находим фактическую ширину, соответствующую ближайшему отклонению
-            $validWidths = [$widths[array_search($closestWidth, array_map(function ($w) use ($minWidth, $maxWidth) {
-                return $w < $minWidth ? $minWidth - $w : ($w > $maxWidth ? $w - $maxWidth : 0);
-            }, $widths))]];
-        }
-
-        // Шаг 4. Выбираем минимальную подходящую ширину (чтобы не переплачивать за пиксели)
-        $targetWidth = min($validWidths);
-
-        // Шаг 5. Находим соответствующую высоту для этого размера
-        $targetHeight = null;
-        foreach ($matches as $match) {
-            if ((int)$match[1] === $targetWidth) {
-                $targetHeight = (int)$match[2];
-                break;
-            }
-        }
-
-        // Шаг 6. Формируем новую строку размера
-        $newSize = "{$targetWidth}x{$targetHeight}";
-
-        // Шаг 7. Заменяем все размеры в URL на выбранный и обновляем качество
-        $modifiedUrl = preg_replace('/\d+x\d+/', $newSize, $originalUrl);
-        $modifiedUrl = preg_replace('/(&quality=\d+)?/', "&quality=$quality", $modifiedUrl);
-
-        return $modifiedUrl;
-    }
 
 
 }

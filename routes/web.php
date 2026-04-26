@@ -78,7 +78,6 @@ Route::post('/update_subj', [SubjController::class, 'update'])
     ->name('update.subj')
     ->middleware('auth');
 
-Route::get('/my_obj', [SubjController::class, 'myObj'])->name("my.obj")->middleware('auth');
 Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('auth');
 Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('auth');
 
@@ -86,6 +85,7 @@ Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.c
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
 Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
+Route::get('/my_obj', [ObjController::class, 'myObj'])->name("my.obj")->middleware('auth');
 Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
 Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('auth');
 Route::post('/store_obj', [ObjController::class, 'store'])->name("store.obj")->middleware('auth');
@@ -94,7 +94,7 @@ Route::get('/show_obj/id{id}', [ObjController::class, 'show'])->name("show.obj")
 
 Route::post('/search', [SearchController::class, 'search'])->name("search.objs");
 Route::post('/api/clear-filters', [SearchController::class, 'clearFilters'])->name('clear.filters');
-Route::get('/search', [SearchController::class, 'searchResults'])->name('search.results');
+//Route::get('/search', [SearchController::class, 'searchResults'])->name('search.results');
 
 Route::post('/update_details_obj', [DetailsObjController::class, 'update'])->name("update.details_obj");
 Route::post('/store_details_obj', [DetailsObjController::class, 'store'])->name("store.details_obj");

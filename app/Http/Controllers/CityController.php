@@ -2,16 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\City;
-use App\Models\District;
-use App\Models\UserCity;
 use App\Services\CityService;
 use App\Services\DistrictService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 

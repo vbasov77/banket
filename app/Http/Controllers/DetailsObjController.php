@@ -5,28 +5,23 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DetailsObj\CreateDetailsObjRequest;
 use App\Http\Requests\DetailsObj\EditDetailsObjRequest;
 use App\Services\DetailsObjService;
-use App\Services\ImgObjService;
 use App\Services\ObjService;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use PHPUnit\Exception;
 
 class DetailsObjController extends Controller
 {
     private ObjService $objService;
-    private ImgObjService $imgService;
+
     private DetailsObjService $detailsObjService;
 
 
-    public function __construct(ObjService $objService, ImgObjService $imgService, DetailsObjService $detailsObjService)
+    public function __construct(ObjService $objService, DetailsObjService $detailsObjService)
     {
         $this->objService = $objService;
-        $this->imgService = $imgService;
+
         $this->detailsObjService = $detailsObjService;
     }
 

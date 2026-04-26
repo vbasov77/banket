@@ -3,30 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\CitySearchException;
-use App\Models\City;
-use App\Models\District;
 use App\Services\CityService;
-use App\Services\MapService;
 use App\Services\StreetSearchService;
-use App\Services\SubjService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class AddressSubjController extends Controller
 {
-    private MapService $mapService;
-    private SubjService $subjService;
+
 
     private CityService $cityService;
 
-    public function __construct(MapService $mapService, SubjService $subjService, CityService $cityService)
+    public function __construct(CityService $cityService)
     {
-        $this->mapService = $mapService;
-        $this->subjService = $subjService;
+
         $this->cityService = $cityService;
     }
 

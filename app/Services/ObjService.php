@@ -7,12 +7,11 @@ use App\Models\Obj;
 use App\Repositories\ObjRepository;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Laravel\Facades\Image;
-use Illuminate\Database\QueryException;
 use RuntimeException;
 
 
@@ -114,15 +113,31 @@ class ObjService extends Service
         return $this->objRepository->findById($id);
     }
 
-
     /**
-     * @param array $array
+     * Обновить объект по ID
+     *
+     * @param array $data
      * @param int $id
      * @return void
+     * @throws \Exception
      */
-    public function update(array $array, int $id): void
+    public function update(array $data, int $id): void
     {
-        $this->objRepository->update($array, $id);
+        try {
+            $this->objRepository->update($data, $id);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjService@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in ObjService@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'data' => $data]
+            );
+            throw $e;
+        }
     }
 
 
@@ -223,13 +238,75 @@ class ObjService extends Service
         }
     }
 
+
     /**
+     * Найти объект по ID (только основная информация)
+     *
      * @param int $id
-     * @return mixed
+     * @return Obj|null
+     * @throws \Exception
      */
-    public function findByIdOnlyObj(int $id): mixed
+    public function findByIdOnlyObj(int $id): Obj|null
     {
-        return $this->objRepository->findByIdOnlyObj($id);
+        try {
+            return $this->objRepository->findByIdOnlyObj($id);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjService@findByIdOnlyObj: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql()]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in ObjService@findByIdOnlyObj: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id]
+            );
+            throw $e;
+        }
     }
+
+    /**
+     * Получить данные по объектам и субъектам
+     *
+     * @param int $objId
+     * @return array|null
+     */
+    public function findMySubjs(int $objId): ?array
+    {
+        try {
+            $result = $this->objRepository->findMySubjs($objId);
+
+            if ($result === null) {
+                Log::channel('error_file')->error(
+                    'Object not found in ObjService@findMySubjs',
+                    [
+                        'obj_id' => $objId
+                    ]
+                );
+            }
+
+            return $result;
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjService@findMySubjs: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'obj_id' => $objId,
+                    'sql' => $e->getSql()
+                ]
+            );
+            return null;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in ObjService@findMySubjs: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'obj_id' => $objId
+                ]
+            );
+            return null;
+        }
+    }
+
 }
 
