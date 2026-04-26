@@ -3,7 +3,6 @@
 namespace App\Http\Requests\Subj;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class CreateSubjRequest extends FormRequest
 {

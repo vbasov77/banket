@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Obj;
 use App\Models\DetailsObj;
-use Faker\Generator as Faker;
 
 class DetailsObjSeeder extends Seeder
 {

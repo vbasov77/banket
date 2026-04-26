@@ -6,7 +6,6 @@ use App\Models\City;
 use App\Models\District;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Log;
 use Tests\CreatesApplication;
 use Tests\TestCase;
 

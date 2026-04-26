@@ -5,7 +5,6 @@ namespace App\Services;
 use Illuminate\Support\Facades\DB;
 use App\Models\City;
 use App\Models\District;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 
 class CityDistrictService

@@ -4,20 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Services\BookingService;
-use App\Services\FileService;
-use App\Services\ImageService;
 use App\Services\ImgObjService;
 use App\Services\ImgSubjService;
-use App\Services\NewsService;
-use App\Services\SettingsService;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\View\View;
 
 
 class TestController extends Controller

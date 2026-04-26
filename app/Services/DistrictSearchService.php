@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Log;
 
 class DistrictSearchService extends Service
 {
+    /**
+     * @param array $params
+     * @return array
+     */
     public function search(array $params): array
     {
         $cityId = $params['city_data_city_id'] ?? null;

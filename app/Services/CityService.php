@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Exceptions\CitySearchException;
 use App\Models\City;
 use App\Models\UserCity;
 use Doctrine\DBAL\Query\QueryException;
@@ -11,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\ValidationException;
 
 class CityService
 {
@@ -169,7 +169,7 @@ class CityService
                     'http_status' => 200
                 ];
 
-            } catch (\Illuminate\Database\QueryException $e) {
+            } catch (QueryException $e) {
                 Log::channel('error_file')->error('Database error while saving user city preference', [
                     'error' => $e->getMessage(),
                     'code' => $e->getCode(),
@@ -209,7 +209,7 @@ class CityService
                 ];
             }
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::channel('error_file')->warning('Validation error in CityService::setCity', [
                 'errors' => $e->errors(),
                 'input' => $request->all(),
@@ -333,17 +333,6 @@ class CityService
             return [];
         }
     }
-
-// Реализация метода для извлечения имени таблицы из SQL
-    private function extractTableNameFromQuery(?string $sql): ?string
-    {
-        if (!$sql) {
-            return null;
-        }
-        preg_match('/from\s+`?(\w+)`?/i', $sql, $matches);
-        return $matches[1] ?? null;
-    }
-
 
     /**
      * @param int $cityId

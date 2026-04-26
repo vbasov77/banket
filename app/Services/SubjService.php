@@ -3,18 +3,11 @@
 
 namespace App\Services;
 
-use App\Models\GroupAddressObj;
-use App\Models\ImgSubj;
-use App\Models\Obj;
 use App\Models\Subj;
-use App\Repositories\ObjRepository;
 use App\Repositories\SubjRepository;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Intervention\Image\Facades\Image;
 
 
 class SubjService extends Service
@@ -31,6 +24,7 @@ class SubjService extends Service
      * @param int $objId
      * @param array $data
      * @return array
+     * @throws \Exception
      */
     public function createSubj(string $nameSubj, int $objId, array $data): array
     {
@@ -221,84 +215,6 @@ class SubjService extends Service
         }
     }
 
-    private function formatResults($groups): array
-    {
-        $result = [];
-        $subjIds = $groups->pluck('obj_id')->toArray();
-
-        if (empty($subjIds)) {
-            return [];
-        }
-
-        // Массовая загрузка связанных данных (избегаем N+1 запросов)
-        $subjsWithRelations = Obj::with(['subjects', 'details', 'groupAddressObjs'])
-            ->whereIn('id', $subjIds)
-            ->get()
-            ->keyBy('id');
-        // Загрузка фото (первое по позиции для каждого subj_id)
-        $photos = ImgSubj::whereIn('subj_id', $subjIds)
-            ->orderBy('position', 'asc')
-            ->get()
-            ->groupBy('subj_id');
-
-        foreach ($groups as $group) {
-            $objId = $group->obj_id;
-            $obj = $subjsWithRelations->get($objId);
-
-            if (!$obj) {
-                continue;
-            }
-
-            $result[] = [
-                'obj_id' => $objId,
-                'name_obj' => $obj->name_obj,
-                'address' => [
-                    'city_id' => $group->city_id,
-                    'district_id' => $group->district_id,
-                    'district_name' => $group->district->name,
-                    'address' => $group->address,
-                    'latitude' => $group->latitude,
-                    'longitude' => $group->longitude,
-                    'distance_km' => round($group->distance_km, 2),
-                ],
-                'subj' => [
-                    'id' => $obj->subjects[0]->id,
-                    'name' => $obj->subjects[0]->name_subj,
-                    'minimum_cost' => $obj->subjects[0]->minimum_cost,
-                    'per_person' => $obj->subjects[0]->per_person,
-                    'capacity_to' => $obj->subjects[0]->capacity_to,
-                    'furshet' => $obj->subjects[0]->furshet,
-                    'site_type' => $obj->subjects[0]->site_type,
-                    'features' => $obj->subjects[0]->features,
-                    'text' => $obj->subjects[0]->text_subj,
-                    'published' => $obj->subjects[0]->published,
-                ],
-                'details' => $obj->details ? [
-                    'kitchen' => $obj->details[0]->kitchen,
-                    'text' => $obj->details[0]->text_obj,
-                ] : null,
-                'photo' => $this->getFirstPhoto($photos, $objId),
-            ];
-        }
-
-        return $result;
-    }
-
-    private function getFirstPhoto($photosGrouped, $subjId)
-    {
-        if (!$photosGrouped->has($subjId)) {
-            return null;
-        }
-
-        $firstPhoto = $photosGrouped->get($subjId)->first();
-        return $firstPhoto ? $firstPhoto->path : null;
-    }
-
-
-    public function findByIdForEdit(int $id)
-    {
-        return $this->subjRepository->findByIdForEdit($id);
-    }
 
     /**
      * @param int $id
@@ -328,12 +244,6 @@ class SubjService extends Service
             ]);
             throw $e; // Перебрасываем исключение дальше
         }
-    }
-
-
-    public function findMySubjs(int $objId)
-    {
-        return $this->subjRepository->findMySubjs($objId);
     }
 
 }

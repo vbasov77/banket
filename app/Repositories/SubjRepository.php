@@ -15,15 +15,6 @@ use Illuminate\Support\Facades\Log;
 
 class SubjRepository extends Repository
 {
-    private $vkService;
-
-    /**
-     * @param $vkService
-     */
-    public function __construct()
-    {
-        $this->vkService = new VkService();
-    }
 
     /**
      * @return int|null
@@ -353,37 +344,6 @@ LIMIT 1;";
         return DB::table('img_subj')->where('subj_id', $id)->exists();
     }
 
-    public function findMySubjs(int $objId)
-    {
-        // 1. Получаем obj и subjs БЕЗ фото
-        $obj = Obj::with([
-            'detailsObj:*',
-            'subjects' => function ($query) {
-                $query->select([
-                    'id', 'obj_id', 'name_subj',
-                    'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'text_subj', 'published', 'features'
-                ]);
-            },
-            'user:*',
-            'imgObj:*'
-        ])
-            ->where('id', $objId)
-            ->select(['id', 'user_id', 'name_obj', 'phone_obj'])
-            ->first();
-
-        if (!$obj) {
-            return null;
-        }
-
-        // 2. Вручную загружаем primaryImg для КАЖДОГО subj
-        foreach ($obj->subjects as $subj) {
-            $subj->primaryImg = $subj->primaryImg() // используем отношение
-            ->select(['subj_id', 'path', 'position']) // явно указываем поля
-            ->first(); // получаем одно фото
-        }
-
-        return $obj->toArray();
-    }
 
 
 }

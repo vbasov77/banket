@@ -6,10 +6,12 @@ namespace App\Repositories;
 
 use App\Models\Obj;
 use App\Services\UserCityService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\QueryException;
 
 class ObjRepository extends Repository
 {
@@ -64,14 +66,41 @@ class ObjRepository extends Repository
         return Obj::where('user_id', $userId)->get();
     }
 
+
     /**
-     * @param array $array
+     * Обновить запись объекта в базе данных
+     *
+     * @param array $data
      * @param int $id
      * @return void
+     * @throws \Exception
      */
-    public function update(array $array, int $id): void
+    public function update(array $data, int $id): void
     {
-        DB::table('objs')->where('id', $id)->update($array);
+        try {
+            // Проверяем, существует ли объект перед обновлением
+            $exists = DB::table('objs')->where('id', $id)->exists();
+            if (!$exists) {
+                Log::channel('error_file')->error(
+                    'Attempt to update non-existent object: ' . $id
+                );
+                throw new \Exception('Object not found for update');
+            }
+
+            DB::table('objs')->where('id', $id)->update($data);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjRepository@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in ObjRepository@update: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'data' => $data]
+            );
+            throw $e;
+        }
     }
 
     public function findIdObjByUserId()
@@ -93,7 +122,7 @@ class ObjRepository extends Repository
             }
 
             return Obj::where('user_id', $userId)->first();
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             Log::channel('error_file')->error('Database error in ObjRepository@findObjByUserId', [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode(),
@@ -144,9 +173,9 @@ class ObjRepository extends Repository
 
     /**
      * @param Request $request
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator|\Illuminate\Pagination\LengthAwarePaginator
+     * @return LengthAwarePaginator
      */
-    public function findObjsWithDetails(Request $request)
+    public function findObjsWithDetails(Request $request): LengthAwarePaginator
     {
         $userCityService = new UserCityService(new UserCityRepository());
         $cityId = session('city_id');
@@ -262,12 +291,104 @@ class ObjRepository extends Repository
 
 
     /**
+     * Найти объект по ID из базы данных
+     *
      * @param int $id
-     * @return mixed
+     * @return \App\Models\Obj|null
      */
-    public function findByIdOnlyObj(int $id): mixed
+    public function findByIdOnlyObj(int $id)
     {
-        return Obj::where('id', $id)->first();
+        try {
+            return Obj::where('id', $id)->first();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in ObjRepository@findByIdOnlyObj: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql()]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in ObjRepository@findByIdOnlyObj: ' . $e->getMessage(),
+                ['trace' => $e->getTrace(), 'obj_id' => $id]
+            );
+            throw $e;
+        }
     }
+
+    /**
+     * @param int $objId
+     * @return array|null
+     * @throws \Exception
+     */
+    public function findMySubjs(int $objId): ?array
+    {
+        try {
+            // 1. Получаем obj и subjs БЕЗ фото
+            $obj = Obj::with([
+                'detailsObj:*',
+                'subjects' => function ($query) {
+                    $query->select([
+                        'id', 'obj_id', 'name_subj',
+                        'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'text_subj', 'published', 'features'
+                    ]);
+                },
+                'user:*',
+                'imgObj:*'
+            ])
+                ->where('id', $objId)
+                ->select(['id', 'user_id', 'name_obj', 'phone_obj'])
+                ->first();
+
+            if (!$obj) {
+                Log::channel('error_file')->error(
+                    'Object not found in repository@findMySubjs',
+                    [
+                        'obj_id' => $objId
+                    ]
+                );
+                return null;
+            }
+
+            // 2. Вручную загружаем primaryImg для КАЖДОГО subj
+            foreach ($obj->subjects as $subj) {
+                try {
+                    $subj->primaryImg = $subj->primaryImg()
+                        ->select(['subj_id', 'path', 'position'])
+                        ->first();
+                } catch (\Exception $imgError) {
+                    Log::channel('error_file')->error(
+                        'Error loading primary image for subject: ' . $subj->id,
+                        [
+                            'trace' => $imgError->getTrace(),
+                            'subj_id' => $subj->id
+                        ]
+                    );
+                    // Продолжаем обработку остальных субъектов
+                }
+            }
+
+            return $obj->toArray();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in repository@findMySubjs: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'obj_id' => $objId,
+                    'sql' => $e->getSql()
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in repository@findMySubjs: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'obj_id' => $objId
+                ]
+            );
+            throw $e;
+        }
+    }
+
 
 }

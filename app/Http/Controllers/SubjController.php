@@ -97,7 +97,7 @@ class SubjController extends Controller
             return redirect()->route('my.obj')->with([
                 'error' => 'Не удалось создать субъект'
             ]);
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             Log::channel('error_file')->error(
                 'Ошибка валидации в SubjController@store: ' . $e->getMessage(),
                 [
@@ -208,25 +208,6 @@ class SubjController extends Controller
         }
     }
 
-    /**
-     * @throws AuthenticationException
-     */
-    public function myObj(Request $request): View
-    {
-
-        $objId = $this->objService->findIdObjByUserId(Auth::user()->id);
-        $data = null;
-        $error = null;
-        if (!empty($request->error)) {
-            $error = $request->error;
-        }
-
-        if ($objId) {
-            $data = $this->subjService->findMySubjs($objId);
-        }
-
-        return \view('objects.subjects.my_subjs', ['data' => $data, 'error' => $error]);
-    }
 
     /**
      * Редактирование субъекта

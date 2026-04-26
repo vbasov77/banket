@@ -3,31 +3,53 @@
 
 namespace App\Services;
 
-use App\Repositories\ObjRepository;
 use App\Repositories\SearchRepository;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Intervention\Image\Facades\Image;
+use Illuminate\Support\Facades\Log;
 
 
 class SearchService extends Service
 {
-    private $searchRepository;
+    private SearchRepository $searchRepository;
 
-    public function __construct()
+    public function __construct(SearchRepository $searchRepository)
     {
-        $this->searchRepository = new SearchRepository();
+        $this->searchRepository = $searchRepository;
     }
 
-    public function search(Request $request)
+    /**
+     * Выполнить поиск с фильтрами
+     *
+     * @param Request $request
+     * @return array
+     * @throws \Exception
+     */
+    public function searchResults(Request $request): array
     {
-        return $this->searchRepository->search($request);
+        try {
+            return $this->searchRepository->searchResults($request);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in SearchService@searchResults: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'filters' => $request->all(),
+                    'sql' => $e->getSql()
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in SearchService@searchResults: ' . $e->getMessage(),
+                [
+                    'trace' => $e->getTrace(),
+                    'filters' => $request->all()
+                ]
+            );
+            throw $e;
+        }
     }
-    public function searchResults(Request $request)
-    {
-        return $this->searchRepository->searchResults($request);
-    }
-
 
 }
 
