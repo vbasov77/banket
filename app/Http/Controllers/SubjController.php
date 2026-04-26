@@ -384,7 +384,6 @@ class SubjController extends Controller
 
 
             $subj = Subj::with('obj')->findOrFail($request->id);
-            Log::channel('info_file')->info($subj);
 
             // Проверка прав: админ ИЛИ владелец связанного Obj
             if (!Gate::allows('can-access', $subj)) {

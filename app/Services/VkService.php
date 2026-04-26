@@ -8,6 +8,7 @@ use App\Repositories\KeyRepository;
 use App\Repositories\RequestRepository;
 use Illuminate\Http\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 
 class VkService extends Service
@@ -29,9 +30,9 @@ class VkService extends Service
     /**
      * @param Request $request
      * @param int $groupId
-     * @return array|null
+     * @return object|null
      */
-    public function createOneImgInVk(Request $request, int $groupId): ?array
+    public function createOneImgInVk(Request $request, int $groupId): ?object
     {
         $accessToken = $this->keyRepository->accessToken();
 
@@ -72,7 +73,7 @@ class VkService extends Service
                         return $save->response[0];
                     }
                 } else {
-                    return ['error' => $json];
+                    return (object)['error' => $json];
                 }
 
             }
@@ -97,7 +98,6 @@ class VkService extends Service
 
         return json_decode($this->requestRepository->post($urlGetWallUploadServer, $data));
     }
-
 
 
 }

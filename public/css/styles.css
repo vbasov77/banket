@@ -197,17 +197,17 @@
 
 .festival {
     background: #ffffff; /* Чистый белый фон */
-    border-radius: 14px;
+    border-radius: 8px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); /* Лёгкая тень */
     padding: 25px 35px;
     margin-bottom: 24px;
     border: 1px solid #eaeaea; /* Светло-серая граница */
-    transition: all 0.3s ease;
+    /*transition: all 0.3s ease;*/
 }
 
 .festival:hover {
     box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12); /* Чуть более тёмная тень при наведении */
-    transform: translateY(-1px);
+    /*transform: translateY(-1px);*/
     border-color: #dcdcdc; /* Темнее при наведении */
 }
 
