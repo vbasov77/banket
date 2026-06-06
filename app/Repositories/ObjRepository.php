@@ -178,7 +178,7 @@ class ObjRepository extends Repository
     public function findObjsWithDetails(Request $request): LengthAwarePaginator
     {
         $userCityService = new UserCityService(new UserCityRepository());
-        $cityId = session('city_id');
+        $cityId = (int) session('city_id');
         if (!$cityId) {
             $userCityService->checkSessionUserCity($request);
             $cityId = session('city_id');

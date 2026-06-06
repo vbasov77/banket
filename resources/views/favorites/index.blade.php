@@ -121,13 +121,6 @@
             overflow: hidden;
         }
 
-        .restaurant-meta {
-            color: #95a5a6;
-            font-size: 12px;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 12px;
-        }
-
         /* Адаптивность */
         @media (max-width: 768px) {
             .restaurants-grid {
@@ -143,7 +136,7 @@
 
     <div class="restaurants-grid">
         @foreach ($favorites as $restaurant)
-            <div class="restaurant-card">
+            <div class="restaurant-card col-sm-12 col-md-6 col-lg-4">
                 <!-- Изображение -->
                 <div class="restaurant-image">
                     @if ($restaurant['primary_img'] && $restaurant['primary_img']['path'])
@@ -216,11 +209,6 @@
                             {!! nl2br(e($restaurant['text_subj'])) !!}
                         </div>
                     @endif
-
-                    <!-- Дополнительная информация -->
-                    <div class="restaurant-meta">
-                        <small>Добавлено: {{ \Carbon\Carbon::parse($restaurant['created_at'])->format('d.m.Y H:i') }}</small>
-                    </div>
                 </div>
             </div>
         @endforeach

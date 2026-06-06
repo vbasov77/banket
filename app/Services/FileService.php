@@ -4,13 +4,10 @@
 namespace App\Services;
 
 
-use Illuminate\Support\Facades\File;
 use Intervention\Image\Image;
 
 class FileService extends Service
 {
-
-
     /**
      * @param object $file
      * @return string

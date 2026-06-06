@@ -290,8 +290,14 @@
                                                 <input id="alcohol_price"
                                                        name="alcohol_price"
                                                        type="number"
-                                                       min="0"
-                                                       max="100000"
+                                                       oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
                                                        step="0.01"
                                                        value="{{ old('alcohol_price') }}"
                                                        data-saved-price="{{ old('alcohol_price') }}"
@@ -377,8 +383,14 @@
                                                 <input id="more_price"
                                                        name="more_price"
                                                        type="number"
-                                                       min="0"
-                                                       max="100000"
+                                                       oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
                                                        step="0.01"
                                                        value="{{ old('more_price') }}"
                                                        data-saved-price="{{ old('more_price') }}"

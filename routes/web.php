@@ -6,6 +6,7 @@ use App\Http\Controllers\CityDistrictController;
 use App\Http\Controllers\DetailsObjController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FrontController;
+use App\Http\Controllers\GroupAddressObjController;
 use App\Http\Controllers\ImgObjController;
 use App\Http\Controllers\ImgSubjController;
 use App\Http\Controllers\MapPointController;
@@ -14,10 +15,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubjController;
 use App\Http\Controllers\TestController;
-use App\Http\Controllers\GroupAddressObjController;
+use App\Http\Controllers\UserVkController;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ErrorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -122,23 +123,17 @@ Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->
 Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth.api');
 Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
 
-Route::get('/test-log', function () {
-    // Тестовая запись на русском
-    Log::info('Тестовая запись — всё должно быть читаемо!');
 
-    // Проблемная строка с не‑UTF‑8 символами
-    $problematic = chr(0xFF) . 'Иероглифы: ㉛㈰';
-    Log::error('Проблемная строка: ' . $problematic);
-
-    return 'Проверьте лог — ошибок быть не должно!';
-});
-
-Route::get('/test-error-basic', function () {
-    Log::channel('error_file')->error('ТЕСТ: Базовая ошибка для laravel-errors.log');
-    return 'Ошибка записана в laravel-errors.log (проверьте файл)';
-});
+Route::get('/auth/vk', [UserVkController::class, 'redirectToVk'])->name('vk.auth');
+//Route::get('/auth/vk/callback', [UserVkController::class, 'handleVkCallback'])->name('vk.callback');
+Route::post('/auth/vk/save', [UserVkController::class, 'saveVkUserData']);
 
 
+Route::any('/vk-auth', function () {
+    return view('auth.vk-auth');
+})->name('vk.auth.page');
+
+Route::get('/unauthorized', [ErrorController::class, 'unauthorized'])->name('unauthorized');
 
 Route::get('/clear', function () {
     Artisan::call('cache:clear');
@@ -146,12 +141,4 @@ Route::get('/clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     return "Кэш очищен.";
-});
-
-Route::get('/create-storage-link', function () {
-    if (file_exists(public_path('storage'))) {
-        unlink(public_path('storage'));
-    }
-    symlink(storage_path('app/public'), public_path('storage'));
-    return 'Симлинк создан!';
 });

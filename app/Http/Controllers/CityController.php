@@ -55,7 +55,6 @@ class CityController extends Controller
     {
         try {
             $result = $this->districtService->getDistrictsByCity();
-
             return response()->json($result, $result['code'] ?? 200);
 
         } catch (QueryException $e) {

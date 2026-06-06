@@ -72,7 +72,5 @@ class Kernel extends HttpKernel
         'auth.api' => \App\Http\Middleware\AuthenticateAsApi::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
         'author_or_admin' => \App\Http\Middleware\AuthorOrAdminMiddleware::class,
-
-
     ];
 }

@@ -34,7 +34,7 @@ class CreateSubjRequest extends FormRequest
             'name_subj' => [
                 'required',
                 'string',
-                'max:20',
+                'max:30',
                 'regex:/^[\pL\s\d\pP]+$/u' // только буквы, цифры, пробелы и знаки препинания
             ],
             'minimum_cost' => [
