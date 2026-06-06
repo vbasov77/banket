@@ -99,19 +99,16 @@ class MapPointController extends Controller
         }
     }
 
-    /**
-     * @param Request $request
-     * @return Application|Factory|JsonResponse|RedirectResponse
-     */
-    public function create(Request $request): Application|Factory|JsonResponse|RedirectResponse
+    public function create(Request $request)
     {
+        $subjId = (int)$request->id;
+
         try {
             $user = auth()->user();
             if (!$user) {
                 return redirect()->route('login')->with('error', 'Для доступа необходимо авторизоваться');
             }
 
-            $subjId = (int)$request->id;
 
             // Загружаем Subj с связанным Obj для проверки прав
             $subj = Subj::with('obj')->find($subjId);
@@ -130,8 +127,11 @@ class MapPointController extends Controller
                 ]);
                 return redirect()->back()->with('error', 'У вас нет прав для создания карты для этого объекта');
             }
-
-            return view('map.create', ['subj' => $subj]);
+            $error = null;
+            if (!empty($request->error)) {
+                $error = $request->error;
+            }
+            return view('map.create', ['subj' => $subj, 'error' => $error]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Error in create method', [
                 'exception' => $e->getMessage(),
@@ -177,7 +177,11 @@ class MapPointController extends Controller
             if ($map) {
                 return view('map.edit', ['map' => $map]);
             } else {
-                return redirect()->route('map.create', ['id' => $subjId]);
+                $error = null;
+                if (!empty($request->error)) {
+                    $error = $request->error;
+                }
+                return redirect()->route('map.create', ['id' => $subjId, 'error' => $error]);
             }
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Error in edit method', [

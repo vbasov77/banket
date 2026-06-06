@@ -6,6 +6,11 @@
     @endpush
     <div class="container mt-4">
         <div class="row">
+            @if (!empty($error))
+                <div class="alert alert-danger">
+                    {{ $error }}
+                </div>
+            @endif
             <div class="col-md-8">
                 <div id="map" style="height: 500px; width: 100%; border: 1px solid #ddd;"></div>
             </div>
@@ -16,7 +21,8 @@
                     <div class="mb-2">
                         <div class="form-group">
                             <label for="city">Город:</label>
-                            <input type="text" data-city-id="" id="city" name="city" autocomplete="false" class="form-control"
+                            <input type="text" data-city-id="" id="city" name="city" autocomplete="false"
+                                   class="form-control"
                                    placeholder="Начните вводить город">
                             <div id="city-suggestions" class="suggestions-list"></div>
                         </div>

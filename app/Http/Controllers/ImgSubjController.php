@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 
 use App\Exceptions\VkApiException;
+use App\Models\AddressSubj;
+use App\Models\AlbumsVk;
 use App\Services\ImgSubjService;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -29,16 +27,16 @@ class ImgSubjController extends Controller
 
     }
 
-    /**
-     * Метод для редактирования(добавления\удаления фото альбома)
-     * @param Request $request
-     * @return Application|Factory|View|Response
-     */
-    public function edit(Request $request): Application|Factory|View|Response
-    {
-        try {
-            $subj = $request->id;
 
+    public function edit(Request $request)
+    {
+        $subj = $request->id;
+        $address = AddressSubj::where('subj_id', $subj)->exists();
+        if (!$address) {
+            return redirect()->route('map.edit', ['id' => $subj, 'error' => 'Сначала добавьте адрес']);
+        }
+
+        try {
             if (!$subj) {
                 Log::channel('error_file')->error(
                     'Отсутствует ID субъекта в Controller@edit',
@@ -151,6 +149,9 @@ class ImgSubjController extends Controller
      */
     public function imgSubjStore(Request $request): JsonResponse
     {
+        $id = $request->id;
+        $address = AddressSubj::where('subj_id', $id)->first();
+
         try {
             if (!$request->hasFile('img')) {
                 return response()->json([
@@ -160,7 +161,8 @@ class ImgSubjController extends Controller
                 ], 400);
             }
 
-            $data = $this->imgSubjService->ImgSubjStore($request, $request->id);
+            $album = AlbumsVk::where('city_id', $address->city_id)->first();
+            $data = $this->imgSubjService->ImgSubjStore($request, $request->id, $album->group_id, $album->album_id);
             $res = [
                 'path' => $data[0],
                 'id' => $data[1],

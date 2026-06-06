@@ -27,6 +27,39 @@ class Subj extends Model
         'features' => 'array',
     ];
 
+
+    /**
+     * Проверяет, является ли пользователь автором (владельцем) через связанного Obj
+     *
+     * @param \App\Models\User|null $user
+     * @return bool
+     */
+    public function isAuthor($user = null): bool
+    {
+        // Если пользователь не передан, берём текущего авторизованного
+        $user = $user ?? auth()->user();
+
+        // Если пользователя нет (не авторизован) — доступ запрещён
+        if (!$user) {
+            return false;
+        }
+
+        // Админ имеет доступ всегда
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Загружаем связь obj, если она не загружена
+        if (!$this->relationLoaded('obj')) {
+            $this->load('obj');
+        }
+
+        // Проверяем, что obj существует и его user_id совпадает с текущим пользователем
+        $obj = $this->obj;
+
+        return $obj && (int)$obj->user_id == (int)$user->id;
+    }
+
     public function firstPhoto()
     {
         return $this->hasOne(ImgSubj::class, 'subj_id', 'id')

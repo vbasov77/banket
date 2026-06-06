@@ -122,7 +122,6 @@
                                                 </div>
                                             </div>
                                         @endforeach
-
                                     @endif
                                     <div class="bg-light p-4 rounded-10 shadow-sm">
                                         <p class="lead text-muted" @style(['font-size: 18px'])>

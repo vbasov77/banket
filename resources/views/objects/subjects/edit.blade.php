@@ -10,7 +10,7 @@
                 <div class="col-lg-10">
                     <form action="{{route('update.subj')}}" method="post">
                         @csrf
-                        <h3>Новый объект</h3>
+                        <h3 style="margin-top: 50px">Редактировать субъект</h3>
                         @if ($errors->any())
                             <div class="alert alert-danger">
                                 <ul>
@@ -22,7 +22,7 @@
                         @endif
                         <input type="hidden" name="subj_id" value="{{$subj->id}}">
                         <label for="name_subj"><b>Название</b></label><br>
-                        <input type="text" maxlength="20" class="form-control @error('name_subj') is-invalid @enderror"
+                        <input type="text" maxlength="30" class="form-control @error('name_subj') is-invalid @enderror"
                                name="name_subj"
                                value="{{$subj->name_subj ?? old('name_subj')}}"><br>
                         <br>
@@ -135,9 +135,9 @@
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"
-                                                   value="Шатер">
+                                                   value="Шатёр">
                                             <span class="checkmark"></span>
-                                            Шатер
+                                            Шатёр
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"

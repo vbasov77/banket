@@ -16,17 +16,13 @@ use PharIo\Version\Exception;
 
 class ImgObjService extends Service
 {
-
-    private KeyRepository $keyRepository;
     private ImgObjRepository $imgObjRepository;
 
     private VkService $vkService;
 
     public function __construct(ImgObjRepository $imgObjRepository,
-                                VkService $vkService,
-                                KeyRepository $keyRepository)
+                                VkService        $vkService)
     {
-        $this->keyRepository = $keyRepository;
         $this->vkService = $vkService;
         $this->imgObjRepository = $imgObjRepository;
     }
@@ -36,15 +32,54 @@ class ImgObjService extends Service
     {
         try {
             if (!empty($request->file('img'))) {
-                $keyGo = $this->keyRepository->idGroupVkMaterial();
+                $groupId = 239358651;
+                $albumId = 311175944;
 
                 try {
-                    $photo = $this->vkService->createOneImgInVk($request, $keyGo);
+                    $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
                 } catch (\Exception $e) {
+                    // Передаём массив в $vkErrorDetails, а не объект Exception
                     throw new VkApiException(
                         'Ошибка при загрузке изображения в VK: ' . $e->getMessage(),
                         0,
-                        $e
+                        [
+                            'original_exception_class' => get_class($e),
+                            'original_message' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString(),
+                            'input_data' => [
+                                'obj_id' => $objId,
+                                'group_id' => $groupId,
+                                'album_id' => $albumId
+                            ]
+                        ],
+                        $e // передаём как $previous для цепочки исключений
+                    );
+                }
+
+                // Проверка на null после вызова VK сервиса
+                if ($photo === null) {
+                    throw new VkApiException(
+                        'Не удалось загрузить изображение в VK — получен пустой ответ',
+                        0,
+                        [
+                            'input_data' => [
+                                'obj_id' => $objId,
+                                'group_id' => $groupId,
+                                'album_id' => $albumId
+                            ]
+                        ]
+                    );
+                }
+
+                // Дополнительная проверка структуры ответа VK
+                if (!isset($photo->orig_photo->url) || !isset($photo->id)) {
+                    throw new VkApiException(
+                        'Некорректный ответ от VK API — отсутствуют обязательные поля',
+                        0,
+                        [
+                            'received_photo_data' => $photo,
+                            'expected_fields' => ['orig_photo->url', 'id']
+                        ]
                     );
                 }
 
@@ -67,7 +102,8 @@ class ImgObjService extends Service
                 [
                     'obj_id' => $objId,
                     'exception_class' => get_class($e),
-                    'vk_error_code' => $e->getErrorCode()
+                    'vk_error_code' => $e->getErrorCode(),
+                    'vk_error_details' => $e->getErrorDetails()
                 ]
             );
             throw $e;
@@ -97,9 +133,10 @@ class ImgObjService extends Service
     public function imgObjUpdate(Request $request, int $id)
     {
         if (!empty($request->file('img'))) {
-            $keyGo = $this->keyRepository->idGroupVkMaterial();
-            $photo = $this->vkService->createOneImgInVk($request, $keyGo);
-
+            $groupId = 239358651;
+            $albumId = 311175944;
+            $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
+            Log::channel('info_file')->info('photo', [$photo]);
             $data = [
                 'path' => $photo->orig_photo->url,
                 'photo_id' => $photo->id,

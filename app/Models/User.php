@@ -62,6 +62,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return (bool) $this->is_admin;
     }
+
     /**
      * @return mixed
      */

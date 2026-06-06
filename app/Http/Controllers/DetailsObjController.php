@@ -53,7 +53,7 @@ class DetailsObjController extends Controller
      * @param CreateDetailsObjRequest $request
      * @return RedirectResponse
      */
-    public function store(CreateDetailsObjRequest $request)
+    public function store(CreateDetailsObjRequest $request): RedirectResponse
     {
         try {
             $data = $request->validated();

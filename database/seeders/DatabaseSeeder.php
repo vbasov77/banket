@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ImgSubjSeeder::class);
         $this->call(CitySeeder::class);
         $this->call(DistrictSeeder::class);
+        $this->call(AlbumsVkSeeder::class);
 
     }
 }

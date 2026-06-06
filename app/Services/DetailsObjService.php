@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Services;
 
 use App\Repositories\DetailsObjRepository;
@@ -8,7 +7,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
-
 
 class DetailsObjService extends Service
 {
@@ -87,9 +85,10 @@ class DetailsObjService extends Service
      */
     public function getValidate(array $data): array
     {
+
         try {
             // Проверка обязательных полей
-            if (!isset($data['id'])) {
+            if (!isset($data['obj_id'])) {
                 throw new InvalidArgumentException('Отсутствует ID объекта');
             }
 

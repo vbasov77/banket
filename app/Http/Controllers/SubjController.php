@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Subj\CreateSubjRequest;
 use App\Http\Requests\Subj\EditSubjRequest;
+use App\Models\Obj;
 use App\Models\Subj;
 use App\Services\ObjService;
 use App\Services\SubjService;
@@ -23,13 +24,11 @@ use Illuminate\View\View;
 class SubjController extends Controller
 {
     private SubjService $subjService;
-    private ObjService $objService;
 
-    public function __construct(ObjService  $objService,
-                                SubjService $subjService)
+
+    public function __construct(SubjService $subjService)
     {
         $this->subjService = $subjService;
-        $this->objService = $objService;
     }
 
     /**
@@ -81,6 +80,18 @@ class SubjController extends Controller
         try {
             $nameSubj = $request->input('name_subj');
             $objId = $request->input('obj_id');
+            // Получаем объект
+            $obj = Obj::find($objId);
+
+            if (!$obj) {
+                throw new \RuntimeException('Объект не найден');
+            }
+
+            // Проверка прав
+            if (!$obj->isAuthor()) {
+                return redirect()->route('unauthorized')->with([
+                    'error' => 'У вас нет прав для редактирования этого субъекта'
+                ]);            }
 
             $result = $this->subjService->createSubj($nameSubj, $objId, $request->validated());
 
@@ -216,12 +227,11 @@ class SubjController extends Controller
      */
     public function edit(Request $request): Application|Factory|View|RedirectResponse
     {
+
         try {
             $id = $request->id;
-
-            // Получаем субъект для проверки прав
-            $subj = Subj::find($id);
-
+            // Получаем субъект с загруженной связью obj
+            $subj = Subj::with('obj')->find($id);
 
             if (!$subj) {
                 Log::channel('error_file')->warning('Attempt to edit non-existent subj', [
@@ -232,20 +242,20 @@ class SubjController extends Controller
                 return back()->withErrors(['error' => 'Указанный субъект не найден']);
             }
 
-            // Проверка прав доступа через существующий Gate 'can-access'
-            if (!Gate::allows('can-access', $subj)) {
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [
-                    'subj_id' => $id,
+                    'subj_id' => $subj->id,
                     'user_id' => auth()->id(),
-                    'model_user_id' => $subj->user_id ?? 'null',
+                    'model_user_id' => 'null', // Всегда null для Subj
                     'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
 
-                return back()->withErrors(['error' => 'У вас нет прав для редактирования этого субъекта']);
+                return redirect()->route('unauthorized')->with([
+                    'error' => 'У вас нет прав для редактирования этого субъекта'
+                ]);
             }
 
-            // Если права есть — загружаем данные для формы редактирования
-//            $subjData = $this->subjService->findByIdForEdit($id);
             $images = $this->subjService->existsImg($id);
 
             return view('objects.subjects.edit', [
@@ -274,7 +284,7 @@ class SubjController extends Controller
             $subjId = (int)$request->input('subj_id');
 
             // Получаем субъект для проверки прав
-            $subj = Subj::find($subjId);
+            $subj = Subj::with('obj')->find($subjId);
 
             if (!$subj) {
                 Log::channel('error_file')->warning('Attempt to update non-existent subj', [
@@ -286,18 +296,18 @@ class SubjController extends Controller
                 return back()->withErrors(['error' => 'Указанный субъект не найден'])->withInput();
             }
 
-            // Проверка прав доступа через существующий Gate 'can-access'
-            if (!Gate::allows('can-access', $subj)) {
-                Log::channel('error_file')->warning('Unauthorized subj update attempt', [
-                    'subj_id' => $subjId,
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subj->id,
                     'user_id' => auth()->id(),
-                    'attempted_data' => $request->validated(),
-                    'model_user_id' => $subj->user_id ?? 'null',
+                    'model_user_id' => 'null', // Всегда null для Subj
                     'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
 
-                return back()->withErrors(['error' => 'У вас нет прав для редактирования этого субъекта'])->withInput();
-            }
+                return redirect()->route('unauthorized')->with([
+                    'error' => 'У вас нет прав для редактирования этого субъекта'
+                ]);            }
 
             // Если права есть — выполняем обновление
             $this->subjService->update($request->validated(), $subjId);
@@ -331,12 +341,15 @@ class SubjController extends Controller
         try {
             $subj = Subj::with('obj')->findOrFail($request->id);
 
-            if (!Gate::allows('can-access', $subj)) {
-                Log::channel('error_file')->error('Unauthorized takeOff attempt for Subj', [
-                    'user_id' => auth()->id(),
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
                     'subj_id' => $subj->id,
-                    'obj_owner_id' => $subj->obj?->user_id
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
+
                 return response()->json([
                     'answer' => 'error',
                     'message' => 'У вас нет прав для выполнения этого действия'
@@ -382,16 +395,17 @@ class SubjController extends Controller
                 ], 401);
             }
 
-
             $subj = Subj::with('obj')->findOrFail($request->id);
 
-            // Проверка прав: админ ИЛИ владелец связанного Obj
-            if (!Gate::allows('can-access', $subj)) {
-                Log::channel('error_file')->error('Unauthorized publish attempt', [
-                    'user_id' => $user->id,
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
                     'subj_id' => $subj->id,
-                    'obj_owner_id' => $subj->obj?->user_id
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
+
                 return response()->json([
                     'answer' => 'error',
                     'message' => 'У вас нет прав для выполнения этого действия'

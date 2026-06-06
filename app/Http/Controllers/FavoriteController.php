@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class FavoriteController extends Controller
 {
@@ -142,9 +143,9 @@ class FavoriteController extends Controller
     }
 
     /**
-     * @return JsonResponse
+     * @return JsonResponse|View
      */
-    public function index(): JsonResponse
+    public function index(): JsonResponse|View
     {
         try {
             $user = Auth::user();

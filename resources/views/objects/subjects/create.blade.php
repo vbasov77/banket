@@ -44,6 +44,14 @@
                                     <div>
                                         <label for="minimum_cost"><b>Минимальная сумма:</b></label>
                                         <input name="minimum_cost" type="number"
+                                               oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
                                                value="{{old('minimum_cost') }}"
                                                class="form-control"
                                                placeholder="Минимальная сумма" autocomplete="off" required>
@@ -54,6 +62,14 @@
                                     <div>
                                         <label for="per_person"><b>Цена на человека:</b></label>
                                         <input name="per_person" type="number"
+                                               oninput="
+         if (this.value.length > 6) {
+           this.value = this.value.slice(0, 6);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
                                                value="{{old('per_person') }}"
                                                class="form-control"
                                                placeholder="Цена на человека" autocomplete="off" required>
@@ -72,7 +88,14 @@
                                         <input name="capacity_to" type="number"
                                                value="{{old('capacity_to') }}"
                                                class="form-control"
-                                               onkeypress="return (event.charCode >= 48 && event.charCode <= 57 && /^\d{0,3}$/.test(this.value));"
+                                               oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
                                                placeholder="Вместимость до" autocomplete="off" required>
                                     </div>
                                 </td>
@@ -82,8 +105,14 @@
                                         <input name="furshet" type="number"
                                                value="{{old('furshet') }}"
                                                class="form-control"
-                                               onkeypress="return (event.charCode >= 48 && event.charCode <= 57 && /^\d{0,3}$/.test(this.value));"
-                                               placeholder="Вместимость на фуршет до" autocomplete="off" required>
+                                               oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"                                               placeholder="Вместимость на фуршет до" autocomplete="off" required>
                                         <br>
                                     </div>
                                 </td>

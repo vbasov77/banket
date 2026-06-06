@@ -39,17 +39,15 @@ class ImgSubjService extends Service
     /**
      * @throws VkApiException
      */
-    public function ImgSubjStore(Request $request, int $id): array
+    public function ImgSubjStore(Request $request, int $id, int $groupId, int $albumId): array
     {
         try {
             if (!$request->hasFile('img')) {
                 throw new \Exception('Файл изображения отсутствует в запросе');
             }
 
-            $keyGo = $this->keyRepository->idGroupVkBanquet();
-
             try {
-                $photo = $this->vkService->createOneImgInVk($request, $keyGo);
+                $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
                 if (!$photo) {
                     throw new VkApiException('Не удалось загрузить изображение в VK', 0);
                 }
