@@ -31,9 +31,7 @@ use App\Http\Controllers\ErrorController;
 |
 */
 
-
 Route::get('/group_address/{id}', [GroupAddressObjController::class, 'show'])->name('group.address.show');
-
 
 Route::get('/get-cities', [CityController::class, 'getCities'])->name('get-cities');
 Route::post('/set-city', [CityController::class, 'setCity'])->name('set-city');
@@ -47,11 +45,7 @@ Route::get('/map_create/subj{id}', [MapPointController::class, 'create'])->name(
 Route::get('/show_map/id{id}', [MapPointController::class, 'show'])->name('show.map');
 Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destroy'])->name('destroy.map.address')->middleware('auth');
 
-
-//Route::get('/map', [MapPointController::class, 'showMap'])->name('map.index');
-//Route::get('/api/map-data', [MapPointController::class, 'getMapData'])->name('map.data');
 Route::get('/maps', [MapPointController::class, 'index'])->name('map.index');
-//Route::post('/map/points', [MapPointController::class, 'store'])->name('map.points.store');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -110,9 +104,9 @@ Route::delete('/delete_obj_img/id{id}', [ImgObjController::class, 'destroy'])->n
 //Route::post('/img_obj_order_change', [ImgObjController::class, 'imgOrderChange'])->name('img_obj.order_change');
 
 Route::get('/edit_img_subj/id{id}', [ImgSubjController::class, 'edit'])->name("edit.img_subj")->middleware('auth');
-Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name('img_subj.store');
-Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy');
-Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change');
+Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name('img_subj.store')->middleware('auth');
+Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy')->middleware('auth');
+Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
 Route::get('/test', [TestController::class, 'test'])->name("test");
 Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities");
@@ -122,7 +116,6 @@ Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img
 Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth.api');
 Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destroy'])->name('favorites_subj.destroy')->middleware('auth.api');
 Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
-
 
 Route::get('/auth/vk', [UserVkController::class, 'redirectToVk'])->name('vk.auth');
 //Route::get('/auth/vk/callback', [UserVkController::class, 'handleVkCallback'])->name('vk.callback');

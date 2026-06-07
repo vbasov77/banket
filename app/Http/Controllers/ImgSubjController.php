@@ -27,7 +27,6 @@ class ImgSubjController extends Controller
 
     }
 
-
     public function edit(Request $request)
     {
         $subj = $request->id;

@@ -77,7 +77,9 @@ class SubjController extends Controller
      */
     public function store(CreateSubjRequest $request): RedirectResponse
     {
+
         try {
+
             $nameSubj = $request->input('name_subj');
             $objId = $request->input('obj_id');
             // Получаем объект
@@ -102,7 +104,7 @@ class SubjController extends Controller
             }
 
             if ($result['success']) {
-                return redirect()->route('edit.img_subj', ['id' => $result['subj']->id]);
+                return redirect()->route('map.edit', ['id' => $result['subj']->id]);
             }
 
             return redirect()->route('my.obj')->with([

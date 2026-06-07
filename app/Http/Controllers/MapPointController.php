@@ -117,16 +117,21 @@ class MapPointController extends Controller
                 return response()->json(['answer' => 'error', 'message' => 'Объект не найден'], 404);
             }
 
-            // Проверка прав: админ ИЛИ владелец связанного Obj
-            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
-            if (!$isOwner) {
-                Log::channel('error_file')->error('Unauthorized create attempt', [
-                    'user_id' => $user->id,
-                    'subj_id' => $subjId,
-                    'obj_owner_id' => $subj->obj?->user_id
+
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subj->id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
-                return redirect()->back()->with('error', 'У вас нет прав для создания карты для этого объекта');
+
+                return redirect()->route('unauthorized')->with([
+                    'error' => 'У вас нет прав для редактирования этого субъекта'
+                ]);
             }
+
             $error = null;
             if (!empty($request->error)) {
                 $error = $request->error;
@@ -162,14 +167,18 @@ class MapPointController extends Controller
             }
 
             // Проверка прав: админ ИЛИ владелец связанного Obj
-            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
-            if (!$isOwner) {
-                Log::channel('error_file')->error('Unauthorized edit attempt', [
-                    'user_id' => $user->id,
-                    'subj_id' => $subjId,
-                    'obj_owner_id' => $subj->obj?->user_id
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subj->id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
-                return redirect()->back()->with('error', 'У вас нет прав для редактирования этого объекта');
+
+                return redirect()->route('unauthorized')->with([
+                    'error' => 'У вас нет прав для редактирования этого субъекта'
+                ]);
             }
 
             $map = AddressSubj::where('subj_id', $subjId)->first();

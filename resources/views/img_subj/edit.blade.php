@@ -235,26 +235,28 @@
         .zoom.loading {
             display: none;
         }
+
+        @media (max-width: 480px) {
+            .round-popup {
+                opacity: 1;
+                pointer-events: auto;
+            }
+        }
     </style>
 
-{{--    // Рассеивание как в ТГ--}}
-<style>
-    .delete-animation {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .particle {
-        position: absolute;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 9999;
-        background: currentColor;
-        filter: blur(0.5px); /* Лёгкое размытие для мягкости */
-    }
+    {{--    // Рассеивание как в ТГ--}}
+    <style>
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            background: currentColor;
+            filter: blur(0.5px); /* Лёгкое размытие для мягкости */
+        }
 
 
-</style>
+    </style>
 
 </head>
 <link href="{{ asset('css/messages/messages.css') }}" rel="stylesheet">
@@ -333,6 +335,7 @@
 
 <script>
     window.imgSubjStore = '{{route('img_subj.store')}}';
+
     function del() {
         // Удаляем предыдущие обработчики, чтобы избежать дублирования
         let buttons = document.querySelectorAll('.close');
@@ -435,7 +438,6 @@
             alert(result);
         }
     }
-
 
 
     del();
