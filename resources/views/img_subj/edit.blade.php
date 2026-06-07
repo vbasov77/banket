@@ -93,12 +93,12 @@
             position: absolute;
             top: 12px;
             right: 12px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            pointer-events: none;
+            opacity: 1; /* Всегда видим */
+            pointer-events: auto; /* Всегда активен */
             width: 32px;
             height: 32px;
         }
+
 
         .post_list_ul li:hover .round-popup {
             opacity: 1;
@@ -259,7 +259,7 @@
     </style>
 
 </head>
-<link href="{{ asset('css/messages/messages.css') }}" rel="stylesheet">
+{{--<link href="{{ asset('css/messages/messages.css') }}" rel="stylesheet">--}}
 <body>
 <div class="container p-3">
     <div class="row">
@@ -336,27 +336,35 @@
 <script>
     window.imgSubjStore = '{{route('img_subj.store')}}';
 
+    // Назначаем обработчики для тач и клика
     function del() {
-        // Удаляем предыдущие обработчики, чтобы избежать дублирования
-        let buttons = document.querySelectorAll('.close');
-        buttons.forEach(button => {
+        document.querySelectorAll('.close').forEach(button => {
             button.removeEventListener('click', handleDeleteClick);
-        });
+            button.removeEventListener('touchstart', handleDeleteClick);
 
-        // Назначаем обработчики заново
-        buttons.forEach(button => {
             button.addEventListener('click', handleDeleteClick);
+            button.addEventListener('touchstart', handleDeleteClick, { passive: false });
         });
     }
 
+
     function handleDeleteClick(e) {
+        // Предотвращаем дублирование событий
+        e.preventDefault();
+        e.stopPropagation();
+
+        const span = e.target.closest('.close span[data-id]');
+        if (!span) return;
+
         if (confirm('Подтвердите удаление')) {
-            const id = e.target.getAttribute('data-id');
+            const id = span.getAttribute('data-id');
             sendDel('/delete_subj_img/' + id, id);
         } else {
             alert('Удаление отменено');
         }
     }
+
+
 
     function createParticleEffect(element) {
         const rect = element.getBoundingClientRect();
