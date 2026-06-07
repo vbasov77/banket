@@ -93,7 +93,8 @@ class SubjController extends Controller
             if (!$obj->isAuthor()) {
                 return redirect()->route('unauthorized')->with([
                     'error' => 'У вас нет прав для редактирования этого субъекта'
-                ]);            }
+                ]);
+            }
 
             $result = $this->subjService->createSubj($nameSubj, $objId, $request->validated());
 
@@ -309,7 +310,8 @@ class SubjController extends Controller
 
                 return redirect()->route('unauthorized')->with([
                     'error' => 'У вас нет прав для редактирования этого субъекта'
-                ]);            }
+                ]);
+            }
 
             // Если права есть — выполняем обновление
             $this->subjService->update($request->validated(), $subjId);

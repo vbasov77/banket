@@ -10,6 +10,7 @@ use App\Repositories\AddressSubjRepository;
 use App\Repositories\MapRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -26,33 +27,35 @@ class MapService extends Service
     }
 
 
-    public function addSubjectToMap(array $validatedData, int $userId, bool $isAdmin): array
+    /**
+     * @param array $validatedData
+     * @param int $userId
+     * @return array|RedirectResponse
+     */
+    public function addSubjectToMap(array $validatedData, int $userId): array|RedirectResponse
     {
         $subjId = (int)$validatedData['subj_id'];
         $objId = (int)$validatedData['obj_id'];
 
         // Загружаем Subj и Obj для проверки прав
         $subj = Subj::with('obj')->find($subjId);
-        $obj = Obj::find($objId);
 
-        if (!$subj || !$obj) {
-            return ['success' => false, 'message' => 'Объект или субъект не найден', 'code' => 404];
+        if (!$subj) {
+            return ['success' => false, 'message' => 'Субъект не найден', 'code' => 404];
         }
 
-        // Проверка прав: админ ИЛИ владелец связанного Obj
-        $isOwner = $isAdmin || ($subj->obj && $subj->obj->user_id === $userId);
-        if (!$isOwner) {
-            Log::channel('error_file')->error('Unauthorized addSubjectToMap attempt', [
-                'user_id' => $userId,
-                'subj_id' => $subjId,
-                'obj_id' => $objId,
-                'obj_owner_id' => $subj->obj?->user_id
+        // Проверка прав доступа через метод модели isAuthor()
+        if (!$subj->isAuthor()) {
+            Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                'subj_id' => $subj->id,
+                'user_id' => auth()->id(),
+                'model_user_id' => 'null', // Всегда null для Subj
+                'related_obj_user_id' => $subj->obj->user_id ?? 'null'
             ]);
-            return [
-                'success' => false,
-                'message' => 'У вас нет прав для добавления адреса для этого объекта',
-                'code' => 403
-            ];
+
+            return redirect()->route('unauthorized')->with([
+                'error' => 'У вас нет прав для редактирования этого субъекта'
+            ]);
         }
 
         // Проверяем, не существует ли уже адрес для этого субъекта

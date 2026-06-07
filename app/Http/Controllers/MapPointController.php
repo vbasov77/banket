@@ -109,7 +109,6 @@ class MapPointController extends Controller
                 return redirect()->route('login')->with('error', 'Для доступа необходимо авторизоваться');
             }
 
-
             // Загружаем Subj с связанным Obj для проверки прав
             $subj = Subj::with('obj')->find($subjId);
 
@@ -272,7 +271,7 @@ class MapPointController extends Controller
             }
 
             $subjId = (int)$request->id;
-
+            $subj = Subj::with('obj')->find($subjId);
             // Загружаем AddressSubj с связанными моделями для проверки прав
             $addressSubjs = AddressSubj::with(['subj.obj'])->where('subj_id', $subjId)->get();
 
@@ -283,21 +282,18 @@ class MapPointController extends Controller
                 ], 404);
             }
 
-            // Проверяем права для первого найденного адреса (предполагаем, что все связаны с одним subj)
-            $firstAddress = $addressSubjs->first();
-            $subj = $firstAddress->subj;
-
-            // Проверка прав: админ ИЛИ владелец связанного Obj
-            $isOwner = $user->isAdmin() || ($subj->obj && $subj->obj->user_id === $user->id);
-            if (!$isOwner) {
-                Log::channel('error_file')->error('Unauthorized destroy attempt', [
-                    'user_id' => $user->id,
-                    'subj_id' => $subjId,
-                    'obj_owner_id' => $subj->obj?->user_id
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subj->id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
+
                 return response()->json([
-                    'success' => false,
-                    'message' => 'У вас нет прав для удаления этого адреса'
+                    'answer' => 'error',
+                    'message' => 'У вас нет прав для выполнения этого действия'
                 ], 403);
             }
 
