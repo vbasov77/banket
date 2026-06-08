@@ -27,6 +27,7 @@ class ImgSubjSeeder extends Seeder
                 $recordsToInsert[] = [
                     'subj_id' => $subjectId,
                     'photo_id' => rand(1000, 9999), // случайный ID фото
+                    'group_id' => 19283340, // случайный ID фото
                     'path' => $photoUrl,
                     'position' => $i, // позиция фото (1–5)
                     'created_at' => now(),

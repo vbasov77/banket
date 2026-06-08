@@ -65,6 +65,7 @@ class ImgSubjService extends Service
                 'subj_id' => $id,
                 'path' => $photo->orig_photo->url,
                 'photo_id' => $photo->id,
+                'group_id' => $groupId,
                 'position' => $position,
             ];
 
@@ -182,7 +183,15 @@ class ImgSubjService extends Service
             if (!$imgSubj) {
                 return false;
             }
-            return $this->imgSubjRepository->deleteById($id);
+            $accessToken = $this->keyRepository->accessToken();
+
+            $bool = $this->vkService->deleteImg($imgSubj->group_id, $imgSubj->photo_id, $accessToken);
+
+            if(!empty($bool->response) == 1){
+                return $this->imgSubjRepository->deleteById($id);
+            }
+
+            Log::channel('error_file')->error('bool', [$bool]);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgSubjService@deleteImgSubj: ' . $e->getMessage(),
@@ -203,5 +212,10 @@ class ImgSubjService extends Service
             );
             throw $e;
         }
+    }
+
+    public function destroy()
+    {
+
     }
 }

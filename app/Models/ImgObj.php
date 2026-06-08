@@ -14,7 +14,7 @@ class ImgObj extends Model
 
     protected $table = 'img_obj';
 
-    protected $fillable = ['obj_id', 'photo_id', 'path'];
+    protected $fillable = ['obj_id', 'photo_id','group_id', 'path'];
 
     /**
      * @return BelongsTo

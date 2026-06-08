@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\VkApiException;
 use App\Models\ImgObj;
+use App\Repositories\KeyRepository;
 use App\Services\ImgObjService;
+use App\Services\VkService;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Foundation\Application;
@@ -22,10 +24,20 @@ class ImgObjController extends Controller
 {
     private ImgObjService $imgObjService;
 
+    private VkService $vkService;
 
-    public function __construct(ImgObjService $imgObjService)
+    protected KeyRepository $keyRepository;
+
+    /**
+     * @param ImgObjService $imgObjService
+     * @param VkService $vkService
+     * @param KeyRepository $keyRepository
+     */
+    public function __construct(ImgObjService $imgObjService, VkService $vkService, KeyRepository $keyRepository)
     {
         $this->imgObjService = $imgObjService;
+        $this->vkService = $vkService;
+        $this->keyRepository = $keyRepository;
     }
 
 
@@ -246,7 +258,7 @@ class ImgObjController extends Controller
                 ], 422);
             }
 
-            $id = (int)$request->id;
+            $id = (int) $request->id;
             // Обработка изображения через сервис
             $path = $this->imgObjService->imgObjUpdate($request, $id);
 
@@ -305,8 +317,11 @@ class ImgObjController extends Controller
                 ], 404); // Not Found
             }
 
-            // 3. Удаление
-            $imgObj->delete();
+            $accessToken = $this->keyRepository->accessToken();
+            $bool = $this->vkService->deleteImg($imgObj->group_id, $imgObj->photo_id, $accessToken);
+           if(!empty($bool->response) == 1){
+               $imgObj->delete();
+           }
 
             // 4. Успешный ответ с деталями
             return response()->json([

@@ -119,5 +119,16 @@ class VkService extends Service
         return json_decode($this->requestRepository->post($urlGetWallUploadServer, $data));
     }
 
+    public function deleteImg(int $groupId, int $imgId, string $accessToken)
+    {
+        $url = 'https://api.vk.com/method/photos.delete';
+        $data = [
+            'photo_id' => $imgId,
+            'owner_id' => '-' . $groupId,
+            'access_token' => $accessToken,
+            'v' => 5.199
+        ];
+        return json_decode($this->requestRepository->post($url, $data));
+    }
 
 }

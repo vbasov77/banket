@@ -18,6 +18,7 @@ class ImgObj extends Migration
             $table->id();
             $table->unsignedBigInteger('obj_id');
             $table->unsignedBigInteger('photo_id');
+            $table->unsignedBigInteger('group_id');
             $table->foreign('obj_id')
                 ->references('id')->on('objs')
                 ->onDelete('cascade');

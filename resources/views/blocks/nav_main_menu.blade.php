@@ -5,11 +5,6 @@
         box-sizing: border-box;
     }
 
-    body {
-        font-family: Arial, sans-serif;
-        overflow-x: hidden; /* Убираем горизонтальный скролл из‑за навигации */
-    }
-
     /* Стили для выдвигающейся навигации */
     .sidebar {
         position: fixed;
@@ -100,16 +95,14 @@
         top: 15px;
         right: 15px;
         background: none;
-        color: white;
+        color: #ff5722;
         border: none;
-        font-size: 28px;
+        font-size: 50px;
         cursor: pointer;
         line-height: 1;
+
     }
 
-    .close-btn:hover {
-        color: #ff5722;
-    }
 
     /* Адаптивные стили для мобильных устройств */
     @media (max-width: 768px) {

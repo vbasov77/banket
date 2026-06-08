@@ -20,6 +20,7 @@ class ImgSubj extends Migration
                 ->references('id')->on('subjs')
                 ->onDelete('cascade');
             $table->bigInteger('photo_id');
+            $table->bigInteger('group_id');
             $table->string('path');
             $table->integer('position');
             $table->timestamp('created_at')->useCurrent();

@@ -240,7 +240,7 @@ class ImgSubjController extends Controller
      */
     public function destroy(Request $request)
     {
-        $id = $request->id;
+        $id = (int) $request->id;
         try {
             // Валидация ID: должно быть числом ≥ 1
             if (!is_numeric($id) || $id < 1 || intval($id) != $id) {
@@ -254,8 +254,6 @@ class ImgSubjController extends Controller
                 );
                 return response()->json(['error' => 'Invalid ID format'], 400);
             }
-
-            $id = (int)$id; // Приводим к целому числу
 
             $result = $this->imgSubjService->deleteImgSubj($id);
 

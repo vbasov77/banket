@@ -20,11 +20,18 @@ class ImgObjService extends Service
 
     private VkService $vkService;
 
-    public function __construct(ImgObjRepository $imgObjRepository,
-                                VkService        $vkService)
+    protected KeyRepository $keyRepository;
+
+    /**
+     * @param ImgObjRepository $imgObjRepository
+     * @param VkService $vkService
+     * @param KeyRepository $keyRepository
+     */
+    public function __construct(ImgObjRepository $imgObjRepository, VkService $vkService, KeyRepository $keyRepository)
     {
-        $this->vkService = $vkService;
         $this->imgObjRepository = $imgObjRepository;
+        $this->vkService = $vkService;
+        $this->keyRepository = $keyRepository;
     }
 
 
@@ -87,6 +94,7 @@ class ImgObjService extends Service
                     'obj_id' => $objId,
                     'path' => $photo->orig_photo->url,
                     'photo_id' => $photo->id,
+                    'group_id' => $groupId,
                 ];
 
                 // Выносим сохранение в репозиторий
@@ -136,13 +144,18 @@ class ImgObjService extends Service
             $groupId = 239358651;
             $albumId = 311175944;
             $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
-            Log::channel('info_file')->info('photo', [$photo]);
+
             $data = [
+                'group_id' => $groupId,
                 'path' => $photo->orig_photo->url,
                 'photo_id' => $photo->id,
             ];
-
-            ImgObj::where('id', $id)->update($data);
+            $oldPhotoId = ImgObj::where('id', $id)->value('photo_id');
+            $accessToken = $this->keyRepository->accessToken();
+            $bool = $this->vkService->deleteImg($groupId, $oldPhotoId, $accessToken);
+            if (!empty($bool->response) == 1) {
+                ImgObj::where('id', $id)->update($data);
+            }
 
             return $photo->orig_photo->url;
         }
