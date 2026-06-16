@@ -64,21 +64,27 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request)
     {
-        $user = Auth::user();
+        // Валидация: поле password обязательно
+        $validated = $request->validate([
+            'password' => 'required|string',
+        ]);
 
-        if (!$user) {
-            abort(404, 'Пользователь не найден');
-        }
+        $user = auth()->user();
 
-        // Проверка пароля (опционально)
+        // Проверка пароля
         if (!Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['password' => 'Неверный пароль']);
+            return back()
+                ->withErrors(['password' => 'Неверный пароль. Операция удаления отменена.'])
+                ->withInput();
         }
 
-        Auth::logout();
+        // Если пароль верный — удаляем пользователя
         $user->delete();
 
-        return redirect('/')->with('message', 'Ваш профиль успешно удалён');
+        // После удаления выходим из системы
+        Auth::logout();
+
+        return redirect()->route('front', ['message' => 'Ваш профиль успешно удалён.']);
     }
 
     public function deleteProfile()
