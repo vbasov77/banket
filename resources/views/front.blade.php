@@ -33,6 +33,11 @@
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div style="margin-top: 10px" class="col-lg-11 col-md-11 col-sm-12">
+                    @if(!empty($message))
+                        <div class="alert alert-success mt-3">
+                            {{$message}}
+                        </div>
+                    @endif
 
                     @if(!empty($data) && count($data) > 0)
                         @php
@@ -244,7 +249,7 @@
                 @endif
 
                 @else
-                    К сожалению, ничего не найдено...
+                    <center>К сожалению, ничего не найдено...</center>
                 @endif
             </div>
         </div>

@@ -37,11 +37,12 @@ class FrontController extends Controller
     public function show(Request $request): Application|Factory|View|Response
     {
         $this->userCityService->checkSessionUserCity($request);
+        $message = $request->message ?? null;
 
         try {
             $data = $this->objService->findObjsWithDetails($request);
 
-            return view('front', ['data' => $data]);
+            return view('front', ['data' => $data, 'message' => $message]);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в FavoriteController@show: ' . $e->getMessage(),

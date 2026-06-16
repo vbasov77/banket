@@ -4,6 +4,7 @@ use App\Http\Controllers\AddressSubjController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CityDistrictController;
 use App\Http\Controllers\DetailsObjController;
+use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GroupAddressObjController;
@@ -18,7 +19,9 @@ use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserVkController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ErrorController;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Auth\VerifyEmailController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +33,8 @@ use App\Http\Controllers\ErrorController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+
+Auth::routes(['verify' => true]);
 
 Route::get('/group_address/{id}', [GroupAddressObjController::class, 'show'])->name('group.address.show');
 
@@ -56,8 +61,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/delete_profile', [ProfileController::class, 'deleteProfile'])->name('profile.delete_profile');
 });
-
 
 require __DIR__ . '/auth.php';
 
@@ -65,7 +70,6 @@ Route::get('/', [FrontController::class, 'show'])->name("front");
 
 Route::get('/create_subj', [SubjController::class, 'create'])->name("create.subj")->middleware('auth');
 Route::get('/show_subj/id{id}', [SubjController::class, 'show'])->name("show.subj");
-
 Route::get('/edit_subj/id{id}', [SubjController::class, 'edit'])->name("edit.subj")
     ->middleware('auth');
 Route::post('/store_subj', [SubjController::class, 'store'])->name("store.subj")->middleware('auth');
@@ -135,3 +139,7 @@ Route::get('/clear', function () {
     Artisan::call('route:clear');
     return "Кэш очищен.";
 });
+
+
+
+

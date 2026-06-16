@@ -13,8 +13,6 @@ use Illuminate\Support\Str;
 
 class AddressSubjController extends Controller
 {
-
-
     private CityService $cityService;
 
     public function __construct(CityService $cityService)

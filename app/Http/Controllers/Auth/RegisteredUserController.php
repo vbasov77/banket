@@ -48,6 +48,8 @@ class RegisteredUserController extends Controller
         // Отправляем письмо для подтверждения email
         $user->sendEmailVerificationNotification();
 
-        return redirect(RouteServiceProvider::HOME);
+        $message = "Регистрация прошла успешно. На ваш email $request->email была выслана ссылка на подтверждение.\n 
+Пройдите по ней, чтобы подтвердить почту. Если письма не пришло, проверьте папку «Спам».\nЕсли вы неправильно указали email, удалите профиль!";
+        return redirect(route('profile.show', ['message' => $message]));
     }
 }
