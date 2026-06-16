@@ -95,7 +95,7 @@ class ProfileController extends Controller
             DB::commit();
             Auth::logout();
 
-            return redirect()->route('front')->with('message', 'Ваш профиль успешно удалён.');
+            return redirect()->route('front', ['message'=>'Ваш профиль успешно удалён.']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::channel('error_file')->error('Ошибка удаления профиля (user_id: ' . $user->id . '): ' . $e->getMessage());
