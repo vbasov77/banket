@@ -6,7 +6,9 @@ use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -59,17 +61,19 @@ class ProfileController extends Controller
         return view('profile.show', ['userData' => $userData, 'message' => $message]);
     }
 
-    /**
-     * Delete the user's account.
-     */
+
     public function destroy(Request $request)
     {
-        // Валидация: поле password обязательно
         $validated = $request->validate([
             'password' => 'required|string',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login')
+                ->withErrors(['error' => 'Пользователь не найден. Пожалуйста, войдите снова.']);
+        }
 
         // Проверка пароля
         if (!Hash::check($request->password, $user->password)) {
@@ -78,13 +82,28 @@ class ProfileController extends Controller
                 ->withInput();
         }
 
-        // Если пароль верный — удаляем пользователя
-        $user->delete();
+        try {
+            DB::beginTransaction();
 
-        // После удаления выходим из системы
-        Auth::logout();
+            // Прямое SQL‑удаление без вызова модели
+            $deleted = DB::table('users')->where('id', $user->id)->delete();
 
-        return redirect()->route('front', ['message' => 'Ваш профиль успешно удалён.']);
+            if (!$deleted) {
+                throw new \Exception('Не удалось удалить пользователя из базы данных');
+            }
+
+            DB::commit();
+            Auth::logout();
+
+            return redirect()->route('front')->with('message', 'Ваш профиль успешно удалён.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::channel('error_file')->error('Ошибка удаления профиля (user_id: ' . $user->id . '): ' . $e->getMessage());
+
+            return back()
+                ->withErrors(['error' => 'Произошла ошибка при удалении профиля. Попробуйте позже.'])
+                ->withInput();
+        }
     }
 
     public function deleteProfile()
