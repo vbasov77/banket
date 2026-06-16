@@ -17,11 +17,9 @@ class DetailsObjController extends Controller
 
     private DetailsObjService $detailsObjService;
 
-
     public function __construct(ObjService $objService, DetailsObjService $detailsObjService)
     {
         $this->objService = $objService;
-
         $this->detailsObjService = $detailsObjService;
     }
 

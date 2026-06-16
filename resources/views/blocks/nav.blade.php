@@ -300,45 +300,45 @@
 <div class="container mt-3">
     <div class="row">
         <div class="col-12">
-            <!-- Кнопка для открытия фильтров на мобильных -->
-            <button type="button" class="btn-show-filters mb-3">
-                Показать фильтры
-            </button>
-            <form method="post" action="{{route('search.objs')}}">
-                @csrf
-                <!-- Горизонтальный контейнер для выпадающих меню -->
-                <div class="horizontal-dropdowns">
+            @if(!empty($data) && count($data) > 0)
+                <!-- Кнопка для открытия фильтров на мобильных -->
+                <button type="button" class="btn-show-filters mb-3">
+                    Показать фильтры
+                </button>
+                <form method="post" action="{{route('search.objs')}}">
+                    @csrf
+                    <!-- Горизонтальный контейнер для выпадающих меню -->
+                    <div class="horizontal-dropdowns">
 
-                    <!-- Первое выпадающее меню: Для мероприятий -->
-                    @include('blocks.for_events')
+                        <!-- Первое выпадающее меню: Для мероприятий -->
+                        @include('blocks.for_events')
 
 
-                    <!-- Выпадающее меню: Район -->
-                    @include('blocks.district')
+                        <!-- Выпадающее меню: Район -->
+                        @include('blocks.district')
 
-                    <!-- Выпадающее меню: Вместимость до -->
-                    @include('blocks.capacity_to')
+                        <!-- Выпадающее меню: Вместимость до -->
+                        @include('blocks.capacity_to')
 
-                    <!-- Выпадающее меню: Сумма на чел до -->
-                    @include('blocks.per_person')
+                        <!-- Выпадающее меню: Сумма на чел до -->
+                        @include('blocks.per_person')
 
-                    <!-- Выпадающее меню: Особенности -->
-                    @include('blocks.features')
+                        <!-- Выпадающее меню: Особенности -->
+                        @include('blocks.features')
 
-                    <div class="filter-container">
-                        <div class="buttons-wrapper">
-                            <div class="button-left">
-                                <button type="reset" class="btn-reset">Сбросить фильтры</button>
-                            </div>
-                            <div class="button-right">
-                                <button type="submit" class="btn-apply">Применить фильтры</button>
+                        <div class="filter-container">
+                            <div class="buttons-wrapper">
+                                <div class="button-left">
+                                    <button type="reset" class="btn-reset">Сбросить фильтры</button>
+                                </div>
+                                <div class="button-right">
+                                    <button type="submit" class="btn-apply">Применить фильтры</button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                </div> <!-- Закрытие horizontal-dropdowns -->
-
-            </form>
+                    </div> <!-- Закрытие horizontal-dropdowns -->
+                </form>
+            @endif
         </div>
     </div>
 </div>
