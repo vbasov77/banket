@@ -222,9 +222,9 @@ class ObjRepository extends Repository
             if ($obj->subjs) {
                 $obj->subjs->transform(function ($subj) {
                     $subj->load([
-                        'imgSubjFirst:subj_id,path',
+                        'primaryImg:subj_id,small_img',
                         'imgSubjs' => function ($q) {
-                            $q->select('subj_id', 'path')
+                            $q->select('subj_id', 'small_img')
                                 ->orderBy('position')
                                 ->take(5);
                         }
@@ -244,8 +244,8 @@ class ObjRepository extends Repository
                         'site_type' => $subj->site_type ?? null,
                         'features' => $subj->features ?? null,
                         'text_subj' => $subj->text_subj ?? null,
-                        'path' => $subj->imgSubjFirst && $subj->imgSubjFirst->path ? $subj->imgSubjFirst->path : null,
-                        'image_paths' => $subj->imgSubjs ? $subj->imgSubjs->pluck('path')->toArray() : [],
+                        'path' => $subj->primaryImg && $subj->primaryImg->small_img ? $subj->primaryImg->small_img : null,
+                        'image_paths' => $subj->imgSubjs ? $subj->imgSubjs->pluck('small_img')->toArray() : [],
                         'district_name' => $districtName
                     ];
                 });
@@ -353,7 +353,7 @@ class ObjRepository extends Repository
             foreach ($obj->subjects as $subj) {
                 try {
                     $subj->primaryImg = $subj->primaryImg()
-                        ->select(['subj_id', 'path', 'position'])
+                        ->select(['subj_id', 'small_img', 'position'])
                         ->first();
                 } catch (\Exception $imgError) {
                     Log::channel('error_file')->error(

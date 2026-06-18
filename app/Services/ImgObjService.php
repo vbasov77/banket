@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Exceptions\VkApiException;
 use App\Models\ImgObj;
+use App\Repositories\ImgBanRepository;
 use App\Repositories\ImgObjRepository;
 use App\Repositories\KeyRepository;
 use Illuminate\Database\QueryException;
@@ -18,13 +19,17 @@ class ImgObjService extends Service
 {
     private ImgObjRepository $imgObjRepository;
 
-    private VkService $vkService;
+    protected ImgBanSubjService $imgBanSubjService;
 
-    public function __construct(ImgObjRepository $imgObjRepository,
-                                VkService        $vkService)
+    protected ImgBanRepository $imgBanRepository;
+
+    public function __construct(ImgObjRepository  $imgObjRepository,
+                                ImgBanSubjService $imgBanSubjService,
+                                ImgBanRepository  $imgBanRepository)
     {
-        $this->vkService = $vkService;
         $this->imgObjRepository = $imgObjRepository;
+        $this->imgBanSubjService = $imgBanSubjService;
+        $this->imgBanRepository = $imgBanRepository;
     }
 
 
@@ -32,81 +37,25 @@ class ImgObjService extends Service
     {
         try {
             if (!empty($request->file('img'))) {
-                $groupId = 239358651;
-                $albumId = 311175944;
-
                 try {
-                    $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
+                    $photo = $this->imgBanSubjService->createInImgBan($request, 360);
                 } catch (\Exception $e) {
                     // Передаём массив в $vkErrorDetails, а не объект Exception
-                    throw new VkApiException(
-                        'Ошибка при загрузке изображения в VK: ' . $e->getMessage(),
-                        0,
-                        [
-                            'original_exception_class' => get_class($e),
-                            'original_message' => $e->getMessage(),
-                            'trace' => $e->getTraceAsString(),
-                            'input_data' => [
-                                'obj_id' => $objId,
-                                'group_id' => $groupId,
-                                'album_id' => $albumId
-                            ]
-                        ],
-                        $e // передаём как $previous для цепочки исключений
-                    );
-                }
-
-                // Проверка на null после вызова VK сервиса
-                if ($photo === null) {
-                    throw new VkApiException(
-                        'Не удалось загрузить изображение в VK — получен пустой ответ',
-                        0,
-                        [
-                            'input_data' => [
-                                'obj_id' => $objId,
-                                'group_id' => $groupId,
-                                'album_id' => $albumId
-                            ]
-                        ]
-                    );
-                }
-
-                // Дополнительная проверка структуры ответа VK
-                if (!isset($photo->orig_photo->url) || !isset($photo->id)) {
-                    throw new VkApiException(
-                        'Некорректный ответ от VK API — отсутствуют обязательные поля',
-                        0,
-                        [
-                            'received_photo_data' => $photo,
-                            'expected_fields' => ['orig_photo->url', 'id']
-                        ]
-                    );
                 }
 
                 $data = [
                     'obj_id' => $objId,
-                    'path' => $photo->orig_photo->url,
-                    'photo_id' => $photo->id,
+                    'path' => $photo[1],
+                    'photo_id' => $photo[0],
                 ];
 
                 // Выносим сохранение в репозиторий
                 $id = $this->imgObjRepository->insertImgData($data);
 
-                return [$photo->orig_photo->url, $id];
+                return [$photo[1], $id];
             }
 
             throw new \Exception('Файл изображения не найден в запросе');
-        } catch (VkApiException $e) {
-            Log::channel('error_file')->error(
-                'Ошибка сервиса ImgObjService@imgObjStore: ' . $e->getMessage(),
-                [
-                    'obj_id' => $objId,
-                    'exception_class' => get_class($e),
-                    'vk_error_code' => $e->getErrorCode(),
-                    'vk_error_details' => $e->getErrorDetails()
-                ]
-            );
-            throw $e;
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgObjService@imgObjStore: ' . $e->getMessage(),
@@ -133,18 +82,24 @@ class ImgObjService extends Service
     public function imgObjUpdate(Request $request, int $id)
     {
         if (!empty($request->file('img'))) {
-            $groupId = 239358651;
-            $albumId = 311175944;
-            $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
-            Log::channel('info_file')->info('photo', [$photo]);
-            $data = [
-                'path' => $photo->orig_photo->url,
-                'photo_id' => $photo->id,
-            ];
+            try {
+                $oldImg = $this->imgObjRepository->findImgById($id);
+                Log::channel('info_file')->info('photo id', [$oldImg[0]->photo_id]);
+                $photo = $this->imgBanSubjService->createInImgBan($request, 360);
+                $data = [
+                    'path' => $photo[1],
+                    'photo_id' => $photo[0],
+                ];
 
-            ImgObj::where('id', $id)->update($data);
+                ImgObj::where('id', $id)->update($data);
 
-            return $photo->orig_photo->url;
+                $this->imgBanRepository->delete($oldImg[0]->photo_id);
+
+                return $photo[1];
+            } catch (\Exception $e) {
+                Log::channel('error_file')->error('Ошибка сохранения/удаления  фото объекта', [$e]);
+            }
+
         }
     }
 

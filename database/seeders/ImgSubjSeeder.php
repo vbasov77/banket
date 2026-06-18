@@ -17,8 +17,11 @@ class ImgSubjSeeder extends Seeder
         // Получаем все ID субъектов из таблицы subjs
         $subjectIds = DB::table('subjs')->pluck('id');
 
+        $bigPhotoId = 'adadadeqwd';
+        $smallPhotoId = 'csnckwncskhkl';
         // Единая ссылка на фото
-        $photoUrl = 'https://sun9-32.userapi.com/s/v1/ig2/kaZklHEa5QIRcgmw55sQDvO3Amw8SSJR6x3OmT6BhQIgLaiSJVXk3-A8mkpp25_3Fut_Ytwo60MkgJOMkzsqH8M4.jpg?quality=96&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1200x800&from=bu';
+        $bigPhotoUrl = 'https://i2.imageban.ru/out/2026/06/18/00eeb8a3c90a333f5debfc92a7d287b9.jpg';
+        $smallPhotoUrl = 'https://i3.imageban.ru/out/2026/06/18/e4906281254c2f226d8762df717de91a.jpg';
 
         $recordsToInsert = [];
 
@@ -26,15 +29,16 @@ class ImgSubjSeeder extends Seeder
             for ($i = 1; $i <= 5; $i++) {
                 $recordsToInsert[] = [
                     'subj_id' => $subjectId,
-                    'photo_id' => rand(1000, 9999), // случайный ID фото
-                    'path' => $photoUrl,
+                    'big_id' => $bigPhotoId, // случайный ID фото
+                    'big_img' => $bigPhotoUrl,
+                    'small_id' => $smallPhotoId, // случайный ID фото
+                    'small_img' => $smallPhotoUrl,
                     'position' => $i, // позиция фото (1–5)
-                    'created_at' => now(),
                 ];
             }
         }
 
         // Массовая вставка записей в таблицу img_subj
-        DB::table('img_subj')->insert($recordsToInsert);
+        DB::table('img_ban_subj')->insert($recordsToInsert);
     }
 }

@@ -83,14 +83,21 @@ document.querySelectorAll('.item-carousel').forEach(img => {
             return;
         }
 
-        const images = carouselWrapper.querySelectorAll('.item-carousel');
+        // Получаем все маленькие изображения в карусели
+        const smallImages = carouselWrapper.querySelectorAll('.item-carousel');
+
+        // Создаём массив больших изображений
+        const bigImages = Array.from(smallImages).map(smallImg => ({
+            src: smallImg.dataset.bigImage // берём путь из data-big-image
+        }));
+
         const index = parseInt(img.dataset.index, 10);
 
-        if (isNaN(index) || index < 0 || index >= images.length) {
+        if (isNaN(index) || index < 0 || index >= bigImages.length) {
             console.error('Invalid index:', index);
             return;
         }
 
-        lightbox.show(images, index);
+        lightbox.show(bigImages, index);
     });
 });

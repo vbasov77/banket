@@ -68,13 +68,7 @@ class Subj extends Model
             ->take(1);
     }
 
-    public function imgSubjFirst()
-    {
-        return $this->hasOne(ImgSubj::class, 'subj_id', 'id')
-            ->orderBy('position', 'asc');
-    }
-
-    public function addressSubj()
+     public function addressSubj()
     {
         return $this->hasOne(AddressSubj::class, 'subj_id', 'id');
     }
@@ -93,15 +87,15 @@ class Subj extends Model
 
     public function imgSubjs()
     {
-        return $this->hasMany(ImgSubj::class, 'subj_id')
+        return $this->hasMany(ImgBanSubj::class, 'subj_id')
             ->orderBy('position', 'asc');
     }
 
     public function primaryImg()
     {
-        return $this->hasOne(ImgSubj::class, 'subj_id', 'id')
+        return $this->hasOne(ImgBanSubj::class, 'subj_id', 'id')
             ->orderBy('position', 'asc')   // сначала по position
-            ->orderBy('id', 'asc');      // страховка: если position одинаковые
+            ->orderBy('id', 'asc')->take(1);      // страховка: если position одинаковые
     }
 
 

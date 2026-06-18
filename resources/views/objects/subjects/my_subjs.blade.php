@@ -31,9 +31,9 @@
                                             <!-- Изображение -->
                                             <div class="position-relative">
                                                 <div class="restaurant-image">
-                                                    @if($value['primaryImg'] && $value['primaryImg']->path)
+                                                    @if($value['primaryImg'] && $value['primaryImg']->small_img)
 
-                                                        <img src="{{ $value['primaryImg']->path . '&cs=360x0' }}"
+                                                        <img src="{{ $value['primaryImg']->small_img }}"
                                                              class="card-img-top" alt="Фото субъекта"
                                                              style="height: 200px; object-fit: cover;">
                                                     @else

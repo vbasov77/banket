@@ -23,12 +23,14 @@
         }
     }
 </style>
+
 @if(!empty($nearestObjects) && count($nearestObjects) > 0)
     <section class="mt-5">
         <h3 class="section-title fs-4 mb-4">Рестораны поблизости</h3>
     </section>
     <div class="row">
         @foreach($nearestObjects as $value)
+
             <div class="col-sm-12 col-md-6 col-lg-3">
                 <div class="restaurant-card nearestObjects"
                      data-id="{{ $value['obj_id'] }}">
@@ -37,7 +39,7 @@
                         <div class="restaurant-image nearestObjects">
                             <a href="{{route('group.address.show', ['id' => $value['group_id']])}}">
                                 @if($value['path'])
-                                    <img src="{{ $value['path'] . '&cs=360x0' }}"
+                                    <img src="{{ $value['path']}}"
                                          class="card-img-top" alt="Фото субъекта"
                                          style="object-fit: cover;">
                                 @else

@@ -23,8 +23,11 @@ class ImgBanSubj extends Model
      */
     protected $fillable = [
         'subj_id',
-        'img_id',
-        'path',
+        'big_img',
+        'big_id',
+        'small_img',
+        'small_id',
+        'position',
     ];
 
     public $timestamps = false;
