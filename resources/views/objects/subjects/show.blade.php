@@ -70,13 +70,15 @@
                     <div class="carousel-wrapper festival">
                         <div class="carousel">
                             <div class="carousel-content">
-                                @foreach ($subj['image_paths'] as $image)
+                                @foreach ($subj['image_paths'] as $index => $image)
                                     <img
                                             class="item-carousel"
-                                            src="{{ $image . '&cs=360x0'}}"
+                                            src="{{ $image }}"
                                             alt="{{ $subj['name_subj'] }}"
-                                            data-index="{{ $loop->index }}">
+                                            data-index="{{ $index }}"
+                                            data-big-image="{{ $subj['big_image_paths'][$index] ?? $image }}">
                                 @endforeach
+
                             </div>
                         </div>
                         <button class="carousel-prev">
@@ -267,7 +269,7 @@
                                                class="carousel-link">
                                                 <img
                                                         class="item-carousel"
-                                                        src="{{ $subj['related_subjs'][$j]['image_path'] . '&cs=360x0'}}"
+                                                        src="{{ $subj['related_subjs'][$j]['image_path']}}"
                                                         alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
                                                 >
                                             </a>

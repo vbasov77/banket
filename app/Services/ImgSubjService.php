@@ -5,8 +5,10 @@ namespace App\Services;
 
 
 use App\Exceptions\VkApiException;
+use App\Models\ImgBanSubj;
 use App\Models\ImgObj;
 use App\Models\ImgSubj;
+use App\Repositories\ImgBanRepository;
 use App\Repositories\ImgSubjRepository;
 use App\Repositories\KeyRepository;
 use Illuminate\Database\QueryException;
@@ -17,29 +19,25 @@ use Illuminate\Support\Facades\Log;
 class ImgSubjService extends Service
 {
 
-    private KeyRepository $keyRepository;
-    private ImgSubjRepository $imgSubjRepository;
-    private VkService $vkService;
+    protected ImgBanSubjService $imgBanSubjService;
+
+    protected ImgBanRepository $imgBanRepository;
+
+    protected ImgSubjRepository $imgSubjRepository;
 
     /**
-     * @param KeyRepository $keyRepository
-     * @param ImgSubjRepository $imgSubjRepository
-     * @param VkService $vkService
+     * @param ImgBanSubjService $imgBanSubjService
      */
-    public function __construct(KeyRepository     $keyRepository,
-                                ImgSubjRepository $imgSubjRepository,
-                                VkService         $vkService)
+    public function __construct(ImgBanSubjService $imgBanSubjService, ImgBanRepository $imgBanRepository,
+                                ImgSubjRepository $imgSubjRepository)
     {
-        $this->keyRepository = $keyRepository;
-        $this->vkService = $vkService;
+        $this->imgBanSubjService = $imgBanSubjService;
+        $this->imgBanRepository = $imgBanRepository;
         $this->imgSubjRepository = $imgSubjRepository;
     }
 
 
-    /**
-     * @throws VkApiException
-     */
-    public function ImgSubjStore(Request $request, int $id, int $groupId, int $albumId): array
+    public function ImgSubjStore(Request $request, int $id)
     {
         try {
             if (!$request->hasFile('img')) {
@@ -47,10 +45,10 @@ class ImgSubjService extends Service
             }
 
             try {
-                $photo = $this->vkService->createOneImgInVk($request, $groupId, $albumId);
-                if (!$photo) {
-                    throw new VkApiException('Не удалось загрузить изображение в VK', 0);
-                }
+
+                $photoBig = $this->imgBanSubjService->createInImgBan($request, 900);
+                $smallPhoto = $this->imgBanSubjService->createInImgBan($request, 360);
+
             } catch (\Exception $e) {
                 throw new VkApiException(
                     'Ошибка при загрузке изображения в VK: ' . $e->getMessage(),
@@ -58,29 +56,19 @@ class ImgSubjService extends Service
                     (array)$e
                 );
             }
+            $position = $this->imgBanRepository->getNextPosition($id);
 
-            $position = $this->imgSubjRepository->getNextPosition($id);
+            $imgBanSubj = new ImgBanSubj();
+            $imgBanSubj->subj_id = $id; // Получаем subj_id из запроса, если не передан — ставим 1
+            $imgBanSubj->big_id = $photoBig[0][0];
+            $imgBanSubj->big_img = $photoBig[0][1];
+            $imgBanSubj->small_id = $smallPhoto[0][0];
+            $imgBanSubj->small_img = $smallPhoto[0][1];
+            $imgBanSubj->position = $position;
 
-            $data = [
-                'subj_id' => $id,
-                'path' => $photo->orig_photo->url,
-                'photo_id' => $photo->id,
-                'position' => $position,
-            ];
+            $imgBanSubj->save();
 
-            $newId = $this->imgSubjRepository->insertImgData($data);
-
-            return [$photo->orig_photo->url, $newId];
-        } catch (VkApiException $e) {
-            Log::channel('error_file')->error(
-                'Ошибка сервиса ImgSubjService@ImgSubjStore (VK API): ' . $e->getMessage(),
-                [
-                    'subj_id' => $id,
-                    'vk_error_code' => $e->getErrorCode(),
-                    'exception_class' => get_class($e)
-                ]
-            );
-            throw $e;
+            return [$smallPhoto[0][1], $imgBanSubj->id];
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgSubjService@ImgSubjStore: ' . $e->getMessage(),
@@ -110,10 +98,11 @@ class ImgSubjService extends Service
      * @return mixed
      * @throws \Exception
      */
-    public function findImgByObjId(int $id): mixed
+    public function findImgBySubjId(int $id): mixed
     {
         try {
-            return $this->imgSubjRepository->findImgByObjId($id);
+            return $this->imgBanRepository->findImgBySubjId($id);
+
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgSubjService@findImgByObjId: ' . $e->getMessage(),
@@ -178,11 +167,7 @@ class ImgSubjService extends Service
     public function deleteImgSubj(int $id): bool
     {
         try {
-            $imgSubj = $this->imgSubjRepository->findById($id);
-            if (!$imgSubj) {
-                return false;
-            }
-            return $this->imgSubjRepository->deleteById($id);
+            return $this->imgBanSubjService->deleteById($id);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgSubjService@deleteImgSubj: ' . $e->getMessage(),

@@ -297,7 +297,7 @@
                                                             data-id="{{$image->id}}">
                                                             <span class="pos_num">{{$loop->index + 1}}</span>
                                                             <img class="zoom img-fluid box3 del"
-                                                                 src="{{$image->path . '&cs=240x0'}}"
+                                                                 src="{{$image->small_img}}"
                                                                  data-file="{{$image->id}}">
                                                             <div class="round-popup">
                                                                 <button
@@ -493,8 +493,8 @@
         const posNum = placeholderLi.querySelector('.pos_num');
 
         // Обновляем данные изображения
-        img.src = photoData.path + '&cs=240x0';
-        img.alt = photoData.name || 'Фото';
+        img.src = photoData.path;
+        img.alt = 'Фото';
         img.setAttribute('data-file', photoData.id);
 
         // Удаляем ТОЛЬКО макет-заглушку, а не весь контент

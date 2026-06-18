@@ -155,6 +155,8 @@ class SubjController extends Controller
      */
     public function show(Request $request): View
     {
+
+
         try {
             $id = $request->id;
             $subj = $this->subjService->findById($id);
@@ -166,7 +168,7 @@ class SubjController extends Controller
                     $subj['obj']['obj_id']
                 );
             }
-
+   
             return view('objects.subjects.show', [
                 'subj' => $subj,
                 'nearestObjects' => $nearestObjects

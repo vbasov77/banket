@@ -74,14 +74,14 @@ class SubjRepository extends Repository
                 'group_address_objs.longitude',
                 DB::raw("ROUND(ST_Distance_Sphere(group_address_objs.location, POINT(?, ?)) / 1000, 1) AS distance_km"),
                 DB::raw("(
-        SELECT img_subj.path
-        FROM img_subj
-        JOIN subjs ON img_subj.subj_id = subjs.id
+        SELECT im.small_img
+        FROM img_ban_subj im
+        JOIN subjs ON im.subj_id = subjs.id
         JOIN address_subjs ON subjs.id = address_subjs.subj_id
         WHERE address_subjs.group_id = group_address_objs.id
           AND address_subjs.city_id = group_address_objs.city_id
           AND address_subjs.district_id = group_address_objs.district_id
-        ORDER BY img_subj.position ASC, img_subj.id ASC
+        ORDER BY im.position ASC, im.id ASC
         LIMIT 1
     ) AS photo_path"),
                 DB::raw("(SELECT objs.name_obj FROM objs WHERE objs.id = group_address_objs.obj_id LIMIT 1) AS name_obj")
@@ -206,18 +206,23 @@ class SubjRepository extends Repository
         NULL
     ) AS details_obj_json,
     (
-        SELECT JSON_ARRAYAGG(path)
-        FROM img_subj
+        SELECT JSON_ARRAYAGG(small_img)
+        FROM img_ban_subj
         WHERE subj_id = s.id
     ) AS image_paths_json,
+    (
+        SELECT JSON_ARRAYAGG(big_img)
+        FROM img_ban_subj
+        WHERE subj_id = s.id
+    ) AS big_image_paths_json,
     (
         SELECT JSON_ARRAYAGG(
             JSON_OBJECT(
                 'subj_id', rs.id,
                 'name_subj', rs.name_subj,
                 'image_path', (
-                    SELECT path
-                    FROM img_subj
+                    SELECT small_img
+                    FROM img_ban_subj
                     WHERE subj_id = rs.id
                     ORDER BY id ASC
                     LIMIT 1
@@ -267,6 +272,7 @@ LIMIT 1;";
                 'obj' => $this->parseJsonField($result->obj_json),
                 'details_obj' => $this->parseJsonField($result->details_obj_json),
                 'image_paths' => $this->parseJsonArray($result->image_paths_json),
+                'big_image_paths' => $this->parseJsonArray($result->big_image_paths_json),
                 'related_subjs' => $this->parseJsonArray($result->related_subjs_json),
                 'is_favorite' => $result->is_favorite,
                 'latitude' => $result->latitude,

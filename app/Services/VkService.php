@@ -39,6 +39,7 @@ class VkService extends Service
             $resizeImage = $this->imgService->compressImageIfLarge($request->file('img'));
             $img = $resizeImage['path'];
             $image = __DIR__ . "/../../public/" . $img;
+
             $uploadUrl = $server->response->upload_url;
 
             if (!empty($uploadUrl)) {

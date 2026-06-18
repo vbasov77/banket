@@ -29,14 +29,14 @@ class ImgSubjController extends Controller
 
     public function edit(Request $request)
     {
-        $subj = $request->id;
-        $address = AddressSubj::where('subj_id', $subj)->exists();
+        $subjId = $request->id;
+        $address = AddressSubj::where('subj_id', $subjId)->exists();
         if (!$address) {
-            return redirect()->route('map.edit', ['id' => $subj, 'error' => 'Сначала добавьте адрес']);
+            return redirect()->route('map.edit', ['id' => $subjId, 'error' => 'Сначала добавьте адрес']);
         }
 
         try {
-            if (!$subj) {
+            if (!$subjId) {
                 Log::channel('error_file')->error(
                     'Отсутствует ID субъекта в Controller@edit',
                     [
@@ -47,16 +47,16 @@ class ImgSubjController extends Controller
                 return response()->view('errors.400', [], 400);
             }
 
-            $images = $this->imgSubjService->findImgByObjId($subj);
+            $images = $this->imgSubjService->findImgBySubjId($subjId);
 
-            return view('img_subj.edit', ['subj' => $subj, 'images' => $images]);
+            return view('img_subj.edit', ['subj' => $subjId, 'images' => $images]);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в Controller@edit: ' . $e->getMessage(),
                 [
                     'sql_query' => $e->getSql(),
                     'bindings' => $e->getBindings(),
-                    'subj_id' => $subj ?? 'unknown',
+                    'subj_id' => $subjId ?? 'unknown',
                     'ip' => $request->ip()
                 ]
             );
@@ -66,7 +66,7 @@ class ImgSubjController extends Controller
                 'Неожиданная ошибка в Controller@edit: ' . $e->getMessage(),
                 [
                     'input_data' => $request->all(),
-                    'subj_id' => $subj ?? 'unknown',
+                    'subj_id' => $subjId ?? 'unknown',
                     'exception_class' => get_class($e),
                     'trace' => $e->getTraceAsString(),
                     'ip' => $request->ip()
@@ -96,6 +96,7 @@ class ImgSubjController extends Controller
                         'ip' => $request->ip()
                     ]
                 );
+
                 return response()->json([
                     'message' => 'Некорректные данные для изменения порядка',
                     'alert-type' => 'error'
@@ -148,9 +149,6 @@ class ImgSubjController extends Controller
      */
     public function imgSubjStore(Request $request): JsonResponse
     {
-        $id = $request->id;
-        $address = AddressSubj::where('subj_id', $id)->first();
-
         try {
             if (!$request->hasFile('img')) {
                 return response()->json([
@@ -160,8 +158,8 @@ class ImgSubjController extends Controller
                 ], 400);
             }
 
-            $album = AlbumsVk::where('city_id', $address->city_id)->first();
-            $data = $this->imgSubjService->ImgSubjStore($request, $request->id, $album->group_id, $album->album_id);
+            $data = $this->imgSubjService->ImgSubjStore($request, $request->id);
+
             $res = [
                 'path' => $data[0],
                 'id' => $data[1],
@@ -240,7 +238,7 @@ class ImgSubjController extends Controller
      */
     public function destroy(Request $request)
     {
-        $id = $request->id;
+        $id = (int) $request->id;
         try {
             // Валидация ID: должно быть числом ≥ 1
             if (!is_numeric($id) || $id < 1 || intval($id) != $id) {
@@ -254,8 +252,6 @@ class ImgSubjController extends Controller
                 );
                 return response()->json(['error' => 'Invalid ID format'], 400);
             }
-
-            $id = (int)$id; // Приводим к целому числу
 
             $result = $this->imgSubjService->deleteImgSubj($id);
 

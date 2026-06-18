@@ -3,26 +3,61 @@
 
 namespace App\Services;
 
+
+use App\Models\ImgBanSubj;
+use App\Repositories\ImgBanRepository;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
 
-
-class ImageService extends Service
+class ImgBanSubjService extends Service
 {
+    protected ImgBanRepository $imgBanRepository;
+
     /**
-     * @param UploadedFile $file
-     * @param string $path
-     * @param int $quality
-     * @return array
+     * @param ImgBanRepository $imgBanRepository
      */
-    public function compressImageIfLarge(
-        UploadedFile $file,
-        string $path = 'resized/',
-        int $quality = 99
-    ): array
+    public function __construct(ImgBanRepository $imgBanRepository)
     {
+        $this->imgBanRepository = $imgBanRepository;
+    }
+
+    public function createInImgBan(Request $request, int $const)
+    {
+        $resizeImage= $this->compressImageIfLarge($const, $request->file('img'));
+        $img = $resizeImage['path'];
+        $image = __DIR__ . "/../../public/" . $img;
+        $uploadedFile = $this->getFile($image);
+        $imgPath = $this->imgBanRepository->upload($uploadedFile);
+        unlink($image);
+
+        return $imgPath;
+
+    }
+
+    /**
+     * @param string $file
+     * @return UploadedFile
+     */
+    public function getFile(string $file): UploadedFile
+    {
+        return new UploadedFile(
+            $file, // полный путь к файлу
+            basename($file), // имя файла
+            mime_content_type($file), // MIME‑тип
+            null, // размер (можно оставить null — определится автоматически)
+            true // флаг валидности файла
+        );
+    }
+
+    public function compressImageIfLarge(int $const, UploadedFile $file): array
+    {
+        $path = 'resized/';
+        $quality = 98;
+
         try {
             // Проверяем валидность загруженного файла
             if (!$file->isValid()) {
@@ -31,7 +66,6 @@ class ImageService extends Service
 
             // Создаём менеджер с драйвером
             $manager = new ImageManager(new Driver());
-            $const = 1200;
             $image = $manager->read($file->getPathname());
             $height = $image->height();
             $width = $image->width();
@@ -140,6 +174,43 @@ class ImageService extends Service
         }
     }
 
+    /**
+     * @param int $id
+     * @return bool
+     * @throws \Exception
+     */
+    public function deleteById(int $id): bool
+    {
+        try {
+            $imgSubj = $this->imgBanRepository->findById($id);
+            if (!$imgSubj) {
+                return false;
+            }
 
+            $this->imgBanRepository->delete($imgSubj->big_id);
+            $this->imgBanRepository->delete($imgSubj->small_id);
+
+            $result = ImgBanSubj::where('id', $id)->delete();
+            return $result > 0;
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ImgSubjRepository@deleteById: ' . $e->getMessage(),
+                [
+                    'img_subj_id' => $id,
+                    'exception_class' => get_class($e)
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ImgSubjRepository@deleteById: ' . $e->getMessage(),
+                [
+                    'img_subj_id' => $id,
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+            throw $e;
+        }
+    }
 }
-

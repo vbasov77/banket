@@ -42,6 +42,37 @@ class ImgObjRepository extends Repository
     }
 
     /**
+     * @param int $id
+     * @return mixed
+     * @throws \Exception
+     */
+    public function findImgById(int $id): mixed
+    {
+        try {
+            return ImgObj::where('id', $id)->get();
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ImgObjRepository@findImgByObjId: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'obj_id' => $id
+                ]
+            );
+            throw $e;
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ImgObjRepository@findImgByObjId: ' . $e->getMessage(),
+                [
+                    'obj_id' => $id,
+                    'exception_class' => get_class($e)
+                ]
+            );
+            throw $e;
+        }
+    }
+
+    /**
      * @param array $data
      * @return int
      * @throws \Exception

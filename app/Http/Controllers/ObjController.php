@@ -247,7 +247,7 @@ class ObjController extends Controller
             $userId = Auth::user()->id;
 
             // Получаем ID объекта пользователя
-            $objId = $this->objService->findIdObjByUserId($userId);
+            $objId = $this->objService->findIdObjByUserId();
 
             $data = null;
             $error = null;
@@ -259,7 +259,6 @@ class ObjController extends Controller
             if ($objId) {
                 // Получаем данные по субъектам
                 $data = $this->objService->findMySubjs($objId);
-
                 // Если данные не получены, логируем ошибку
                 if ($data === null) {
                     Log::channel('error_file')->error(
