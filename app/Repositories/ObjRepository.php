@@ -27,7 +27,7 @@ class ObjRepository extends Repository
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_to', 'site_type', 'text_subj', 'published', 'id')
-                    ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
+                    ->with(['primaryImg:subj_id,small_img']); // загружаем первое img_subj для каждого subj
             }
         ])->where('subjs.id', $id)
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
@@ -140,7 +140,7 @@ class ObjRepository extends Repository
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
                     'capacity_to', 'site_type', 'text_subj', 'published', 'id')
-                    ->with(['imgSubjFirst:subj_id,path']); // загружаем первое img_subj для каждого subj
+                    ->with(['primaryImg:subj_id,small_img']); // загружаем первое img_subj для каждого subj
             }
         ])->where('objs.user_id', $userId)
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
@@ -161,7 +161,7 @@ class ObjRepository extends Repository
                             'site_type' => $subj->site_type,
                             'text_subj' => $subj->text_subj,
                             'published' => $subj->published,
-                            'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
+                            'path' => $subj->primaryImg ? $subj->primaryImg->small_img : null,
                             'image_paths' => $subj->imgSubjs->pluck('path')->toArray()
                         ];
                     })->toArray(),

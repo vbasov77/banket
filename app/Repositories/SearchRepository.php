@@ -7,81 +7,13 @@ namespace App\Repositories;
 use App\Models\City;
 use App\Models\District;
 use App\Models\Obj;
+use App\Models\Subj;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class SearchRepository extends Repository
 {
-    public function search(Request $request)
-    {
-        // Получаем выбранные фильтры из сессии
-        $selectedFilters = session('selected_filters', []);
-        $forEventsFilter = $selectedFilters['for_events'] ?? [];
-
-        // Начинаем построение запроса
-        $query = Obj::with([
-            'detailsObj' => function ($q) {
-                $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
-                    'alcohol', 'payment_methods', 'text_obj');
-            },
-            'subjs' => function ($query) {
-                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj');
-            }
-        ])
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
-
-        // Применяем фильтр по for_events, если есть выбранные значения
-        if (!empty($forEventsFilter)) {
-            $query->whereHas('detailsObj', function ($q) use ($forEventsFilter) {
-                $q->whereJsonContains('for_events', $forEventsFilter);
-            });
-        }
-
-        // Выполняем пагинацию
-        $paginated = $query->paginate(6);
-
-        // ДОПОЛНИТЕЛЬНО загружаем фото для каждого subj
-        $paginated->getCollection()->transform(function ($obj) {
-            $obj->subjs->transform(function ($subj) {
-                // Загружаем первые 5 фото
-                $subj->load([
-                    'imgSubjFirst:subj_id,path',
-                    'imgSubjs' => function ($q) {
-                        $q->select('subj_id', 'path')
-                            ->orderBy('position') // или 'id'
-                            ->take(5);
-                    }
-                ]);
-
-                return [
-                    'id' => $subj->id,
-                    'name_subj' => $subj->name_subj,
-                    'minimum_cost' => $subj->minimum_cost,
-                    'per_person' => $subj->per_person,
-                    'capacity_to' => $subj->capacity_to,
-                    'site_type' => $subj->site_type,
-                    'features' => $subj->features,
-                    'text_subj' => $subj->text_subj,
-                    'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
-                    'image_paths' => $subj->imgSubjs->pluck('path')->toArray(), // теперь здесь будет до 5 фото
-                ];
-            });
-
-            return [
-                'obj_id' => $obj->id,
-                'user_id' => $obj->user_id,
-                'name_obj' => $obj->name_obj,
-                'phone_obj' => $obj->phone_obj,
-                'for_events' => $obj->detailsObj->for_events,
-                'subjs_data' => $obj->subjs->toArray(),
-            ];
-        });
-
-        return $paginated;
-    }
-
-
     public function searchResults(Request $request)
     {
         // Получаем фильтры из сессии
@@ -150,24 +82,40 @@ class SearchRepository extends Repository
                 $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
                     'alcohol', 'more', 'payment_methods', 'text_obj');
             },
-            'subjs' => function ($query) use ($cityId) {
+            'subjs' => function ($query) use ($cityId, $districtIds) {
                 $query->select(
-                    'id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_to', 'site_type', 'features', 'text_subj'
-                )->with(['addressSubj' => function ($q) {
-                    $q->select('id', 'subj_id', 'district_id')
-                        ->with(['district' => function ($d) {
-                            $d->select('id', 'name');
-                        }]);
-                }]);
-
-            },
-            'subjs.imgSubjFirst',
-            'subjs.imgSubjs' => function ($q) {
-                $q->select('subj_id', 'path')->orderBy('position')->take(5);
+                    'subjs.id', 'subjs.obj_id', 'subjs.name_subj', 'subjs.minimum_cost',
+                    'subjs.per_person', 'subjs.capacity_to', 'subjs.site_type',
+                    'subjs.features', 'subjs.text_subj'
+                )
+                    ->leftJoin('address_subjs', 'subjs.id', '=', 'address_subjs.subj_id')
+                    ->selectRaw(
+                        '(CASE WHEN address_subjs.district_id IN (' .
+                        (empty($districtIds) ? '0' : implode(',', $districtIds)) .
+                        ') THEN 0 ELSE 1 END) as district_priority'
+                    )
+                    ->with([
+                        'addressSubj' => function ($q) use ($districtIds) {
+                            $q->select('id', 'subj_id', 'district_id')
+                                ->with(['district' => function ($d) {
+                                    $d->select('id', 'name');
+                                }]);
+                        },
+                        'primaryImg' => function ($q) {
+                            $q->select('id', 'subj_id', 'small_img');
+                        },
+                        'imgSubjs' => function ($q) {
+                            $q->select('subj_id', 'small_img')->orderBy('position')->take(5);
+                        }
+                    ])
+                    ->orderBy('district_priority', 'ASC')
+                    ->orderBy('subjs.id', 'ASC');
             }
+
         ])
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj');
+            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
+        ->orderBy('id', 'desc');
+
 
 
         // Применяем фильтры
@@ -201,25 +149,29 @@ class SearchRepository extends Repository
 
         // --- ЛОГИКА СОРТИРОВКИ ПО РАЙОНАМ ---
         if (!empty($districtIds) && $cityId) {
-            $caseBindings = [];
-            $caseParts = [];
+            // Фильтруем объекты: только те, у которых есть субъекты в выбранных районах
+            $query->whereHas('subjs.addressSubj.district', function ($q) use ($districtIds) {
+                $q->whereIn('id', $districtIds);
+            });
 
-            foreach ($districtIds as $index => $id) {
-                $caseParts[] = "WHEN ga.district_id = ? THEN " . ($index + 1);
-                $caseBindings[] = $id;
-            }
+            // Сортируем по приоритету районов субъектов
+            $subquery = Subj::select('obj_id')
+                ->join('address_subjs', 'subjs.id', '=', 'address_subjs.subj_id')
+                ->join('districts', 'address_subjs.district_id', '=', 'districts.id')
+                ->whereIn('districts.id', $districtIds)
+                ->selectRaw('MIN(FIELD(districts.id, ' . implode(',', $districtIds) . ')) as priority')
+                ->groupBy('obj_id');
 
-            $caseSql = "CASE " . implode(" ", $caseParts) . " ELSE 999999 END";
+            $query->joinSub($subquery, 'subj_priorities', function ($join) {
+                $join->on('objs.id', '=', 'subj_priorities.obj_id');
+            })->orderBy('subj_priorities.priority', 'ASC');
 
-            $query->join('subjs as s', 'objs.id', '=', 's.obj_id')
-                ->join('group_address_objs as ga', 'objs.id', '=', 'ga.obj_id')
-                ->whereIn('ga.district_id', $districtIds)
-                ->groupBy('objs.id')
-                ->orderByRaw("MIN({$caseSql}) ASC", $caseBindings)
-                ->orderBy('objs.id', 'ASC');
+            $query->orderBy('id', 'ASC');
         } else {
-            $query->orderBy('objs.id', 'desc');
+            $query->orderBy('id', 'DESC');
         }
+
+
         // ----------------------------------------------------
 
         // Пагинация
@@ -227,37 +179,61 @@ class SearchRepository extends Repository
 
         // Трансформация данных
         $transformedData = $paginated->getCollection()->map(function ($obj) {
-            $subjsData = $obj->subjs->map(function ($subj) {
+            if ($obj->subjs) {
+                $obj->subjs->transform(function ($subj) {
+                    $subj->load([
+                        'primaryImg:subj_id,small_img',
+                        'imgSubjs' => function ($q) {
+                            $q->select('subj_id', 'small_img')
+                                ->orderBy('position')
+                                ->take(5);
+                        }
+                    ]);
 
-                // Извлекаем название района через addressSubj → district
-                $districtName = $subj->addressSubj && $subj->addressSubj->district
-                    ? $subj->addressSubj->district->name
-                    : null;
-                return [
-                    'id' => $subj->id,
-                    'name_subj' => $subj->name_subj,
-                    'minimum_cost' => $subj->minimum_cost,
-                    'per_person' => $subj->per_person,
-                    'capacity_to' => $subj->capacity_to,
-                    'site_type' => $subj->site_type,
-                    'features' => $subj->features,
-                    'text_subj' => $subj->text_subj,
-                    'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
-                    'image_paths' => $subj->imgSubjs->pluck('path')->toArray(),
-                    'district_name' => $districtName
-                ];
-            })->toArray();
+                    $districtName = null;
+                    if ($subj->addressSubj && $subj->addressSubj->district) {
+                        $districtName = $subj->addressSubj->district->name;
+                    }
+
+                    return [
+                        'id' => $subj->id ?? null,
+                        'name_subj' => $subj->name_subj ?? null,
+                        'minimum_cost' => $subj->minimum_cost ?? null,
+                        'per_person' => $subj->per_person ?? null,
+                        'capacity_to' => $subj->capacity_to ?? null,
+                        'site_type' => $subj->site_type ?? null,
+                        'features' => $subj->features ?? null,
+                        'text_subj' => $subj->text_subj ?? null,
+                        'path' => $subj->primaryImg && $subj->primaryImg->small_img ? $subj->primaryImg->small_img : null,
+                        'image_paths' => $subj->imgSubjs ? $subj->imgSubjs->pluck('small_img')->toArray() : [],
+                        'district_name' => $districtName
+                    ];
+                });
+            }
+
+            if ($obj->groupAddressObjs) {
+                $obj->groupAddressObjs->transform(function ($groupAddressObjs) {
+                    $groupAddressObjs->load(['district:id,name']);
+
+                    return [
+                        'id' => $groupAddressObjs->district && $groupAddressObjs->district->id ? $groupAddressObjs->district->id : null,
+                        'name' => $groupAddressObjs->district && $groupAddressObjs->district->name ? $groupAddressObjs->district->name : null,
+                    ];
+                });
+            }
 
             return [
-                'obj_id' => $obj->id,
-                'user_id' => $obj->user_id,
-                'name_obj' => $obj->name_obj,
-                'phone_obj' => $obj->phone_obj,
-                'for_events' => $obj->detailsObj ? $obj->detailsObj->for_events : null,
-                'subjs_data' => $subjsData,
-                'details_obj' => $obj->detailsObj ? $obj->detailsObj->toArray() : null,
+                'obj_id' => $obj->id ?? null,
+                'user_id' => $obj->user_id ?? null,
+                'name_obj' => $obj->name_obj ?? null,
+                'phone_obj' => $obj->phone_obj ?? null,
+                'subjs_data' => $obj->subjs ? $obj->subjs->toArray() : [],
+                'details_obj' => $obj->detailsObj ? $obj->detailsObj->toArray() : [],
+                'districts' => $obj->groupAddressObjs ? $obj->groupAddressObjs->toArray() : [],
+                'districts_names' => $obj->groupAddressObjs ? $obj->groupAddressObjs->pluck('district.name')->toArray() : [],
             ];
-        })->toArray();
+        });
+
 
         return [
             'data' => $transformedData,
@@ -271,20 +247,6 @@ class SearchRepository extends Repository
                 'prev_page_url' => $paginated->previousPageUrl(),
                 'path' => $paginated->path(),
             ],
-            'filters' => [
-                'for_events' => $forEventsFilter,
-                'capacity_to' => $capacityToFilter,
-                'per_person' => $perPersonFilter,
-                'features' => $featuresFilter,
-                'districts' => $districtIds, // Возвращаем выбранные районы в ответ
-            ],
-            'meta' => [
-                'query_params' => $request->all(),
-                'timestamp' => now()->toDateTimeString(),
-                'city_id' => $cityId, // Добавляем ID города для отладки
-                'user_city' => $userCityName, // Название города пользователя
-                'applied_district_filters' => !empty($districtIds), // Флаг применения фильтра по районам
-            ]
         ];
     }
 

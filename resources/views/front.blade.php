@@ -14,10 +14,12 @@
             text-overflow: ellipsis; /* Добавляем многоточие в конце обрезанного текста */
             width: 100%; /* Занимаем всю доступную ширину родителя */
         }
+        .dimmed-card {
+            opacity: 0.6;
+        }
+
     </style>
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
-
-
     @if(!empty($data) && count($data) > 0)
         <div class="parallax-container">
             <div class="parallax-bg" style="background-image: url('{{ $data[0]['subjs_data'][0]['path'] }}');"></div>
@@ -59,11 +61,14 @@
                                                         $subjData = $data[$i]['subjs_data'];
                                                     @endphp
                                                     @for ($j = 0; $j < $countSubj; $j++)
-                                                        <div class="col-lg-5 col-md-6 col-sm-12 restaurant-card"
-                                                             style="display: block; margin-bottom: 10px">
+                                                        <div class="col-lg-5 col-md-6 col-sm-12 restaurant-card
+    @if(!empty($arrayDistricts) && !in_array($data[$i]['subjs_data'][$j]['district_name'] ?? '', $arrayDistricts))
+        dimmed-card
+    @endif"
+                                                             style="display: block; margin-bottom: 10px;">
                                                             <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">
                                                                 <div class="restaurant-image">
-                                                                    <img src="{{$data[$i]['subjs_data'][$j]['path'] . '&cs=360x0'}}"
+                                                                    <img src="{{$data[$i]['subjs_data'][$j]['path']}}"
                                                                          alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
                                                                     <br>
                                                                 </div>
