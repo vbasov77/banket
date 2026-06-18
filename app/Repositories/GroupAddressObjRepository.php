@@ -149,8 +149,8 @@ LIMIT 1;";
                   AND fs.user_id = ?
             ) AS is_favorite,
             (
-                SELECT JSON_ARRAYAGG(path)
-                FROM img_subj
+                SELECT JSON_ARRAYAGG(small_img)
+                FROM img_ban_subj
                 WHERE subj_id = s.id
             ) AS image_paths_json
         FROM subjs s

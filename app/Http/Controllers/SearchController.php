@@ -97,10 +97,15 @@ class SearchController extends Controller
             session()->put('selected_filters', $filters);
 
             $data = $this->searchService->searchResults($request);
+            $arrayDistricts = null;
+            if(!empty(count(session('selected_filters')['district'])) > 0){
+                $arrayDistricts = session('selected_filters')['district'];
+            }
 
             return view('front', [
                 'data' => $data['data'],
-                'pagination' => $data['pagination']
+                'pagination' => $data['pagination'],
+                'arrayDistricts' => $arrayDistricts
             ]);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
@@ -203,7 +208,6 @@ class SearchController extends Controller
             return false;
         }
     }
-
 
 
 }

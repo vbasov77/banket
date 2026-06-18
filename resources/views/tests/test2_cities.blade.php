@@ -173,8 +173,8 @@
                                              data-id="{{ $value['id'] }}">
                                             <!-- Изображение -->
                                             <div class="position-relative">
-                                                @if($value['primaryImg'] && $value['primaryImg']->path)
-                                                    <img src="{{ $value['primaryImg']->path . '&cs=360x0' }}"
+                                                @if($value['primaryImg'] && $value['primaryImg']->small_img)
+                                                    <img src="{{ $value['primaryImg']->small_img}}"
                                                          class="card-img-top" alt="Фото субъекта"
                                                          style="height: 200px; object-fit: cover; @if($value['published'] == 0) opacity: .7; @endif">
                                                 @else
