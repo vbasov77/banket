@@ -33,6 +33,7 @@ class VkService extends Service
     {
         $accessToken = $this->keyRepository->accessToken();
         $server = $this->server($groupId, $accessToken, $albumId);
+        Log::channel('info_file')->info('server', [$server]);
         if (!empty($request->file('img'))) {
             sleep(0.5);
             $resizeImage = $this->imgService->compressImageIfLarge($request->file('img'));
@@ -49,12 +50,15 @@ class VkService extends Service
                 }
 
                 $json = json_decode($this->requestRepository->postFile($uploadUrl, $curlFile), true);
+                Log::channel('info_file')->info('json', [$json]);
+
                 // Проверка на ошибки от VK API
                 if (isset($json['error'])) {
-                    Log::error('VK API error during image upload', [
+                    Log::error('Проблема на втором этапе, Json', [
                         'error' => $json['error'],
                         'upload_url' => $uploadUrl
                     ]);
+
                     unlink($image);
                     return null;
                 }
@@ -65,6 +69,7 @@ class VkService extends Service
                         'received_data' => $json,
                         'upload_url' => $uploadUrl
                     ]);
+
                     unlink($image);
                     return null;
                 }
@@ -83,17 +88,20 @@ class VkService extends Service
 
                 $save = json_decode($this->requestRepository->post($urlSaveWallPhoto, $dataSaveWallPhoto));
 
+                Log::channel('info_file')->info('save', [$save]);
                 unlink($image); // Удаляем временный файл с сервера
 
                 if ($save && isset($save->response) && !empty($save->response)) {
                     return $save->response[0];
                 } else {
-                    Log::error('Failed to save photo in VK group', [
+                    Log::channel('error_file')->error('Проблема на 3-м этапе - Save', [
                         'save_response' => $save,
                         'data_sent' => $dataSaveWallPhoto
                     ]);
                     return null;
                 }
+            } else {
+                Log::channel('error_file')->error('Проблема на первом этапе - Сервер', [$server]);
             }
         }
 

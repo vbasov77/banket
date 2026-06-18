@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\ImgBanSubj;
 use App\Models\UserVk;
 use App\Repositories\KeyRepository;
 use App\Requests\VkRequests;
 use App\Services\ImgObjService;
 use App\Services\ImgSubjService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Session;
 
 
 class TestController extends Controller
@@ -41,22 +45,98 @@ class TestController extends Controller
 
     public function test()
     {
-        $user = UserVk::where('user_id', 1)->first();
-        $a = "";//"photo642803932_457239437, photo642803932_457239436, photo642803932_457239441, photo642803932_457239438, photo642803932_457239439, photo642803932_457239440, photo642803932_457239442";
+        return view('tests.test');
+    }
 
-        $params = [
-            'idVk' => $user->vk_id,
-            'group_id' => 227627516,
-            'owner_id' => "-" . 227627516,
-            'message' => "Привет",
-            'attachments' => $a,
-            'access_token' => $user->access_token,// 'vk1.a.SVS7VRWmfU_OP1raazxwVTePla_hvsCb2KRxQdVmslPYoN96CZu1HE5bSgxZE7NoOGzTGDTwciEnsuqz65WxEjyxV9c8hSzNlet825tlOyK8vsWULA78vw6LC7cre_XSfOJ3IRUfee06KyH7XMuYjWjoC1V8Tjr-V7iWdVcIzr_0ifoNanNIgVljbY-_4L0doBZcJPNUL7krTJN3nG57pA',
-            'v' => '5.131'
-        ];
+    public function upload(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240', // до 10 МБ
+        ]);
 
-        $result = $this->vkRequests->SendWallPost($params);
-        dd($result);
-//        return view('tests.test');
+        $imageFile = $request->file('image');
+        $originalFileName = $imageFile->getClientOriginalName();
+
+        try {
+            $imagebanConfig = config('services.imageban');
+
+            if (empty($imagebanConfig['client_id'])) {
+                throw new \Exception('CLIENT_ID не найден в конфигурации (services.php)');
+            }
+
+            // Проверка доступности файла
+            if (!is_readable($imageFile->getRealPath())) {
+                throw new \Exception('Файл не доступен для чтения: ' . $imageFile->getRealPath());
+            }
+
+            $response = Http::withHeaders([
+                'Authorization' => 'TOKEN ' . $imagebanConfig['client_id'],
+            ])->attach(
+                'image',
+                file_get_contents($imageFile->getRealPath()),
+                $originalFileName
+            )->post('https://api.imageban.ru/v1', [
+                'name' => $originalFileName // обязательное поле по документации
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['success']) && $data['success'] === true) {
+                    // Извлекаем ID изображения из ответа API
+                    $imageId = $data['data']['id'] ?? 'ID не найден';
+                    // Извлекаем URL изображения
+                    $imageUrl = $data['data']['link'] ?? 'URL не найден';
+
+                    // Добавляем запись в базу данных
+                    $imgBanSubj = new ImgBanSubj();
+                    $imgBanSubj->subj_id = $request->input('subj_id', 1); // Получаем subj_id из запроса, если не передан — ставим 1
+                    $imgBanSubj->img_id = $imageId;
+                    $imgBanSubj->path = $imageUrl;
+                    $imgBanSubj->save();
+
+                    Log::channel('info_file')->info('Запись добавлена в таблицу img_ban_subj', [
+                        'subj_id' => $imgBanSubj->subj_id,
+                        'img_id' => $imgBanSubj->img_id,
+                        'record_id' => $imgBanSubj->id,
+                    ]);
+
+                } else {
+                    // Извлекаем код и сообщение ошибки из ответа API
+                    $errorMessage = $data['error']['message'] ?? 'неизвестная ошибка';
+                    $errorCode = $data['error']['code'] ?? 'N/A';
+
+                    Log::channel('error_file')->error('Ошибка от imageban.ru API', [
+                        'filename' => $originalFileName,
+                        'error_code' => $errorCode,
+                        'error_message' => $errorMessage,
+                        'response_data' => $data,
+                    ]);
+
+                    Session::flash('error', 'Ошибка imageban.ru (код ' . $errorCode . '): ' . $errorMessage);
+                }
+            } else {
+                Log::channel('error_file')->error('HTTP‑ошибка при загрузке на imageban.ru', [
+                    'filename' => $originalFileName,
+                    'status_code' => $response->status(),
+                    'response_body' => $response->body(),
+                    'timestamp' => now()->toDateTimeString()
+                ]);
+
+                Session::flash('error', 'HTTP‑ошибка: ' . $response->status());
+            }
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Исключение при загрузке изображения', [
+                'filename' => $originalFileName,
+                'exception_message' => $e->getMessage(),
+                'stack_trace' => $e->getTraceAsString(),
+                'timestamp' => now()->toDateTimeString()
+            ]);
+
+            Session::flash('error', 'Произошла ошибка: ' . $e->getMessage());
+        }
+
+        return redirect()->route('test');
     }
 
     public function testCities()
@@ -67,13 +147,22 @@ class TestController extends Controller
     public function store(Request $request)
     {
 
-        $data = $this->imgSubjService->ImgSubjStore($request, $request->id);
-        dd($data);
+
     }
 
-    public function checkToken()
+    public function delete(Request $request)
     {
+        $imageId = 'xdPd0HF';
 
+        $imagebanConfig = config('services.imageban');
+
+        $url = 'https://api.imageban.ru/v1/image/delete/' . $imageId;
+
+        Http::withHeaders([
+            'Authorization' => 'Bearer ' . $imagebanConfig['client_secret'],
+        ])->delete($url);
+
+        return redirect()->route('test');
     }
 
 

@@ -112,7 +112,9 @@ Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name
 Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy')->middleware('auth');
 Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
+Route::get('/image_del', [TestController::class, 'delete']);
 Route::get('/test', [TestController::class, 'test'])->name("test");
+Route::post('/test_upload', [TestController::class, 'upload'])->name("upload.image");
 Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities");
 Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');

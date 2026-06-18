@@ -37,4 +37,8 @@ return [
         'redirect' => env('VK_REDIRECT_URI'),
     ],
 
+    'imageban' => [
+        'client_id' => env('IMAGEBAN_CLIENT_ID'),
+        'client_secret' => env('IMAGEBAN_API_KEY'),
+    ],
 ];
