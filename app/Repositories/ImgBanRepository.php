@@ -41,9 +41,9 @@ class ImgBanRepository extends Repository
                 'name' => $originalFileName // обязательное поле по документации
             ]);
 
+
             if ($response->successful()) {
                 $data = $response->json();
-
                 if (isset($data['success']) && $data['success'] === true) {
                     // Добавляем запись в базу данных
                     return [$data['data']['id'], $data['data']['link']] ?? 'URL не найден';

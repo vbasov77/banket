@@ -4,17 +4,17 @@
         <link href="{{ asset('subjs/css/search_address.css') }}" rel="stylesheet">
         <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
     @endpush
-    <div class="container mt-4">
+    <div class="container">
         <div class="row">
             @if (!empty($error))
                 <div class="alert alert-danger">
                     {{ $error }}
                 </div>
             @endif
-            <div class="col-md-8">
+            <div class="col-md-8 mt-5">
                 <div id="map" style="height: 500px; width: 100%; border: 1px solid #ddd;"></div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4 mt-5">
                 <h4>Добавить новую точку</h4>
                 <form id="addPointForm">
                     @csrf

@@ -7,10 +7,15 @@
     <section>
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5 justify-content-center">
-                <div class="col-lg-10">
+                <div class="col-lg-10 mt-5">
+                    <h3>Редактировать субъект</h3>
+                    <span>
+                        Субъект — это структурное подразделение вашей компании: например, банкетный зал, кафе или ресторан.
+                    </span>
+                    <br>
+                    <br>
                     <form action="{{route('update.subj')}}" method="post">
                         @csrf
-                        <h3 style="margin-top: 50px">Редактировать субъект</h3>
                         @if ($errors->any())
                             <div class="alert alert-danger">
                                 <ul>
@@ -250,7 +255,8 @@
                         <input style="margin-bottom: 50px" class="btn-festive-gradient btn-festive-gradient-blue"
                                type="submit"
                                value="Сохранить">
-                        <input id="office" style="margin-bottom: 50px; box-shadow: none;" class="btn-festive-gradient btn-festive-gradient-white"
+                        <input id="office" style="margin-bottom: 50px; box-shadow: none;"
+                               class="btn-festive-gradient btn-festive-gradient-white"
                                type="submit"
                                value="Перейти в панель">
                     </form>
@@ -264,7 +270,7 @@
         var checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxSiteType = document.getElementsByClassName('site_type');
 
-        document.getElementById('office').addEventListener('click', function(e) {
+        document.getElementById('office').addEventListener('click', function (e) {
             e.preventDefault()
             window.location.href = '{{route('my.obj')}}';
         });

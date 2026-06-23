@@ -2,14 +2,16 @@
 @section('content')
     <link href="{{ asset('css/tables.css') }}" rel="stylesheet">
     <link href="{{ asset('css/checkbox.css') }}" rel="stylesheet">
-    <section style="margin-top: 50px">
+    <section>
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5">
-                <div class="col-lg-12">
+                <div class="col-lg-12 mt-5">
+                    <h3>Добавьте детали вашего объекта {{$obj->name_obj}}</h3>
+                    <span>
+                       Детали объекта — это более подробная информация о вашем объекте.
+                    </span>
                     <form action="{{route('update.details_obj', ['id' => $obj->id])}}" method="post">
                         @csrf
-                        <h3>Добавьте детали вашего объекта {{$obj->name_obj}}</h3>
-                        <br>
                         <input type="hidden" name="obj_id" value="{{$obj->obj_id}}">
                         @if ($errors->any())
                             <div class="alert alert-danger">

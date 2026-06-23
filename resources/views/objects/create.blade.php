@@ -3,7 +3,7 @@
     <section style="margin-top: 50px" class="about-section" id="about">
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5 justify-content-center">
-                <div class="col-lg-8">
+                <div class="col-lg-8 mt-5">
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul>
@@ -13,16 +13,15 @@
                             </ul>
                         </div>
                     @endif
+                    <h3>Добавьте объект</h3>
+                    <small>
+                        (Объект - это обобщённое название вашей организации, в которой есть филиалы со своими
+                        названиями.)</small>
+                    <br>
+                    <br>
                     <form action="{{ route('store.obj') }}" method="post">
                         @csrf
-                        <h3>Добавьте объект</h3>
-                        <small>
-                            (Объект - это обобщённое название вашей организации, в которой есть филиалы со своими
-                            названиями.)</small>
-                        <br>
-                        <br>
                         <input type="hidden" name="user_id" value="{{ $user }}">
-
                         <label for="name_obj"><b>Название объекта</b></label><br>
                         <input type="text"
                                class="form-control @error('name_obj') is-invalid @enderror"

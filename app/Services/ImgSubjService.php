@@ -13,6 +13,7 @@ use App\Repositories\ImgSubjRepository;
 use App\Repositories\KeyRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 
@@ -57,18 +58,20 @@ class ImgSubjService extends Service
                 );
             }
             $position = $this->imgBanRepository->getNextPosition($id);
+            Log::channel('info_file')->info('data', [$photoBig[0], $smallPhoto[0]]);
 
-            $imgBanSubj = new ImgBanSubj();
-            $imgBanSubj->subj_id = $id; // Получаем subj_id из запроса, если не передан — ставим 1
-            $imgBanSubj->big_id = $photoBig[0][0];
-            $imgBanSubj->big_img = $photoBig[0][1];
-            $imgBanSubj->small_id = $smallPhoto[0][0];
-            $imgBanSubj->small_img = $smallPhoto[0][1];
-            $imgBanSubj->position = $position;
+            $data = [
+                'subj_id' => $id,
+                'big_id' => $photoBig[0],
+                'big_img' => $photoBig[1],
+                'small_id' => $smallPhoto[0],
+                'small_img' => $smallPhoto[1],
+                'position' => $position,
 
-            $imgBanSubj->save();
+            ];
+            $newImgId = ImgBanSubj::insertGetId($data);
 
-            return [$smallPhoto[0][1], $imgBanSubj->id];
+            return [$smallPhoto[1], $newImgId];
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ImgSubjService@ImgSubjStore: ' . $e->getMessage(),

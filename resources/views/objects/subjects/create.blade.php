@@ -15,22 +15,27 @@
     <link href="{{ asset('css/checkbox.css') }}" rel="stylesheet">
 
     <link href="{{ asset('css/tables.css') }}" rel="stylesheet">
-    <section style="margin-top: 50px">
+    <section>
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5">
-                <div class="col-lg-12">
+                <div class="col-lg-12 mt-5">
+                    <h3>Добавьте новый субъект</h3>
+                    <span>
+                        Субъект — это структурное подразделение вашей компании: например, банкетный зал, кафе или ресторан.
+                    </span>
+                    <br>
+                    <br>
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            <ul>
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                     <form action="{{route('store.subj')}}" method="post">
                         @csrf
-                        <h3>Добавьте новый субъект</h3>
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
                         <input type="hidden" name="obj_id" value="{{$objId}}">
                         <label for="name_subj"><b>Название</b></label><br>
                         <input type="text" maxlength="20" class="form-control @error('name_subj') is-invalid @enderror"

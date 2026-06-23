@@ -2,19 +2,22 @@
 @section('content')
     <link href="{{ asset('css/tables.css') }}" rel="stylesheet">
     <link href="{{ asset('css/checkbox.css') }}" rel="stylesheet">
-    <section style="margin-top: 50px">
+    <section>
         <div class="container px-4 px-lg-5">
             <div class="row gx-4 gx-lg-5">
-                <div class="col-lg-12">
+                <div class="col-lg-12 mt-5">
+                    @if($obj)
+                        <h3>Добавьте детали вашего объекта {{ $obj->name_obj }}</h3>
+
+                    @else
+                        <h3>Добавьте детали нового объекта</h3>
+                    @endif
+                    <span>
+                        Детали объекта — это более подробная информация о вашем объекте.
+                        </span>
                     <form action="{{route('store.details_obj')}}" method="post">
                         @csrf
-                        @if($obj)
-                            <h3>Добавьте детали вашего объекта {{ $obj->name_obj }}</h3>
-                            <input type="hidden" name="obj_id" value="{{ $obj->id }}">
-                        @else
-                            <h3>Добавьте детали нового объекта</h3>
-                            <input type="hidden" name="obj_id" value="">
-                        @endif
+                        <input type="hidden" name="obj_id" value="{{ $obj->id }}">
                         @if ($errors->any())
                             <div class="alert alert-danger">
                                 <ul>
@@ -48,7 +51,8 @@
                                                 Азиатская
                                             </label>
                                             <label class="checkbox-container">
-                                                <input name="kitchen[]" class="kitchen" type="checkbox" value="Европейская">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Европейская">
                                                 <span class="checkmark"></span>
                                                 Европейская
                                             </label>
@@ -286,7 +290,8 @@
                                             <!-- Поле для цены — показывается только если выбран вариант «За отдельную плату» -->
                                             <div id="alcoholPriceContainer" class="mt-2"
                                                  style="display: {{ old('alcohol') == '2' ? 'block' : 'none' }};">
-                                                <label for="alcohol_price">Цена доплаты за свой алкоголь за человека:</label>
+                                                <label for="alcohol_price">Цена доплаты за свой алкоголь за
+                                                    человека:</label>
                                                 <input id="alcohol_price"
                                                        name="alcohol_price"
                                                        type="number"
@@ -306,7 +311,7 @@
                                                        autocomplete="off">
                                             </div>
                                             <script>
-                                                document.addEventListener('DOMContentLoaded', function() {
+                                                document.addEventListener('DOMContentLoaded', function () {
                                                     const alcoholRadios = document.querySelectorAll('input[name="alcohol"][type="radio"]');
                                                     const alcoholPriceContainer = document.getElementById('alcoholPriceContainer');
                                                     const alcoholPriceInput = document.getElementById('alcohol_price');
@@ -401,7 +406,7 @@
                                         </div>
                                     </div>
                                     <script>
-                                        document.addEventListener('DOMContentLoaded', function() {
+                                        document.addEventListener('DOMContentLoaded', function () {
                                             const moreRadios = document.querySelectorAll('input[name="more"][type="radio"]');
                                             const morePriceContainer = document.getElementById('morePriceContainer');
                                             const morePriceInput = document.getElementById('more_price');

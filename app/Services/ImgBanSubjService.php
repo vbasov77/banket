@@ -35,7 +35,6 @@ class ImgBanSubjService extends Service
         unlink($image);
 
         return $imgPath;
-
     }
 
     /**
