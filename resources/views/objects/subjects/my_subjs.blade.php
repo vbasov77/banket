@@ -101,6 +101,11 @@
                                                                 <img src="{{ asset('icons/map.svg') }}"
                                                                      style="width: 18px; height: 18px;"
                                                                      alt="Карта {{$value['name_subj']}}"></a>
+                                                            <a title="Фотоальбом {{$value['name_subj']}}"
+                                                               href="{{route('edit.img_subj', ['id' => $value['id']])}}">
+                                                                <img src="{{ asset('icons/photo_st.svg') }}"
+                                                                     style="width: 18px; height: 18px;"
+                                                                     alt="Фотоальбом {{$value['name_subj']}}"></a>
                                                         </div>
 
                                                         <!-- Статус публикации -->

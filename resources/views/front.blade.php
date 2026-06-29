@@ -135,7 +135,7 @@
                                     @endif
                                     <div class="bg-light p-4 rounded-10 shadow-sm">
                                         <p class="lead text-muted" @style(['font-size: 18px'])>
-                                            {{ $data[$i]['details_obj']['text_obj'] }}
+                                            {{ $data[$i]['details_obj']['description'] }}
                                         </p>
                                     </div>
                                 </div>
@@ -230,7 +230,7 @@
                                         @endif
                                         <div class="bg-light p-4 rounded-10 shadow-sm">
                                             <p class="lead text-muted" @style(['font-size: 18px'])>
-                                                {{ $data[$i]['details_obj']['text_obj'] }}
+                                                {{ $data[$i]['details_obj']['description'] }}
                                             </p>
                                         </div>
                                     </div>

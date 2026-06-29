@@ -13,7 +13,7 @@
     <link href="{{ asset('css/lightbox/lightbox.css') }}" rel="stylesheet">
     <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
-{{--    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">--}}
+    {{--    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">--}}
 
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
@@ -141,12 +141,12 @@
                                 </button>
                             </div>
                             <script>
-                                document.addEventListener('DOMContentLoaded', function() {
+                                document.addEventListener('DOMContentLoaded', function () {
                                     const masked = document.getElementById('phone-masked');
                                     const full = document.getElementById('phone-full');
                                     const button = document.getElementById('toggle-phone');
 
-                                    button.addEventListener('click', function() {
+                                    button.addEventListener('click', function () {
                                         if (full.style.display === 'none') {
                                             // Показываем номер
                                             masked.style.display = 'none';
@@ -264,29 +264,31 @@
 
                                     @php($countSubj = count($subj['related_subjs']))
                                     @for ($j = 0; $j < $countSubj; $j++)
-                                        <div class="item-carousel">
-                                            <a href="{{ route('show.subj', ['id' => $subj['related_subjs'][$j]['subj_id']]) }}"
-                                               class="carousel-link">
-                                                <img
-                                                        class="item-carousel"
-                                                        src="{{ $subj['related_subjs'][$j]['image_path']}}"
-                                                        alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
-                                                >
-                                            </a>
-                                            <div class="details">
-                                                <h3 class="details-title">{{ $subj['related_subjs'][$j]['name_subj'] }}</h3>
-                                                <div class="details-info">
-                                                    <div class="detail">
-                                                        <span class="detail-label">Вместимость:</span>
-                                                        <span class="detail-value">
+                                        <div class="restaurant-card">
+                                            <div class="item-carousel">
+                                                <a href="{{ route('show.subj', ['id' => $subj['related_subjs'][$j]['subj_id']]) }}"
+                                                   class="carousel-link">
+                                                    <img
+                                                            class="item-carousel"
+                                                            src="{{ $subj['related_subjs'][$j]['image_path']}}"
+                                                            alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
+                                                    >
+                                                </a>
+                                                <div class="details">
+                                                    <h3 class="details-title">{{ $subj['related_subjs'][$j]['name_subj'] }}</h3>
+                                                    <div class="details-info">
+                                                        <div class="detail">
+                                                            <span class="detail-label">Вместимость:</span>
+                                                            <span class="detail-value">
                                         до {{ $subj['related_subjs'][$j]['capacity_to'] }} чел.
                                     </span>
-                                                    </div>
-                                                    <div class="detail">
-                                                        <span class="detail-label">Цена:</span>
-                                                        <span class="detail-value price">
+                                                        </div>
+                                                        <div class="detail">
+                                                            <span class="detail-label">Цена:</span>
+                                                            <span class="detail-value price">
                                         {{ number_format($subj['related_subjs'][$j]['minimum_cost'], 0, ' ', ' ') }} ₽
                                     </span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

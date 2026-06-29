@@ -20,6 +20,7 @@ class DetailsObj extends Model
         'service',
         'alcohol',
         'payment_methods',
+        'description',
         'text_obj',
     ];
 
@@ -34,8 +35,6 @@ class DetailsObj extends Model
     {
         return $this->belongsTo(Obj::class, 'obj_id');
     }
-
-
 
     public function subj()
     {

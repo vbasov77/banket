@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\ImgBanSubjService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,17 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    protected ImgBanSubjService $imgBanSubjService;
+
+    /**
+     * @param ImgBanSubjService $imgBanSubjService
+     */
+    public function __construct(ImgBanSubjService $imgBanSubjService)
+    {
+        $this->imgBanSubjService = $imgBanSubjService;
+    }
+
+
     /**
      * Display the user's profile form.
      */
@@ -82,20 +94,21 @@ class ProfileController extends Controller
                 ->withInput();
         }
 
+
         try {
             DB::beginTransaction();
 
+            $this->imgBanSubjService->destroyWithProfile($user->id);
             // Прямое SQL‑удаление без вызова модели
             $deleted = DB::table('users')->where('id', $user->id)->delete();
 
             if (!$deleted) {
                 throw new \Exception('Не удалось удалить пользователя из базы данных');
             }
-
             DB::commit();
             Auth::logout();
 
-            return redirect()->route('front', ['message'=>'Ваш профиль успешно удалён.']);
+            return redirect()->route('front', ['message' => 'Ваш профиль успешно удалён.']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::channel('error_file')->error('Ошибка удаления профиля (user_id: ' . $user->id . '): ' . $e->getMessage());

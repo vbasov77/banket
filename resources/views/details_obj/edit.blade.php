@@ -317,14 +317,13 @@
                                                 <label class="form-check-label" for="more-allowed">
                                                     Разрешено бесплатно
                                                 </label>
-
                                             </div>
 
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="more"
                                                        id="more-allowed"
                                                        value="1"
-                                                       {{ old('more', $morelValue ?? '') == '1' ? 'checked' : '' }}
+                                                       {{ old('more', $moreValue ?? '') == '1' ? 'checked' : '' }}
                                                        required>
                                                 <label class="form-check-label" for="more-allowed">
                                                     Запрещено
@@ -364,6 +363,21 @@
                                 </td>
                             </tr>
                         </table>
+                        <br>
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Описание объекта (до 150 символов)</label>
+                            <textarea
+                                    name="description"
+                                    id="description"
+                                    class="form-control"
+                                    rows="4"
+                                    maxlength="150"
+                                    placeholder="Например: банкетный зал на 120 гостей, панорамные окна, своя кухня"
+                            >{{ old('description', $obj->description ?? '') }}</textarea>
+                            <div class="form-text text-end">
+                                <span id="description_counter">0</span> / 150 символов
+                            </div>
+                        </div>
 
                         <br>
                         <div>
@@ -385,6 +399,25 @@
             </div>
         </div>
     </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('description');
+            const counter = document.getElementById('description_counter');
+
+            if (textarea && counter) {
+                const updateCounter = () => {
+                    const length = textarea.value.length;
+                    counter.textContent = length;
+                };
+
+                // При загрузке считаем текущее значение (old или из модели)
+                updateCounter();
+
+                textarea.addEventListener('input', updateCounter);
+            }
+        });
+
+    </script>
     <script>
         let checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxKitchen = document.getElementsByClassName('kitchen');

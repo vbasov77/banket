@@ -1,4 +1,4 @@
-<?php
+
 
 namespace App\Http\Controllers\Auth;
 
@@ -32,7 +32,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -45,10 +45,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // Отправляем письмо для подтверждения email
-        $user->sendEmailVerificationNotification();
-
-        $message = "Регистрация прошла успешно. На ваш email $request->email была выслана ссылка на подтверждение.\n 
+        $message = "Регистрация прошла успешно. На ваш email $request->email была выслана ссылка на подтверждение.\n
 Пройдите по ней, чтобы подтвердить почту. Если письма не пришло, проверьте папку «Спам».\nЕсли вы неправильно указали email, удалите профиль!";
         return redirect(route('profile.show', ['message' => $message]));
     }

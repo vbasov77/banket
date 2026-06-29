@@ -84,5 +84,11 @@ function handlePublish(button) {
                     opacity.style.opacity = '1';
                 }
             }
+            if (data.answer === 'no') {
+                alert(data.message);
+            }
+            if (data.answer === 'no_address') {
+                alert(data.message);
+            }
         });
 }

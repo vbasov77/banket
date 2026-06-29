@@ -5,10 +5,12 @@ namespace App\Services;
 
 
 use App\Models\ImgBanSubj;
+use App\Models\ImgObj;
 use App\Repositories\ImgBanRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Intervention\Image\Drivers\Gd\Driver;
 use Intervention\Image\ImageManager;
@@ -27,7 +29,7 @@ class ImgBanSubjService extends Service
 
     public function createInImgBan(Request $request, int $const)
     {
-        $resizeImage= $this->compressImageIfLarge($const, $request->file('img'));
+        $resizeImage = $this->compressImageIfLarge($const, $request->file('img'));
         $img = $resizeImage['path'];
         $image = __DIR__ . "/../../public/" . $img;
         $uploadedFile = $this->getFile($image);
@@ -212,4 +214,45 @@ class ImgBanSubjService extends Service
             throw $e;
         }
     }
+
+    public function destroyWithProfile(int $userId)
+    {
+        $ids = collect();
+
+        // photo_id из img_obj
+        $ids->push(
+            ImgObj::whereHas('obj', fn($q) => $q->where('user_id', $userId))
+                ->pluck('photo_id')
+        );
+        // big_id из img_ban_subj
+        $ids->push(
+            ImgBanSubj::whereHas('subject.obj', fn($q) => $q->where('user_id', $userId))
+                ->whereNotNull('big_id')
+                ->pluck('big_id')
+        );
+
+        // small_id из img_ban_subj
+        $ids->push(
+            ImgBanSubj::whereHas('subject.obj', fn($q) => $q->where('user_id', $userId))
+                ->whereNotNull('small_id')
+                ->pluck('small_id')
+        );
+
+        $photoIds = $ids->flatten()->filter()->toArray();
+
+        $total = count($photoIds);
+
+        for ($i = 0; $i < $total; $i++) {
+            $id = $photoIds[$i];
+
+            // (опционально) пауза, чтобы не упереться в лимиты API
+            if ($i > 0 && $i % 10 === 0) {
+                usleep(200000); // 0.2 сек каждые 10 запросов
+            }
+
+            $this->imgBanRepository->delete($id);
+        }
+
+    }
+
 }

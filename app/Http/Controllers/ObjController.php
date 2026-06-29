@@ -34,6 +34,11 @@ class ObjController extends Controller
      */
     public function create(): View
     {
+        $obj = Obj::where('user_id', Auth::id())->first();
+        if ($obj) {
+            return view('objects.error', ['id' => $obj->id]);
+        }
+
         try {
             $userId = Auth::id();
 
@@ -75,14 +80,18 @@ class ObjController extends Controller
 
     /**
      * @param CreateObjRequest $request
-     * @return RedirectResponse
+     * @return RedirectResponse|View
      * @throws ValidationException
      */
-    public function store(CreateObjRequest $request): RedirectResponse
+    public function store(CreateObjRequest $request): RedirectResponse|View
     {
+        $obj = Obj::where('user_id', Auth::id())->first();
+        if ($obj) {
+            return view('objects.error', ['id' => $obj->id]);
+        }
+
         try {
             $obj = $this->objService->store($request->validated());
-
             return redirect()->route("create.details_obj", ['obj' => $obj]);
         } catch (ValidationException $e) {
             Log::channel('error_file')->error(
@@ -164,7 +173,6 @@ class ObjController extends Controller
             abort(500, 'Internal server error');
         }
     }
-
 
 
     /**

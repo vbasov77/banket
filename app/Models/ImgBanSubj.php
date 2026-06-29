@@ -64,4 +64,5 @@ class ImgBanSubj extends Model
         return $this->belongsTo(Subj::class, 'subj_id');
     }
 
+
 }

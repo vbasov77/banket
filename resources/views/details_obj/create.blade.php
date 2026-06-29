@@ -439,6 +439,21 @@
                             </tr>
                         </table>
                         <br>
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-bold">Описание объекта (до 150 символов)</label>
+                            <textarea
+                                    name="description"
+                                    id="description"
+                                    class="form-control"
+                                    rows="4"
+                                    maxlength="150"
+                                    placeholder="Например: банкетный зал на 120 гостей, панорамные окна, своя кухня"
+                            >{{ old('description', $obj->description ?? '') }}</textarea>
+                            <div class="form-text text-end">
+                                <span id="description_counter">0</span> / 150 символов
+                            </div>
+                        </div>
+                        <br>
                         <div>
                             <label for="text_obj"><b>Описание:</b></label><br>
                             <textarea class="form-control" placeholder="Введите текст..." name="text_obj" id="text_obj"
@@ -453,6 +468,23 @@
             </div>
         </div>
     </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('description');
+            const counter = document.getElementById('description_counter');
+
+            if (textarea && counter) {
+                const updateCounter = () => {
+                    const length = textarea.value.length;
+                    counter.textContent = length;
+                };
+
+                updateCounter();
+                textarea.addEventListener('input', updateCounter);
+            }
+        });
+
+    </script>
     <script>
         let checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxKitchen = document.getElementsByClassName('kitchen');

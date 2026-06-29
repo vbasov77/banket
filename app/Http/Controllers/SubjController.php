@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Subj\CreateSubjRequest;
 use App\Http\Requests\Subj\EditSubjRequest;
+use App\Models\AddressSubj;
+use App\Models\ImgBanSubj;
 use App\Models\Obj;
 use App\Models\Subj;
 use App\Services\ObjService;
@@ -16,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -168,7 +171,7 @@ class SubjController extends Controller
                     $subj['obj']['obj_id']
                 );
             }
-   
+
             return view('objects.subjects.show', [
                 'subj' => $subj,
                 'nearestObjects' => $nearestObjects
@@ -392,6 +395,23 @@ class SubjController extends Controller
      */
     public function published(Request $request): JsonResponse
     {
+        $subjId = (int)$request->id;
+        $address = AddressSubj::where('subj_id', $subjId)->exists();
+        if (!$address) {
+            return response()->json([
+                'answer' => 'no_address',
+                'message' => 'Сначала добавьте адрес' // Исправлено сообщение
+            ]);
+        }
+
+        $img = ImgBanSubj::where('subj_id', $subjId)->exists();
+        if (!$img) {
+            return response()->json([
+                'answer' => 'no',
+                'message' => 'Сначала добавьте фото' // Исправлено сообщение
+            ]);
+        }
+
         try {
             $user = auth()->user();
             if (!$user) {
@@ -401,12 +421,12 @@ class SubjController extends Controller
                 ], 401);
             }
 
-            $subj = Subj::with('obj')->findOrFail($request->id);
+            $subj = Subj::with('obj')->findOrFail($subjId);
 
             // Проверка прав доступа через метод модели isAuthor()
             if (!$subj->isAuthor()) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [
-                    'subj_id' => $subj->id,
+                    'subj_id' => $subjId,
                     'user_id' => auth()->id(),
                     'model_user_id' => 'null', // Всегда null для Subj
                     'related_obj_user_id' => $subj->obj->user_id ?? 'null'

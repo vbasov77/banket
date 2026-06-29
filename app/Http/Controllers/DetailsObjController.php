@@ -4,10 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\DetailsObj\CreateDetailsObjRequest;
 use App\Http\Requests\DetailsObj\EditDetailsObjRequest;
+use App\Models\DetailsObj;
+use App\Models\Obj;
 use App\Services\DetailsObjService;
 use App\Services\ObjService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -28,6 +32,11 @@ class DetailsObjController extends Controller
      */
     public function create(): View
     {
+        $detailsId = DB::table('objs')->where('user_id', Auth::id())->leftJoin('details_obj', 'objs.id', '=', 'details_obj.obj_id')->value('details_obj.id');
+        if ($detailsId) {
+            return view('details_obj.error', ['id' => $detailsId]);
+        }
+
         try {
             $obj = $this->objService->findObjByUserId();
             return view('details_obj.create', ['obj' => $obj]);
@@ -49,10 +58,15 @@ class DetailsObjController extends Controller
 
     /**
      * @param CreateDetailsObjRequest $request
-     * @return RedirectResponse
+     * @return RedirectResponse|View
      */
-    public function store(CreateDetailsObjRequest $request): RedirectResponse
+    public function store(CreateDetailsObjRequest $request): RedirectResponse|View
     {
+        $detailsId = DB::table('objs')->where('user_id', Auth::id())->leftJoin('details_obj', 'objs.id', '=', 'details_obj.obj_id')->value('details_obj.id');
+        if ($detailsId) {
+            return view('details_obj.error', ['id' => $detailsId]);
+        }
+
         try {
             $data = $request->validated();
             $this->detailsObjService->store($data);
@@ -90,11 +104,11 @@ class DetailsObjController extends Controller
             $alcoholData = null;
             $moreData = null;
 
-            if ($obj && $obj->alcohol) {
+            if ($obj && isset($obj->alcohol)) {
                 $alcoholData = $this->parseJsonValue($obj->alcohol);
             }
 
-            if ($obj && $obj->more) {
+            if ($obj && isset($obj->more)) {
                 $moreData = $this->parseJsonValue($obj->more);
             }
 
@@ -164,7 +178,7 @@ class DetailsObjController extends Controller
     private function parseJsonValue(string $jsonValue): array
     {
         try {
-            if (empty($jsonValue)) {
+            if (!isset($jsonValue)) {
                 return ['value' => '', 'price' => 0];
             }
 
