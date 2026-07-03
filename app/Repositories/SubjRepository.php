@@ -234,6 +234,7 @@ class SubjRepository extends Repository
         FROM subjs rs
         WHERE rs.obj_id = s.obj_id
           AND rs.id != s.id
+          AND rs.published = 1
     ) AS related_subjs_json
 FROM subjs s
 LEFT JOIN objs o ON s.obj_id = o.id
@@ -246,7 +247,6 @@ WHERE s.id = ?  -- ID ресторана
 LIMIT 1;";
             $userId = Auth::id();
             $results = DB::select($sql, [$userId, $id]);
-
             // DB::select возвращает массив, даже если одна строка
             if (empty($results)) {
                 return null;

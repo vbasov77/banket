@@ -15,6 +15,11 @@
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     {{--    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">--}}
 
+    <style>
+        .restaurant-card {
+            margin-top: 0px;
+        }
+    </style>
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
             <div class="parallax-bg" style="background-image: url('{{ $subj['image_paths'][0] }}');"></div>
@@ -266,11 +271,8 @@
                                     @for ($j = 0; $j < $countSubj; $j++)
                                         <div class="restaurant-card">
                                             <div class="item-carousel">
-                                                <a href="{{ route('show.subj', ['id' => $subj['related_subjs'][$j]['subj_id']]) }}"
-                                                   class="carousel-link">
-                                                    <img
-                                                            class="item-carousel"
-                                                            src="{{ $subj['related_subjs'][$j]['image_path']}}"
+                                                <a href="{{ route('show.subj', ['id' => $subj['related_subjs'][$j]['subj_id']]) }}">
+                                                    <img class="restaurant-image" src="{{ $subj['related_subjs'][$j]['image_path']}}"
                                                             alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
                                                     >
                                                 </a>

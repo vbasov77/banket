@@ -34,6 +34,29 @@
 
     .city-selector {
         margin-left: 10px;
+        font-size: 13px;
+    }
+
+    /* Кнопка закрытия (крестик) внутри меню */
+    .close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        color: #ff5722;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        line-height: 1;
+    }
+
+    @media (max-width: 480px) {
+        /* Крестик на очень маленьких экранах */
+        .close-btn {
+            top: 8px;
+            right: 8px;
+            font-size: 20px;
+        }
     }
 </style>
 
@@ -45,7 +68,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('front') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200"/>
+                        <img src="{{ asset('icons/restaurant.svg') }}" alt="feast boom">
                     </a>
                     <div class="city-selector">
                         <button type="button" id="openCityModal" class="city-btn">
@@ -56,11 +79,11 @@
                 <!-- Кнопка для открытия модального окна -->
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('front')" :active="request()->routeIs('front')">
-                        Banquet
-                    </x-nav-link>
-                </div>
+{{--                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">--}}
+{{--                    <x-nav-link :href="route('front')" :active="request()->routeIs('front')">--}}
+{{--                        Banquet--}}
+{{--                    </x-nav-link>--}}
+{{--                </div>--}}
             </div>
 
             <!-- Settings Dropdown or Login Link -->

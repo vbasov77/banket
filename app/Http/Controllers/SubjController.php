@@ -158,11 +158,24 @@ class SubjController extends Controller
      */
     public function show(Request $request): View
     {
-
-
         try {
             $id = $request->id;
+
+            $subjModel = Subj::with('obj')->find($id);
+
             $subj = $this->subjService->findById($id);
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subjModel->id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
+                ]);
+
+                return \view('objects.subjects.error');
+            }
+
             $nearestObjects = null;
             if (!empty($subj['longitude'])) {
                 $nearestObjects = $this->subjService->findNearestObjects(

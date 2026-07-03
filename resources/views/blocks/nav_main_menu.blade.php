@@ -94,22 +94,7 @@
         transform: rotate(90deg);
     }
 
-    /* Кнопка закрытия (крестик) внутри меню */
-    .close-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: none;
-        color: white;
-        border: none;
-        font-size: 28px;
-        cursor: pointer;
-        line-height: 1;
-    }
 
-    .close-btn:hover {
-        color: #ff5722;
-    }
 
     /* Адаптивные стили для мобильных устройств */
     @media (max-width: 768px) {
@@ -199,12 +184,7 @@
             font-size: 14px;
         }
 
-        /* Крестик на очень маленьких экранах */
-        .close-btn {
-            top: 8px;
-            right: 8px;
-            font-size: 20px;
-        }
+
 
         /* Дополнительные отступы для контента на маленьких экранах */
         .content {

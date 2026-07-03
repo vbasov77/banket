@@ -125,22 +125,6 @@
     }
 }
 
-@media (max-width: 480px) {
-    .btn-festive-gradient {
-        border-radius: 35px;           /* Ещё мягче углы */
-        padding: 10px 22px;          /* Минимизация отступов */
-        font-size: 14px;            /* Мелкий шрифт для смартфонов */
-        letter-spacing: 0.7px;
-        box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.15);
-    }
-
-
-    .btn-festive-gradient:hover {
-        transform: scale(1.02) translateY(-1px); /* Лёгкая анимация */
-        box-shadow: 0 3.5px 12px rgba(0, 0, 0, 0.2);
-    }
-}
-
 .hero-section {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 15px;
@@ -220,6 +204,14 @@
     line-height: 1.25;
 }
 
+li.page-item {
+    margin: 3px;
+}
+
+.leaflet-control-attribution {
+    display: none !important;
+}
+
 /* Адаптация для узких экранов */
 @media (max-width: 768px) {
     .festival {
@@ -232,11 +224,19 @@
     }
 }
 
-li.page-item {
-    margin: 3px;
-}
+@media (max-width: 480px) {
+    .btn-festive-gradient {
+        border-radius: 35px;           /* Ещё мягче углы */
+        padding: 10px 22px;          /* Минимизация отступов */
+        font-size: 14px;            /* Мелкий шрифт для смартфонов */
+        letter-spacing: 0.7px;
+        box-shadow: 0 2.5px 10px rgba(0, 0, 0, 0.15);
+    }
 
-.leaflet-control-attribution {
-    display: none !important;
+
+    .btn-festive-gradient:hover {
+        transform: scale(1.02) translateY(-1px); /* Лёгкая анимация */
+        box-shadow: 0 3.5px 12px rgba(0, 0, 0, 0.2);
+    }
 }
 
