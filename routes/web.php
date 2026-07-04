@@ -41,8 +41,8 @@ Route::get('/group_address/{id}', [GroupAddressObjController::class, 'show'])->n
 Route::get('/get-cities', [CityController::class, 'getCities'])->name('get-cities');
 Route::post('/set-city', [CityController::class, 'setCity'])->name('set-city');
 Route::get('/api/districts-by-city', [CityController::class, 'getDistrictsByCity'])->name('api.districts.by.city');
-Route::get('/city-district', [CityDistrictController::class, 'create'])->name('city-district.create');
-Route::post('/city-district', [CityDistrictController::class, 'store'])->name('city-district.store');
+Route::get('/city-district', [CityDistrictController::class, 'create'])->name('city-district.create')->middleware('admin');
+Route::post('/city-district', [CityDistrictController::class, 'store'])->name('city-district.store')->middleware('admin');
 
 Route::get('/map_edit/subj{id}', [MapPointController::class, 'edit'])->name('map.edit')->middleware('auth');
 Route::post('/map/points', [MapPointController::class, 'addSubjectToMap'])->name('map_subj.points.store');

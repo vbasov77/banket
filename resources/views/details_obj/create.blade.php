@@ -348,28 +348,27 @@
                                     <div>
                                         <label><b>Свои фрукты, другое:</b></label>
                                         <div class="radio-group">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="more"
-                                                       id="more-forbidden"
-                                                       value="0"
-                                                       {{ old('more') == '0' ? 'checked' : '' }}
-                                                       required>
-                                                <label class="form-check-label" for="more-forbidden">
-                                                    Запрещено
-                                                </label>
-                                            </div>
 
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="more"
                                                        id="more-allowed"
-                                                       value="1"
-                                                       {{ old('more') == '1' ? 'checked' : '' }}
+                                                       value="0"
+                                                       {{ old('more') == '0' ? 'checked' : '' }}
                                                        required>
                                                 <label class="form-check-label" for="more-allowed">
                                                     Разрешено бесплатно
                                                 </label>
                                             </div>
-
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="more"
+                                                       id="more-forbidden"
+                                                       value="1"
+                                                       {{ old('more') == '1' ? 'checked' : '' }}
+                                                       required>
+                                                <label class="form-check-label" for="more-forbidden">
+                                                    Запрещено
+                                                </label>
+                                            </div>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="more"
                                                        id="more-paid"

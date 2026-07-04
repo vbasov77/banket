@@ -84,7 +84,6 @@ class ImgObjService extends Service
         if (!empty($request->file('img'))) {
             try {
                 $oldImg = $this->imgObjRepository->findImgById($id);
-                Log::channel('info_file')->info('photo id', [$oldImg[0]->photo_id]);
                 $photo = $this->imgBanSubjService->createInImgBan($request, 360);
                 $data = [
                     'path' => $photo[1],

@@ -57,7 +57,7 @@ class ImgSubjRepository extends Repository
         DB::beginTransaction();
         try {
             foreach ($orderData as $index => $id) {
-                DB::table('img_subj')
+                DB::table('img_ban_subj')
                     ->where('id', $id)
                     ->update(['position' => $index]);
             }

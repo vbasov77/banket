@@ -1,13 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Добавить фото</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+@extends('layouts.app')
+@section('content')
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css"
           integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g=="
@@ -258,220 +250,237 @@
 
     </style>
 
-</head>
-{{--<link href="{{ asset('css/messages/messages.css') }}" rel="stylesheet">--}}
-<body>
-<div class="container p-3">
-    <div class="row">
-        <div class="col-md-12">
-            @if (session('message'))
-                <h3 style="color:green">{{ session('message') }}</h3>
-            @endif
-        </div>
-        <section>
-            <div class="container px-4 px-lg-5">
-                <div class="row gx-4 gx-lg-5 justify-content-center">
-                    <div class="col-lg-10">
-                        <br>
-                        @if (!empty($message))
-                            <div class="alert alert-success">
-                                {{$message}}
-                            </div>
-                        @endif
-
-                        <div class="col-md-12">
-                            @if(count($images) > 0)
-                                <h3 style="margin: 40px 0 60px 0">Редактировать фото</h3>
-                            @else
-                                <h3 style="margin: 40px 0 60px 0">Добавьте фото</h3>
+    <div class="container p-3">
+        <div class="row">
+            <div class="col-md-12">
+                @if (session('message'))
+                    <h3 style="color:green">{{ session('message') }}</h3>
+                @endif
+            </div>
+            <section>
+                <div class="container px-4 px-lg-5">
+                    <div class="row gx-4 gx-lg-5 justify-content-center">
+                        <div class="col-lg-10 mb-5">
+                            <br>
+                            @if (!empty($message))
+                                <div class="alert alert-success">
+                                    {{$message}}
+                                </div>
                             @endif
-                            <div class="justify-content-center">
-                                <div class="table-responsive">
-                                    <div id="example1_wrapper"
-                                         class="dataTables_wrapper container-fluid dt-bootstrap4">
-                                        <div class="row justify-content-center">
-                                            <div class="col-sm-10">
-                                                <ul id="post_sortable" class="post_list_ul">
-                                                    @foreach ($images as $image)
-                                                        <li class="ui-state-default myClass" id="{{$image->id}}"
-                                                            data-id="{{$image->id}}">
-                                                            <span class="pos_num">{{$loop->index + 1}}</span>
-                                                            <img class="zoom img-fluid box3 del"
-                                                                 src="{{$image->small_img}}"
-                                                                 data-file="{{$image->id}}">
-                                                            <div class="round-popup">
-                                                                <button
 
-                                                                        type="button"
-                                                                        class="close"
-                                                                ><span data-id="{{$image->id}}">&times;</span>
-                                                                </button>
-                                                            </div>
-                                                        </li>
-                                                    @endforeach
-                                                </ul>
+                            <div class="col-md-12">
+                                @if(count($images) > 0)
+                                    <h3 style="margin: 40px 0 60px 0">Редактировать фото</h3>
+                                @else
+                                    <h3 style="margin: 40px 0 60px 0">Добавьте фото</h3>
+                                @endif
+                                <div class="justify-content-center">
+                                    <div class="table-responsive">
+                                        <div id="example1_wrapper"
+                                             class="dataTables_wrapper container-fluid dt-bootstrap4">
+                                            <div class="row justify-content-center">
+                                                <div class="col-sm-10">
+                                                    <ul id="post_sortable" class="post_list_ul">
+                                                        @foreach ($images as $image)
+                                                            <li class="ui-state-default myClass" id="{{$image->id}}"
+                                                                data-id="{{$image->id}}">
+                                                                <span class="pos_num">{{$loop->index + 1}}</span>
+                                                                <img class="zoom img-fluid box3 del"
+                                                                     src="{{$image->small_img}}"
+                                                                     data-file="{{$image->id}}">
+                                                                <div class="round-popup">
+                                                                    <button
+
+                                                                            type="button"
+                                                                            class="close"
+                                                                    ><span data-id="{{$image->id}}">&times;</span>
+                                                                    </button>
+                                                                </div>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- /.card-body -->
                                 </div>
-                                <!-- /.card-body -->
                             </div>
-                        </div>
 
-                        <br>
-                        <br>
-                        <label for="files">Фото</label>
-                        <input class="form-control" type="file" multiple="multiple" accept="image/*" id="files"
-                               name="img[]"/>
-                        <br>
-                        <a href="{{route('edit.subj', ['id' => $subj])}}" class="btn btn-outline-success btn-sm">Вернуться
-                            в редактирование</a>
+                            <br>
+                            <br>
+                            <label for="files">Фото</label>
+                            <input class="form-control" type="file" multiple="multiple" accept="image/*" id="files"
+                                   name="img[]"/>
+                            <br>
+                            <a href="{{route('edit.subj', ['id' => $subj])}}"
+                               class="btn-festive-gradient btn-festive-gradient-green">В редактирование субъекта</a>
+
+                            <a href="{{route('my.obj')}}" class="btn-festive-gradient btn-festive-gradient-white">В
+                                панель</a>
+                            <br>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
     </div>
-</div>
 
-<script>
-    window.imgSubjStore = '{{route('img_subj.store')}}';
+    <script>
+        window.imgSubjStore = '{{route('img_subj.store')}}';
+        const MAX_PHOTOS = 10;
+        const counterEl = document.querySelector('.photo-counter') || (function () {
+            const el = document.createElement('div');
+            el.className = 'photo-counter';
+            el.style.cssText = 'margin-bottom:10px; font-weight:bold; color:#1976d2;';
+            document.querySelector('#post_sortable')?.before(el);
+            return el;
+        })();
 
-    // Назначаем обработчики для тач и клика
-    function del() {
-        document.querySelectorAll('.close').forEach(button => {
-            button.removeEventListener('click', handleDeleteClick);
-            button.removeEventListener('touchstart', handleDeleteClick);
-
-            button.addEventListener('click', handleDeleteClick);
-            button.addEventListener('touchstart', handleDeleteClick, { passive: false });
-        });
-    }
-
-
-    function handleDeleteClick(e) {
-        // Предотвращаем дублирование событий
-        e.preventDefault();
-        e.stopPropagation();
-
-        const span = e.target.closest('.close span[data-id]');
-        if (!span) return;
-
-        if (confirm('Подтвердите удаление')) {
-            const id = span.getAttribute('data-id');
-            sendDel('/delete_subj_img/' + id, id);
-        } else {
-            alert('Удаление отменено');
+        function updateCounter() {
+            const count = document.querySelectorAll('#post_sortable li').length;
+            counterEl.textContent = `Загружено фото: ${count} / ${MAX_PHOTOS}`;
+            counterEl.style.color = count >= MAX_PHOTOS ? '#c62828' : '#1976d2';
         }
-    }
 
+        updateCounter();
 
+        // Назначаем обработчики для тач и клика
+        function del() {
+            document.querySelectorAll('.close').forEach(button => {
+                button.removeEventListener('click', handleDeleteClick);
+                button.removeEventListener('touchstart', handleDeleteClick);
 
-    function createParticleEffect(element) {
-        const rect = element.getBoundingClientRect();
-        const container = document.body;
-        const particlesCount = 80; // Увеличил с 30 до 80 частиц
-
-        // Получаем цвет элемента для частиц (можно заменить на фиксированный)
-        const elementColor = window.getComputedStyle(element).color;
-
-        for (let i = 0; i < particlesCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-
-            // Случайный размер частицы (1–8 px)
-            const size = Math.random() * 7 + 1;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-
-            // Позиция частицы — случайная точка внутри элемента
-            const x = Math.random() * rect.width;
-            const y = Math.random() * rect.height;
-
-            particle.style.left = `${rect.left + x}px`;
-            particle.style.top = `${rect.top + y}px`;
-            particle.style.color = elementColor; // Цвет из элемента
-
-            // Анимация движения
-            const angle = Math.random() * Math.PI * 2; // Случайный угол
-            const speed = Math.random() * 200 + 100; // Скорость
-            const distance = Math.random() * 150 + 120; // Дистанция
-
-            const endX = x + Math.cos(angle) * distance;
-            const endY = y + Math.sin(angle) * distance;
-
-            container.appendChild(particle);
-
-            // Анимируем частицу с вариациями
-            particle.animate([
-                {
-                    transform: `translate(0, 0) scale(1)`,
-                    opacity: 1
-                },
-                {
-                    transform: `translate(${endX}px, ${endY}px) scale(${Math.random() * 0.3 + 0.1})`,
-                    opacity: Math.random() * 0.3
-                }
-            ], {
-                duration: Math.random() * 400 + 500, // Длительность 500–900 мс
-                easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-                fill: 'forwards'
+                button.addEventListener('click', handleDeleteClick);
+                button.addEventListener('touchstart', handleDeleteClick, {passive: false});
             });
-
-            // Удаляем частицу после анимации
-            setTimeout(() => particle.remove(), 900);
         }
 
-        // Плавно скрываем исходный элемент
-        element.style.transition = 'opacity 0.2s ease-out';
-        element.style.opacity = '0';
-    }
 
-    async function sendDel(url, id) {
-        let response = await fetch(url, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        function handleDeleteClick(e) {
+            // Предотвращаем дублирование событий
+            e.preventDefault();
+            e.stopPropagation();
+
+            const span = e.target.closest('.close span[data-id]');
+            if (!span) return;
+
+            if (confirm('Подтвердите удаление')) {
+                const id = span.getAttribute('data-id');
+                sendDel('/delete_subj_img/' + id, id);
+            } else {
+                alert('Удаление отменено');
             }
-        });
-        let result = await response.json();
-        if (result.answer === 'ok') {
-            const elementToDelete = document.getElementById(id);
-            createParticleEffect(elementToDelete);
-
-            setTimeout(() => {
-                elementToDelete.remove();
-                sortable();
-            }, 900); // 900 мс = максимальная длительность анимации частиц
-        } else {
-            alert(result);
         }
-    }
 
 
-    del();
+        function createParticleEffect(element) {
+            const rect = element.getBoundingClientRect();
+            const container = document.body;
+            const particlesCount = 80; // Увеличил с 30 до 80 частиц
 
-    function sortable() {
-        // Получаем все элементы списка в текущем порядке (включая перетащенные)
-        const items = document.querySelectorAll('.post_list_ul li');
+            // Получаем цвет элемента для частиц (можно заменить на фиксированный)
+            const elementColor = window.getComputedStyle(element).color;
 
-        items.forEach((item, index) => {
-            // Находим элемент с номером
-            const posNum = item.querySelector('.pos_num');
+            for (let i = 0; i < particlesCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
 
-            if (posNum) {
-                // Присваиваем номер по порядку (начиная с 1)
-                posNum.textContent = index + 1;
+                // Случайный размер частицы (1–8 px)
+                const size = Math.random() * 7 + 1;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+
+                // Позиция частицы — случайная точка внутри элемента
+                const x = Math.random() * rect.width;
+                const y = Math.random() * rect.height;
+
+                particle.style.left = `${rect.left + x}px`;
+                particle.style.top = `${rect.top + y}px`;
+                particle.style.color = elementColor; // Цвет из элемента
+
+                // Анимация движения
+                const angle = Math.random() * Math.PI * 2; // Случайный угол
+                const speed = Math.random() * 200 + 100; // Скорость
+                const distance = Math.random() * 150 + 120; // Дистанция
+
+                const endX = x + Math.cos(angle) * distance;
+                const endY = y + Math.sin(angle) * distance;
+
+                container.appendChild(particle);
+
+                // Анимируем частицу с вариациями
+                particle.animate([
+                    {
+                        transform: `translate(0, 0) scale(1)`,
+                        opacity: 1
+                    },
+                    {
+                        transform: `translate(${endX}px, ${endY}px) scale(${Math.random() * 0.3 + 0.1})`,
+                        opacity: Math.random() * 0.3
+                    }
+                ], {
+                    duration: Math.random() * 400 + 500, // Длительность 500–900 мс
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    fill: 'forwards'
+                });
+
+                // Удаляем частицу после анимации
+                setTimeout(() => particle.remove(), 900);
             }
-        });
-    }
 
-    function createUploadPlaceholder(fileId) {
-        const li = document.createElement('li');
-        li.className = 'ui-state-default myClass';
-        li.id = `upload-${fileId}`;
-        li.dataset.id = fileId;
+            // Плавно скрываем исходный элемент
+            element.style.transition = 'opacity 0.2s ease-out';
+            element.style.opacity = '0';
+        }
 
-        li.innerHTML = `
+        async function sendDel(url, id) {
+            let response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
+            let result = await response.json();
+            if (result.answer === 'ok') {
+                const elementToDelete = document.getElementById(id);
+                createParticleEffect(elementToDelete);
+
+                setTimeout(() => {
+                    elementToDelete.remove();
+                    updateCounter();
+                    sortable();
+                }, 900); // 900 мс = максимальная длительность анимации частиц
+            } else {
+                alert(result);
+            }
+        }
+
+
+        del();
+
+        function sortable() {
+            // Получаем все элементы списка в текущем порядке (включая перетащенные)
+            const items = document.querySelectorAll('.post_list_ul li');
+
+            items.forEach((item, index) => {
+                // Находим элемент с номером
+                const posNum = item.querySelector('.pos_num');
+
+                if (posNum) {
+                    // Присваиваем номер по порядку (начиная с 1)
+                    posNum.textContent = index + 1;
+                }
+            });
+        }
+
+        function createUploadPlaceholder(fileId) {
+            const li = document.createElement('li');
+            li.className = 'ui-state-default myClass';
+            li.id = `upload-${fileId}`;
+            li.dataset.id = fileId;
+
+            li.innerHTML = `
             <div class="upload-placeholder">Загружается...</div>
             <img class="zoom img-fluid box3 del loading" src="" alt="Фото">
             <span class="pos_num"></span> <!-- ДОБАВЛЕНО! -->
@@ -480,61 +489,61 @@
             </div>
         `;
 
-        document.querySelector('.post_list_ul').appendChild(li);
-        return li;
-    }
-
-    // Обновляет макет реальным фото
-    function updateWithRealImage(placeholderLi, photoData) {
-        const img = placeholderLi.querySelector('.zoom');
-        const placeholder = placeholderLi.querySelector('.upload-placeholder');
-
-        // Сохраняем .pos_num (он нужен для нумерации)
-        const posNum = placeholderLi.querySelector('.pos_num');
-
-        // Обновляем данные изображения
-        img.src = photoData.path;
-        img.alt = 'Фото';
-        img.setAttribute('data-file', photoData.id);
-
-        // Удаляем ТОЛЬКО макет-заглушку, а не весь контент
-        if (placeholder) {
-            placeholder.remove();
+            document.querySelector('.post_list_ul').appendChild(li);
+            return li;
         }
 
-        // Восстанавливаем .pos_num, если он был удалён
-        if (!posNum) {
-            const newPosNum = document.createElement('span');
-            newPosNum.className = 'pos_num';
-            placeholderLi.insertBefore(newPosNum, img); // Вставляем перед img
-        }
+        // Обновляет макет реальным фото
+        function updateWithRealImage(placeholderLi, photoData) {
+            const img = placeholderLi.querySelector('.zoom');
+            const placeholder = placeholderLi.querySelector('.upload-placeholder');
 
-        img.classList.remove('loading');
+            // Сохраняем .pos_num (он нужен для нумерации)
+            const posNum = placeholderLi.querySelector('.pos_num');
 
-        // Остальные обновления
-        placeholderLi.id = photoData.id;
-        placeholderLi.dataset.id = photoData.id;
+            // Обновляем данные изображения
+            img.src = photoData.path;
+            img.alt = 'Фото';
+            img.setAttribute('data-file', photoData.id);
 
-        const closeBtn = placeholderLi.querySelector('.close span');
-        closeBtn.dataset.id = photoData.id;
-
-        sortable();
-        del();
-    }
-
-    async function sendStoreImg(url, files) {
-        console.log(url);
-        let response = await fetch(url, {
-            method: 'POST',
-            body: files,
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            // Удаляем ТОЛЬКО макет-заглушку, а не весь контент
+            if (placeholder) {
+                placeholder.remove();
             }
-        });
-        let result = await response.json();
 
-        if (result.path) {
-            const text = `<li class="ui-state-default myClass" id="${result.id}" data-id="${result.id}">
+            // Восстанавливаем .pos_num, если он был удалён
+            if (!posNum) {
+                const newPosNum = document.createElement('span');
+                newPosNum.className = 'pos_num';
+                placeholderLi.insertBefore(newPosNum, img); // Вставляем перед img
+            }
+
+            img.classList.remove('loading');
+
+            // Остальные обновления
+            placeholderLi.id = photoData.id;
+            placeholderLi.dataset.id = photoData.id;
+
+            const closeBtn = placeholderLi.querySelector('.close span');
+            closeBtn.dataset.id = photoData.id;
+
+            sortable();
+            del();
+        }
+
+        async function sendStoreImg(url, files) {
+            console.log(url);
+            let response = await fetch(url, {
+                method: 'POST',
+                body: files,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            });
+            let result = await response.json();
+
+            if (result.path) {
+                const text = `<li class="ui-state-default myClass" id="${result.id}" data-id="${result.id}">
                 <span class="pos_num">${result.id}</span>
                 <img class="zoom img-fluid box3 del" src="${result.path}/" data-file="${result.id}">
                 <div class="round-popup">
@@ -542,104 +551,120 @@
                 </div>
             </li>`;
 
-            document.querySelector('.post_list_ul').insertAdjacentHTML('beforeend', text);
+                document.querySelector('.post_list_ul').insertAdjacentHTML('beforeend', text);
 
-            // Вызываем updateWithRealImage для заполнения data-file
-            const newLi = document.getElementById(result.id);
-            updateWithRealImage(newLi, {
-                id: result.id,
-                path: result.path,
-                name: 'Новое фото' // Можно взять из File.name
-            });
+                // Вызываем updateWithRealImage для заполнения data-file
+                const newLi = document.getElementById(result.id);
+                updateWithRealImage(newLi, {
+                    id: result.id,
+                    path: result.path,
+                    name: 'Новое фото' // Можно взять из File.name
+                });
 
-            sortable();
-            del();
+                sortable();
+                del();
+                updateCounter();
+            }
         }
-    }
 
-    let input = document.getElementById('files');
+        let input = document.getElementById('files');
 
-    input.addEventListener('change', function (e) {
-        const files = e.target.files;
-        const url = window.imgSubjStore;
+        input.addEventListener('change', function (e) {
+            const files = e.target.files;
+            const url = window.imgSubjStore;
 
-        for (const file of files) {
-            // Генерируем уникальный ID для макета
-            const fileId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            const currentCount = document.querySelectorAll('#post_sortable li').length;
+            const remaining = MAX_PHOTOS - currentCount;
 
-            // Создаём макет
-            const placeholderLi = createUploadPlaceholder(fileId);
+            if (files.length > remaining) {
+                alert(`Вы не можете загружать больше ${MAX_PHOTOS}-ти фото для одного субъекта. Сейчас загружено: ${currentCount}. Удалите ненужные фото.`);
+                this.value = '';
+                return;
+            }
 
-            // Отправляем файл
-            const formData = new FormData();
-            formData.append('img', file);
-            formData.append('id', {{ $subj }});
 
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.path) {
-                        // Обновляем макет реальным фото
-                        updateWithRealImage(placeholderLi, {
-                            id: result.id,
-                            path: result.path,
-                            name: file.name
-                        });
-                    } else {
-                        alert('Ошибка загрузки: ' + (result.message || 'Неизвестный ответ'));
-                        placeholderLi.remove(); // Удаляем макет при ошибке
+            for (const file of files) {
+                // Генерируем уникальный ID для макета
+                const fileId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+                // Создаём макет
+                const placeholderLi = createUploadPlaceholder(fileId);
+
+                // Отправляем файл
+                const formData = new FormData();
+                formData.append('img', file);
+                formData.append('id', {{ $subj }});
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     }
                 })
-                .catch(error => {
-                    console.error('Ошибка отправки:', error);
-                    alert('Не удалось отправить файл');
-                    placeholderLi.remove();
-                });
-        }
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.path) {
+                            // Обновляем макет реальным фото
+                            updateWithRealImage(placeholderLi, {
+                                id: result.id,
+                                path: result.path,
+                                name: file.name
+                            });
 
-        this.value = ''; // Очищаем input
-    });
+                            updateCounter();
+                        } else {
+                            alert('Ошибка загрузки: ' + (result.message || 'Неизвестный ответ'));
+                            placeholderLi.remove(); // Удаляем макет при ошибке
+                            updateCounter();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка отправки:', error);
+                        alert('Не удалось отправить файл');
+                        placeholderLi.remove();
+                        updateCounter();
 
-    $(document).ready(function () {
-        // Инициализируем Sortable с поддержкой тач
-        $('#post_sortable').sortable({
-            placeholder: 'ui-state-highlight',
-            forcePlaceholderSize: true, // Улучшает визуал на мобильных
-            tolerance: 'pointer',     // Более точное срабатывание на касание
-            update: function (event, ui) {
-                var post_order_ids = [];
-                $('#post_sortable li').each(function () {
-                    post_order_ids.push($(this).data('id'));
-                });
+                    });
 
-                $.ajax({
-                    type: 'POST',
-                    url: '{{ route('img_subj.order_change') }}',
-                    dataType: 'json',
-                    data: {
-                        order: post_order_ids,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function (response) {
-                        toastr.success(response.message);
-                        sortable(); // Обновляем номера позиций
-                    },
-                    error: function (xhr, status, error) {
-                        console.log(xhr.responseText);
-                        toastr.error('Ошибка сохранения порядка');
-                    }
-                });
             }
-        }).disableSelection(); // Защищает от выделения текста при перетаскивании
-    });
 
-</script>
+            this.value = ''; // Очищаем input
+        });
 
-</body>
-</html>
+        $(document).ready(function () {
+            // Инициализируем Sortable с поддержкой тач
+            $('#post_sortable').sortable({
+                placeholder: 'ui-state-highlight',
+                forcePlaceholderSize: true, // Улучшает визуал на мобильных
+                tolerance: 'pointer',     // Более точное срабатывание на касание
+                update: function (event, ui) {
+                    var post_order_ids = [];
+                    $('#post_sortable li').each(function () {
+                        post_order_ids.push($(this).data('id'));
+                    });
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ route('img_subj.order_change') }}',
+                        dataType: 'json',
+                        data: {
+                            order: post_order_ids,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function (response) {
+                            toastr.success(response.message);
+                            updateCounter();
+                            sortable(); // Обновляем номера позиций
+                        },
+                        error: function (xhr, status, error) {
+                            console.log(xhr.responseText);
+                            toastr.error('Ошибка сохранения порядка');
+                        }
+                    });
+                }
+            }).disableSelection(); // Защищает от выделения текста при перетаскивании
+        });
+
+    </script>
+@endsection
