@@ -29,31 +29,6 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        // Получаем аутентифицированного пользователя
-//        $user = Auth::user();
-
-        // Проверяем, подтверждён ли email
-//        if (!$user->hasVerifiedEmail()) {
-//            // Разлогиниваем пользователя
-//            Auth::logout();
-//
-//            // Небезопасная работа с сессией: проверяем инициализацию
-//            if ($request->hasSession()) {
-//                $session = $request->session();
-//                if ($session->isStarted()) {
-//                    $session->invalidate();
-//                    $session->regenerateToken();
-//                }
-//            }
-//
-//            // Возвращаем с ошибкой
-//            return redirect()->route('login')
-//                ->withErrors([
-//                    'email' => 'Пожалуйста, подтвердите ваш email, перейдя по ссылке из письма.'
-//                ]);
-//        }
-
-        // Безопасная работа с сессией: проверяем инициализацию
         if ($request->hasSession()) {
             $session = $request->session();
             if ($session->isStarted()) {
@@ -63,7 +38,9 @@ class AuthenticatedSessionController extends Controller
 
         $cityService->findUserCity($request);
 
-        return redirect()->route('my.obj');
+        // Было: return redirect()->route('my.obj');
+        // Стало:
+        return redirect()->intended(route('my.obj'));
     }
 
     /**

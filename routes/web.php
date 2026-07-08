@@ -18,9 +18,8 @@ use App\Http\Controllers\SubjController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserVkController;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Auth\VerifyEmailController;
+use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -112,11 +111,12 @@ Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name
 Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy')->middleware('auth');
 Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
-Route::get('/image_del', [TestController::class, 'delete']);
-Route::get('/test', [TestController::class, 'test'])->name("test");
-Route::post('/test_upload', [TestController::class, 'upload'])->name("upload.image");
-Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities");
-Route::get('/test_img', [TestController::class, 'show'])->name("test.img");
+Route::get('/image_del', [TestController::class, 'delete'])->middleware('admin');
+Route::get('/test_mail', [TestController::class, 'testMail'])->middleware('admin');
+Route::get('/test', [TestController::class, 'test'])->name("test")->middleware('admin');
+Route::post('/test_upload', [TestController::class, 'upload'])->name("upload.image")->middleware('admin');
+Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities")->middleware('admin');
+Route::get('/test_img', [TestController::class, 'show'])->name("test.img")->middleware('admin');
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');
 
 Route::post('/favorites_store/subj{id}', [FavoriteController::class, 'store'])->name('favorites_subj.store')->middleware('auth.api');
@@ -124,7 +124,6 @@ Route::delete('/favorites_destroy/subj{id}', [FavoriteController::class, 'destro
 Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favorites.subjs')->middleware('auth');
 
 Route::get('/auth/vk', [UserVkController::class, 'redirectToVk'])->name('vk.auth');
-//Route::get('/auth/vk/callback', [UserVkController::class, 'handleVkCallback'])->name('vk.callback');
 Route::post('/auth/vk/save', [UserVkController::class, 'saveVkUserData']);
 
 

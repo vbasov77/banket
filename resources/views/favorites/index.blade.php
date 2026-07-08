@@ -139,8 +139,8 @@
             <div class="restaurant-card col-sm-12 col-md-6 col-lg-4">
                 <!-- Изображение -->
                 <div class="restaurant-image">
-                    @if ($restaurant['primary_img'] && $restaurant['primary_img']['path'])
-                        <img src="{{ $restaurant['primary_img']['path'] }}"
+                    @if ($restaurant['primary_img'] && $restaurant['primary_img']['small_img'])
+                        <img src="{{ $restaurant['primary_img']['small_img'] }}"
                              alt="Фото ресторана {{ $restaurant['name_subj'] }}"
                              onerror="this.style.display='none'; this.parentNode.querySelector('.placeholder').style.display='flex'">
                     @else

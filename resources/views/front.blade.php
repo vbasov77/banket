@@ -14,22 +14,27 @@
             text-overflow: ellipsis; /* Добавляем многоточие в конце обрезанного текста */
             width: 100%; /* Занимаем всю доступную ширину родителя */
         }
+
         .dimmed-card {
             opacity: 0.6;
         }
 
     </style>
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
-    @if(!empty($data) && count($data) > 0)
-        <div class="parallax-container">
-            <div class="parallax-bg" style="background-image: url('{{ $data[0]['subjs_data'][0]['path'] }}');"></div>
-            <div class="parallax-content">
-                <div class="parallax-title-center">
-                    <h1 class="parallax-title">{!! session('user_city') !!}</h1>
-                </div>
-            </div>
-        </div>
-    @endif
+
+    <div class="relative w-full h-64 md:h-96 overflow-hidden flex items-center justify-center">
+        <!-- Фон: карта из public/map.jpg -->
+        <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ asset('map.jpg') }}')"></div>
+
+        <!-- Затемнение (опционально, чтобы текст/кнопка читались лучше) -->
+        <div class="absolute inset-0 bg-black/50"></div>
+
+        <!-- Кнопка по центру -->
+        <a href="{{ route('map.index') }}" class="btn-festive-gradient btn-festive-gradient-white m-3 z-10 px-6 py-3 rounded-lg font-bold text-white shadow-lg hover:scale-105 transition-transform">
+            Смотреть на карте
+        </a>
+    </div>
+
     @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid">
@@ -199,7 +204,7 @@
                                             <div class="col-12 col-sm-3 col-md-5 col-lg-7 d-flex align-items-center justify-content-center">
                                                 <a style="width: auto"
                                                    href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][0]['id']])}}"
-                                                   class="btn-festive-gradient btn-festive-gradient-green front-btn">
+                                                   class="btn-festive-gradient btn-festive-gradient-green front-btn m-3">
                                                     Подробнее
                                                 </a>
                                             </div>

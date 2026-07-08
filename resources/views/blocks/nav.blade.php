@@ -299,7 +299,7 @@
 
 <div class="container mt-3">
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 pt-3">
             @if(!empty($data) && count($data) > 0)
                 <!-- Кнопка для открытия фильтров на мобильных -->
                 <button type="button" class="btn-show-filters mb-3">

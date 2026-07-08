@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Models\ImgBanSubj;
-use App\Models\UserVk;
+use Illuminate\Support\Facades\Mail;
 use App\Repositories\KeyRepository;
 use App\Requests\VkRequests;
 use App\Services\ImgObjService;
@@ -163,6 +163,19 @@ class TestController extends Controller
         ])->delete($url);
 
         return redirect()->route('test');
+    }
+
+    /**
+     * @return void
+     */
+    public function testMail(): void
+    {
+        Mail::raw('Hello!', function ($message) {
+            $message->to('0120912@mail.ru')
+                ->subject('Test email');
+        });
+
+        dd('Письмо отправлено');
     }
 
 

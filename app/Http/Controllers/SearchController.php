@@ -85,48 +85,15 @@ class SearchController extends Controller
      * @param SearchRequest $request
      * @return Application|Factory|View|RedirectResponse
      */
-    public function search(SearchRequest $request): Application|Factory|View|RedirectResponse
+    public function search(SearchRequest $request): RedirectResponse
     {
-        try {
-            $this->destroySession();
+        $filters = $request->validated();
 
-            // Валидация уже выполнена в SearchRequest
-            $filters = $request->validated();
+        // Сохраняем фильтры в сессии
+        session()->put('selected_filters', $filters);
 
-            // Сохраняем выбранные значения в сессии
-            session()->put('selected_filters', $filters);
-
-            $data = $this->searchService->searchResults($request);
-            $arrayDistricts = null;
-            if(!empty(count(session('selected_filters')['district'])) > 0){
-                $arrayDistricts = session('selected_filters')['district'];
-            }
-
-            return view('front', [
-                'data' => $data['data'],
-                'pagination' => $data['pagination'],
-                'arrayDistricts' => $arrayDistricts
-            ]);
-        } catch (QueryException $e) {
-            Log::channel('error_file')->error(
-                'Database query error in ObjectsController@search: ' . $e->getMessage(),
-                [
-                    'trace' => $e->getTrace(),
-                    'filters' => $request->all(),
-                    'sql' => $e->getSql()
-                ]
-            );
-            return redirect()->route('front')->with('error', 'Database error occurred during search');
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Error in ObjectsController@search: ' . $e->getMessage(),
-                [
-                    'trace' => $e->getTrace(),
-                    'filters' => $request->all()
-                ]
-            );
-            return redirect()->route('front')->with('error', 'An error occurred during search');
-        }
+        // Редиректим на GET-маршрут. withInput() сохранит значения полей формы для old()
+        return redirect()->route('front')->withInput();
     }
 
 

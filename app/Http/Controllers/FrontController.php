@@ -36,16 +36,39 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
+
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 
         try {
+            // 1. Параметры из URL (пагинация, явные фильтры)
+            $requestFilters = $request->only([
+                'for_events', 'capacity_to', 'per_person', 'features', 'district'
+            ]);
+
+            // 2. Фильтры из сессии — гарантированно делаем массивом, даже если их нет
+            $sessionFilters = (array) session('selected_filters', []);
+
+            // 3. Объединяем: приоритет у URL, остальное — из сессии
+            $mergedFilters = array_merge($sessionFilters, array_filter($requestFilters));
+
+            // 4. Временно внедряем фильтры в запрос
+            $originalInput = $request->all();
+            $request->merge($mergedFilters);
+
+            // Вызываем сервис (он по-прежнему принимает только Request)
             $data = $this->objService->findObjsWithDetails($request);
 
-            return view('front', ['data' => $data, 'message' => $message]);
+            // Восстанавливаем исходный запрос (чтобы не ломать другую логику ниже)
+            $request->replace($originalInput);
+
+            return view('front', [
+                'data' => $data,
+                'message' => $message,
+            ]);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
-                'SQL ошибка в FavoriteController@show: ' . $e->getMessage(),
+                'SQL ошибка в FrontController@show: ' . $e->getMessage(),
                 [
                     'sql_query' => $e->getSql(),
                     'bindings' => $e->getBindings(),
@@ -55,7 +78,7 @@ class FrontController extends Controller
             return response()->view('errors.500', [], 500);
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
-                'Неожиданная ошибка в FavoriteController@show: ' . $e->getMessage(),
+                'Ошибка в FrontController@show: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
                     'trace' => $e->getTraceAsString()
