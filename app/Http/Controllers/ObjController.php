@@ -264,44 +264,44 @@ class ObjController extends Controller
                 $error = $request->error;
             }
 
+            // ИСПРАВЛЕНИЕ: берём сообщение из сессии, а не из запроса
+            $message = session('message');
+
             if ($objId) {
                 // Получаем данные по субъектам
                 $data = $this->objService->findMySubjs($objId);
-                // Если данные не получены, логируем ошибку
+
                 if ($data === null) {
                     Log::channel('error_file')->error(
                         'Failed to get subjects data for obj_id: ' . $objId,
-                        [
-                            'user_id' => $userId
-                        ]
+                        ['user_id' => $userId]
                     );
                     $error = 'Не удалось загрузить данные по субъектам';
                 }
             } else {
                 Log::channel('error_file')->error(
                     'User has no associated object',
-                    [
-                        'user_id' => $userId
-                    ]
+                    ['user_id' => $userId]
                 );
             }
 
             return view('objects.subjects.my_subjs', [
                 'data' => $data,
-                'error' => $error
+                'message' => $message,
+                'error' => $error,
             ]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in Controller@myObj: ' . $e->getMessage(),
                 [
                     'trace' => $e->getTrace(),
-                    'user_id' => Auth::user()->id ?? 'guest'
+                    'user_id' => Auth::user()->id ?? 'guest',
                 ]
             );
 
             return view('objects.subjects.my_subjs', [
                 'data' => null,
-                'error' => 'Произошла критическая ошибка при загрузке данных'
+                'error' => 'Произошла критическая ошибка при загрузке данных',
             ]);
         }
     }

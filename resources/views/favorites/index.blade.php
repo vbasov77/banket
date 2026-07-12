@@ -209,6 +209,13 @@
                             {!! nl2br(e($restaurant['text_subj'])) !!}
                         </div>
                     @endif
+                    <center>
+                        <a style="width: auto"
+                           href="{{route('show.subj', ['id' => $restaurant['obj_id']])}}"
+                           class="btn-festive-gradient btn-festive-gradient-green front-btn m-3">
+                            Подробнее
+                        </a>
+                    </center>
                 </div>
             </div>
         @endforeach

@@ -14,6 +14,11 @@
                             {{$error}}
                         </div>
                     @endif
+                        @if(!empty($message))
+                            <div class="alert alert-success">
+                                {{$message}}
+                            </div>
+                        @endif
                     @if($data)
                         <div class="row mb-4">
                             <div class="col-12">

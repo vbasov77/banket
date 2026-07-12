@@ -14,6 +14,9 @@ class RegistrationTest extends TestCase
     use RefreshDatabase;
     use WithoutMiddleware;
 
+    /**
+     * @return void
+     */
     public function testRegistrationScreenCanBeRendered(): void
     {
         $response = $this->get('/register');
@@ -22,6 +25,9 @@ class RegistrationTest extends TestCase
     }
 
 
+    /**
+     * @return void
+     */
     public function testNewUsersCanRegister(): void
     {
         Notification::fake();
@@ -33,7 +39,12 @@ class RegistrationTest extends TestCase
             'password_confirmation' => 'password',
         ]);
 
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        // Проверяем, что редирект начинается с маршрута my.obj
+        $location = $response->headers->get('Location');
+        $this->assertTrue(str_starts_with($location, route('my.obj')),
+            "Ожидался редирект на маршрут my.obj, но получен: {$location}"
+        );
+
         $this->assertAuthenticated();
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com'

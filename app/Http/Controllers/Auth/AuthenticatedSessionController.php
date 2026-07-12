@@ -38,9 +38,7 @@ class AuthenticatedSessionController extends Controller
 
         $cityService->findUserCity($request);
 
-        // Было: return redirect()->route('my.obj');
-        // Стало:
-        return redirect()->intended(route('my.obj'));
+        return redirect()->intended(route('role.redirect'));
     }
 
     /**

@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Http\Request;
 use App\Http\Controllers\AddressSubjController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CityDistrictController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\UserVkController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\RoleSelectionController;
 
 
 /*
@@ -55,12 +57,21 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::middleware('admin')->group(function () {
+
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/delete_profile', [ProfileController::class, 'deleteProfile'])->name('profile.delete_profile');
+
+    Route::get('/role/select', [RoleSelectionController::class, 'show'])->name('role.select');
+    Route::post('/role/select', [RoleSelectionController::class, 'store'])->name('role.store');
+    Route::post('/role/redirect', [RoleSelectionController::class, 'redirect'])->name('role.redirect');
+
 });
 
 require __DIR__ . '/auth.php';
@@ -132,6 +143,11 @@ Route::any('/vk-auth', function () {
 })->name('vk.auth.page');
 
 Route::get('/unauthorized', [ErrorController::class, 'unauthorized'])->name('unauthorized');
+
+Route::post('/cookie/accept', function (Request $request) {
+    $request->session()->put('cookie_accepted', true);
+    return response()->json(['status' => 'ok']);
+})->name('cookie.accept')->middleware('web');
 
 Route::get('/clear', function () {
     Artisan::call('cache:clear');

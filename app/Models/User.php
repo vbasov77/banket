@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -24,7 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        'is_admin'
+        'role_id',
     ];
 
     /**
@@ -62,7 +63,17 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin(): bool
     {
-        return (bool) $this->is_admin;
+        return $this->role?->name === 'admin';
+    }
+
+    public function isRestaurateur(): bool
+    {
+        return $this->role?->name === 'restaurateur';
+    }
+
+    public function isSoonBanquet(): bool
+    {
+        return $this->role?->name === 'soon_banquet';
     }
 
     /**
@@ -102,9 +113,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Obj::class, 'user_id');
     }
 
-    public function roles()
+    public function role(): BelongsTo
     {
-        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+        return $this->belongsTo(Role::class);
     }
+
 
 }

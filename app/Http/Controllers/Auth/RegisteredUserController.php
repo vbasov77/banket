@@ -14,24 +14,16 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
     public function create(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -44,8 +36,11 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        $message = "Регистрация прошла успешно. На ваш email $request->email была выслана ссылка на подтверждение.\n 
-Пройдите по ней, чтобы подтвердить почту. Если письма не пришло, проверьте папку «Спам».\nЕсли вы неправильно указали email, удалите профиль!";
-        return redirect(route('profile.show', ['message' => $message]));
+        // Правильное флеш‑сообщение
+        $message = "Регистрация прошла успешно. На ваш email {$request->email} была выслана ссылка на подтверждение.\n"
+            . "Пройдите по ней, чтобы подтвердить почту. Если письма не пришло, проверьте папку «Спам».\n"
+            . "Если вы неправильно указали email, удалите аккаунт в разделе 'Профиль'!";
+
+        return redirect()->route('role.select')->with('message', $message);
     }
 }

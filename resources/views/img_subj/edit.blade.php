@@ -257,75 +257,74 @@
                     <h3 style="color:green">{{ session('message') }}</h3>
                 @endif
             </div>
-            <section>
-                <div class="container px-4 px-lg-5">
-                    <div class="row gx-4 gx-lg-5 justify-content-center">
-                        <div class="col-lg-10 mb-5">
-                            <br>
-                            @if (!empty($message))
-                                <div class="alert alert-success">
-                                    {{$message}}
-                                </div>
-                            @endif
-
-                            <div class="col-md-12">
-                                @if(count($images) > 0)
-                                    <h3 style="margin: 40px 0 60px 0">Редактировать фото</h3>
-                                @else
-                                    <h3 style="margin: 40px 0 60px 0">Добавьте фото</h3>
-                                @endif
-                                <div class="justify-content-center">
-                                    <div class="table-responsive">
-                                        <div id="example1_wrapper"
-                                             class="dataTables_wrapper container-fluid dt-bootstrap4">
-                                            <div class="row justify-content-center">
-                                                <div class="col-sm-10">
-                                                    <ul id="post_sortable" class="post_list_ul">
-                                                        @foreach ($images as $image)
-                                                            <li class="ui-state-default myClass" id="{{$image->id}}"
-                                                                data-id="{{$image->id}}">
-                                                                <span class="pos_num">{{$loop->index + 1}}</span>
-                                                                <img class="zoom img-fluid box3 del"
-                                                                     src="{{$image->small_img}}"
-                                                                     data-file="{{$image->id}}">
-                                                                <div class="round-popup">
-                                                                    <button
-
-                                                                            type="button"
-                                                                            class="close"
-                                                                    ><span data-id="{{$image->id}}">&times;</span>
-                                                                    </button>
-                                                                </div>
-                                                            </li>
-                                                        @endforeach
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- /.card-body -->
-                                </div>
-                            </div>
-
-                            <br>
-                            <br>
-                            <label for="files">Фото</label>
-                            <input class="form-control" type="file" multiple="multiple" accept="image/*" id="files"
-                                   name="img[]"/>
-                            <br>
-                            <a href="{{route('edit.subj', ['id' => $subj])}}"
-                               class="btn-festive-gradient btn-festive-gradient-green">В редактирование субъекта</a>
-
-                            <a href="{{route('my.obj')}}" class="btn-festive-gradient btn-festive-gradient-white">В
-                                панель</a>
-                            <br>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
     </div>
+    <section>
+        <div class="container px-4 px-lg-5">
+            <div class="row gx-4 gx-lg-5 justify-content-center">
+                <div class="col-lg-10 mb-5">
+                    <br>
+                    @if (!empty($message))
+                        <div class="alert alert-success">
+                            {{$message}}
+                        </div>
+                    @endif
 
+                    <div class="col-md-12">
+                        @if(count($images) > 0)
+                            <h3 style="margin: 40px 0 60px 0">Редактировать фото</h3>
+                        @else
+                            <h3 style="margin: 40px 0 60px 0">Добавьте фото</h3>
+                        @endif
+                        <div class="justify-content-center">
+                            <div class="table-responsive">
+                                <div id="example1_wrapper"
+                                     class="dataTables_wrapper container-fluid dt-bootstrap4">
+                                    <div class="row justify-content-center">
+                                        <div class="col-sm-10">
+                                            <ul id="post_sortable" class="post_list_ul">
+                                                @foreach ($images as $image)
+                                                    <li class="ui-state-default myClass" id="{{$image->id}}"
+                                                        data-id="{{$image->id}}">
+                                                        <span class="pos_num">{{$loop->index + 1}}</span>
+                                                        <img class="zoom img-fluid box3 del"
+                                                             src="{{$image->small_img}}"
+                                                             data-file="{{$image->id}}">
+                                                        <div class="round-popup">
+                                                            <button
+
+                                                                    type="button"
+                                                                    class="close"
+                                                            ><span data-id="{{$image->id}}">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.card-body -->
+                        </div>
+                    </div>
+
+                    <br>
+                    <br>
+                    <label for="files">Фото</label>
+                    <input class="form-control" type="file" multiple="multiple" accept="image/*" id="files"
+                           name="img[]"/>
+                    <br>
+                    <a href="{{route('edit.subj', ['id' => $subj])}}"
+                       class="btn-festive-gradient btn-festive-gradient-green">В редактирование субъекта</a>
+
+                    <a href="{{route('my.obj')}}" class="btn-festive-gradient btn-festive-gradient-white">В
+                        панель</a>
+                    <br>
+                </div>
+            </div>
+        </div>
+    </section>
     <script>
         window.imgSubjStore = '{{route('img_subj.store')}}';
         const MAX_PHOTOS = 10;
@@ -340,7 +339,7 @@
         function updateCounter() {
             const count = document.querySelectorAll('#post_sortable li').length;
             counterEl.textContent = `Загружено фото: ${count} / ${MAX_PHOTOS}`;
-            counterEl.style.color = count >= MAX_PHOTOS ? '#c62828' : '#1976d2';
+            counterEl.style.color = count >= MAX_PHOTOS ? '#c62828' : '#66b266';
         }
 
         updateCounter();

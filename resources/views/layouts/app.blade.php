@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/x-icon" href="{{asset('icons/restaurant.svg')}}"/>
 
     <title>
         @isset($title)
@@ -38,6 +39,7 @@
     <main class="bg-gray-100">
         @yield('content')
     </main>
+    <x-cookie-banner />
 </div>
 <section>
     <footer style="padding: 35px; color: white" class="footer bg-black small text-center">
