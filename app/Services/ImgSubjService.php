@@ -58,7 +58,6 @@ class ImgSubjService extends Service
                 );
             }
             $position = $this->imgBanRepository->getNextPosition($id);
-            Log::channel('info_file')->info('data', [$photoBig[0], $smallPhoto[0]]);
 
             $data = [
                 'subj_id' => $id,

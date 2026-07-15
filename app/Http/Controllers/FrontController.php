@@ -12,6 +12,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Factory;
 
@@ -36,7 +37,6 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
-
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 
@@ -47,7 +47,7 @@ class FrontController extends Controller
             ]);
 
             // 2. Фильтры из сессии — гарантированно делаем массивом, даже если их нет
-            $sessionFilters = (array) session('selected_filters', []);
+            $sessionFilters = (array)session('selected_filters', []);
 
             // 3. Объединяем: приоритет у URL, остальное — из сессии
             $mergedFilters = array_merge($sessionFilters, array_filter($requestFilters));

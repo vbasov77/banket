@@ -9,16 +9,16 @@ class Role extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description'];
+    protected $fillable = ['name'];
 
-    // Отключение временных меток, если не нужны
-    public $timestamps = true;
+    // Если хочешь оставить без временных меток — ок, можно так:
+    public $timestamps = false;
 
     /**
-     * Связь «многие‑ко‑многим» с пользователями
+     * Связь «одна роль — много пользователей»
      */
     public function users()
     {
-        return $this->belongsToMany(User::class, 'user_roles', 'role_id', 'user_id');
+        return $this->hasMany(User::class);
     }
 }

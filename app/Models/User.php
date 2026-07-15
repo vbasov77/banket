@@ -118,5 +118,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Role::class);
     }
 
+    public function hasRole(string $roleName): bool
+    {
+        return $this->role?->name === $roleName;
+    }
 
 }

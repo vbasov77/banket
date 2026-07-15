@@ -39,7 +39,10 @@ class RoleSelectionController extends Controller
     }
 
 
-    private function redirect(): RedirectResponse
+    /**
+     * @return RedirectResponse
+     */
+    public function redirect(): RedirectResponse
     {
         $user = User::with('role')->find(1);
 

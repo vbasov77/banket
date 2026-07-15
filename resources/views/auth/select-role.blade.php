@@ -87,7 +87,7 @@
                     @enderror
 
                     <div class="mt-4 text-center">
-                        <button type="submit" class="btn-festive-gradient btn-festive-gradient-green m-3">
+                        <button type="submit" class="btn-festive-gradient btn-festive-gradient-blue m-3">
                             Подтвердить выбор
                         </button>
                     </div>

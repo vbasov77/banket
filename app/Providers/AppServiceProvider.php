@@ -35,21 +35,27 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (DB::connection()->getDriverName() === 'mysql') {
+        // --- Твой существующий код для Doctrine (оставляем как есть) ---
+        if (class_exists(\Doctrine\DBAL\Types\Type::class)) {
             try {
-                $connection = DB::getDoctrineConnection();
-                $platform = $connection->getDatabasePlatform();
+                $connection = DB::connection();
+                if ($connection->getDriverName() === 'mysql') {
+                    $doctrineConnection = $connection->getDoctrineConnection();
+                    $platform = $doctrineConnection->getDatabasePlatform();
 
-                // Регистрируем отображение типа POINT на стандартный строковый тип
-                $platform->registerDoctrineTypeMapping('point', 'string');
+                    $platform->registerDoctrineTypeMapping('point', 'string');
 
-                // Дополнительно регистрируем тип POINT, если он ещё не зарегистрирован
-                if (!Type::hasType('point')) {
-                    Type::addType('point', 'Doctrine\DBAL\Types\StringType');
+                    if (! \Doctrine\DBAL\Types\Type::hasType('point')) {
+                        \Doctrine\DBAL\Types\Type::addType(
+                            'point',
+                            \Doctrine\DBAL\Types\StringType::class
+                        );
+                    }
                 }
-            } catch (\Exception $e) {
-                Log::error('Failed to register POINT type: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                Log::error('Failed to register POINT type for MySQL: ' . $e->getMessage());
             }
         }
+        $this->app['router']->aliasMiddleware('ensureRole', \App\Http\Middleware\EnsureRole::class);
     }
 }

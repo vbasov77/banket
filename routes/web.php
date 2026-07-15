@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RoleSelectionController;
-
+use App\Http\Middleware\EnsureRole; // обязательно добавь use
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +34,10 @@ use App\Http\Controllers\Auth\RoleSelectionController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
-
 Auth::routes(['verify' => true]);
+
+
+Route::get('/', [FrontController::class, 'show'])->name("front");
 
 Route::get('/group_address/{id}', [GroupAddressObjController::class, 'show'])->name('group.address.show');
 
@@ -70,48 +72,44 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/role/select', [RoleSelectionController::class, 'show'])->name('role.select');
     Route::post('/role/select', [RoleSelectionController::class, 'store'])->name('role.store');
-    Route::post('/role/redirect', [RoleSelectionController::class, 'redirect'])->name('role.redirect');
+    Route::get('/role/redirect', [RoleSelectionController::class, 'redirect'])->name('role.redirect');
+
+    Route::get('/my_obj', [ObjController::class, 'myObj'])->name("my.obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('ensureRole:admin,restaurateur');
+    Route::post('/store_obj', [ObjController::class, 'store'])->name("store.obj")->middleware('ensureRole:admin,restaurateur');
+    Route::post('/update_obj', [ObjController::class, 'update'])->name("update.obj")->middleware('ensureRole:admin,restaurateur');
+
+    Route::post('/update_details_obj', [DetailsObjController::class, 'update'])->name("update.details_obj")->middleware('ensureRole:admin,restaurateur');
+    Route::post('/store_details_obj', [DetailsObjController::class, 'store'])->name("store.details_obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/create_details_obj', [DetailsObjController::class, 'create'])->name("create.details_obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/edit_details_obj/id{id}', [DetailsObjController::class, 'edit'])->name("edit.details_obj")->middleware('ensureRole:admin,restaurateur');
+
+    Route::get('/create_subj', [SubjController::class, 'create'])->name("create.subj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/edit_subj/id{id}', [SubjController::class, 'edit'])->name("edit.subj")
+        ->middleware('ensureRole:admin,restaurateur');
+    Route::post('/store_subj', [SubjController::class, 'store'])->name("store.subj")->middleware('ensureRole:admin,restaurateur');
+    Route::post('/update_subj', [SubjController::class, 'update'])
+        ->name('update.subj')->middleware('ensureRole:admin,restaurateur');
+    Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('ensureRole:admin,restaurateur');
 
 });
 
 require __DIR__ . '/auth.php';
 
-Route::get('/', [FrontController::class, 'show'])->name("front");
-
-Route::get('/create_subj', [SubjController::class, 'create'])->name("create.subj")->middleware('auth');
 Route::get('/show_subj/id{id}', [SubjController::class, 'show'])->name("show.subj");
-Route::get('/edit_subj/id{id}', [SubjController::class, 'edit'])->name("edit.subj")
-    ->middleware('auth');
-Route::post('/store_subj', [SubjController::class, 'store'])->name("store.subj")->middleware('auth');
-Route::post('/update_subj', [SubjController::class, 'update'])
-    ->name('update.subj')
-    ->middleware('auth');
-
-Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('auth');
-Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('auth');
 
 Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
 Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
-Route::get('/my_obj', [ObjController::class, 'myObj'])->name("my.obj")->middleware('auth');
-Route::get('/create_obj', [ObjController::class, 'create'])->name("create.obj")->middleware('auth');
-Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('auth');
-Route::post('/store_obj', [ObjController::class, 'store'])->name("store.obj")->middleware('auth');
-Route::post('/update_obj', [ObjController::class, 'update'])->name("update.obj")->middleware('auth');
 Route::get('/show_obj/id{id}', [ObjController::class, 'show'])->name("show.obj");
 
 Route::post('/search', [SearchController::class, 'search'])->name("search.objs");
 Route::post('/api/clear-filters', [SearchController::class, 'clearFilters'])->name('clear.filters');
-//Route::get('/search', [SearchController::class, 'searchResults'])->name('search.results');
-
-Route::post('/update_details_obj', [DetailsObjController::class, 'update'])->name("update.details_obj");
-Route::post('/store_details_obj', [DetailsObjController::class, 'store'])->name("store.details_obj");
-Route::get('/create_details_obj', [DetailsObjController::class, 'create'])->name("create.details_obj");
-Route::get('/edit_details_obj/id{id}', [DetailsObjController::class, 'edit'])->name("edit.details_obj");
 
 Route::get('/edit_img_obj/id{id}', [ImgObjController::class, 'edit'])->name("edit.img_obj")->middleware('auth');
-//Route::post('/img_order_change', [ImgObjController::class, 'imgOrderChange'])->name('img_obj.order_change');
 Route::post('/img_obj_store', [ImgObjController::class, 'store'])->name('img_obj.store');
 Route::post('/img_obj_update', [ImgObjController::class, 'update'])->name('img_obj.update');
 Route::delete('/delete_obj_img/id{id}', [ImgObjController::class, 'destroy'])->name('img_obj.destroy');
@@ -119,8 +117,8 @@ Route::delete('/delete_obj_img/id{id}', [ImgObjController::class, 'destroy'])->n
 
 Route::get('/edit_img_subj/id{id}', [ImgSubjController::class, 'edit'])->name("edit.img_subj")->middleware('auth');
 Route::post('/img_subj_store', [ImgSubjController::class, 'imgSubjStore'])->name('img_subj.store')->middleware('auth');
-Route::delete('/delete_subj_img/{id}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy')->middleware('auth');
-Route::post('/img_subj_order_change', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
+Route::delete('/delete_subj_img/{id}/subj{subj}', [ImgSubjController::class, 'destroy'])->name('img_subj.destroy')->middleware('auth');
+Route::post('/img_subj_order_change/subjId{subjId}', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
 Route::get('/image_del', [TestController::class, 'delete'])->middleware('admin');
 Route::get('/test_mail', [TestController::class, 'testMail'])->middleware('admin');

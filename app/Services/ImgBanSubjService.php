@@ -184,6 +184,7 @@ class ImgBanSubjService extends Service
     {
         try {
             $imgSubj = $this->imgBanRepository->findById($id);
+
             if (!$imgSubj) {
                 return false;
             }

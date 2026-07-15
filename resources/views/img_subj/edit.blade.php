@@ -327,6 +327,7 @@
     </section>
     <script>
         window.imgSubjStore = '{{route('img_subj.store')}}';
+        window.subjId = {{ $subj }};
         const MAX_PHOTOS = 10;
         const counterEl = document.querySelector('.photo-counter') || (function () {
             const el = document.createElement('div');
@@ -366,7 +367,7 @@
 
             if (confirm('Подтвердите удаление')) {
                 const id = span.getAttribute('data-id');
-                sendDel('/delete_subj_img/' + id, id);
+                sendDel('/delete_subj_img/' + id + "/subj" + window.subjId, id);
             } else {
                 alert('Удаление отменено');
             }
@@ -436,6 +437,7 @@
         async function sendDel(url, id) {
             let response = await fetch(url, {
                 method: 'DELETE',
+
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 }
@@ -645,7 +647,7 @@
 
                     $.ajax({
                         type: 'POST',
-                        url: '{{ route('img_subj.order_change') }}',
+                        url: '{{ route('img_subj.order_change', ['subjId' => $subj]) }}',
                         dataType: 'json',
                         data: {
                             order: post_order_ids,

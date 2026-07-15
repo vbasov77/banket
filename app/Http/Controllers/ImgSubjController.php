@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\VkApiException;
 use App\Models\AddressSubj;
-use App\Models\AlbumsVk;
+use App\Models\Subj;
 use App\Services\ImgSubjService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class ImgSubjController extends Controller
 {
@@ -27,7 +31,11 @@ class ImgSubjController extends Controller
 
     }
 
-    public function edit(Request $request)
+    /**
+     * @param Request $request
+     * @return RedirectResponse|View|Response
+     */
+    public function edit(Request $request): RedirectResponse|View|Response
     {
         $subjId = $request->id;
         $address = AddressSubj::where('subj_id', $subjId)->exists();
@@ -45,6 +53,23 @@ class ImgSubjController extends Controller
                     ]
                 );
                 return response()->view('errors.400', [], 400);
+            }
+
+            // Получаем субъект для проверки прав
+            $subj = Subj::with('obj')->find($request->id);
+
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Попытка войти без прав', [
+                    'user_id' => Auth::id() ?? null,
+                    'method' => 'edit',
+                    'action' => 'Переход на страницу редактирования фото',
+                ]);
+
+                $message = $request->session()->get('error', 'У вас нет прав для выполнения этого действия');
+                return view('errors.unauthorized', [
+                    'message' => $message
+                ]);
             }
 
             $images = $this->imgSubjService->findImgBySubjId($subjId);
@@ -103,6 +128,23 @@ class ImgSubjController extends Controller
                 ], 400);
             }
 
+            // Получаем субъект для проверки прав
+            $subj = Subj::with('obj')->find($request->subjId);
+
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Попытка войти без прав', [
+                    'user_id' => Auth::id() ?? null,
+                    'method' => 'imgOrderChange',
+                    'action' => 'Изменение порядка фото',
+                ]);
+
+                return response()->json([
+                    'answer' => 'error',
+                    'message' => 'У вас нет прав на удаление этого объекта',
+                ], 403); // HTTP 403 Forbidden
+            }
+
             // Вызов сервиса для обработки
             $this->imgSubjService->updateImageOrder($data);
 
@@ -156,6 +198,22 @@ class ImgSubjController extends Controller
                     'id' => null,
                     'message' => 'Файл изображения не предоставлен'
                 ], 400);
+            }
+
+            // Получаем субъект для проверки прав
+            $subj = Subj::with('obj')->find($request->id);
+
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subj->isAuthor()) {
+                Log::channel('error_file')->error('Попытка войти без прав', [
+                    'user_id' => Auth::id() ?? null,
+                    'method' => 'imgSubjStore',
+                    'page' => 'Сохранение фото',
+                ]);
+                return response()->json([
+                    'answer' => 'error',
+                    'message' => 'У вас нет прав на удаление этого объекта',
+                ], 403); // HTTP 403 Forbidden
             }
 
             $data = $this->imgSubjService->ImgSubjStore($request, $request->id);
@@ -233,12 +291,28 @@ class ImgSubjController extends Controller
 
 
     /**
-     * @param $id
+     * @param Request $request
      * @return JsonResponse
      */
-    public function destroy(Request $request)
+    public function destroy(Request $request): JsonResponse
     {
-        $id = (int) $request->id;
+        $id = (int)$request->id;
+
+        // Получаем субъект для проверки прав
+        $subj = Subj::with('obj')->find($request->subj);
+
+        // Проверка прав доступа через метод модели isAuthor()
+        if (!$subj->isAuthor()) {
+            Log::channel('error_file')->error('Попытка войти без прав', [
+                'user_id' => Auth::id() ?? null,
+                'page' => 'Удаление фото субъекта',
+            ]);
+            return response()->json([
+                'answer' => 'error',
+                'message' => 'У вас нет прав на удаление этого объекта',
+            ], 403); // HTTP 403 Forbidden
+        }
+
         try {
             // Валидация ID: должно быть числом ≥ 1
             if (!is_numeric($id) || $id < 1 || intval($id) != $id) {
@@ -252,6 +326,7 @@ class ImgSubjController extends Controller
                 );
                 return response()->json(['error' => 'Invalid ID format'], 400);
             }
+
 
             $result = $this->imgSubjService->deleteImgSubj($id);
 
@@ -291,6 +366,4 @@ class ImgSubjController extends Controller
             return response()->json(['error' => 'Unexpected error occurred'], 500);
         }
     }
-
-
 }
