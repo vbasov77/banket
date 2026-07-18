@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RoleSelectionController;
-use App\Http\Middleware\EnsureRole; // обязательно добавь use
+use App\Http\Controllers\Admin\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +60,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('admin')->group(function () {
+    Route::get('/show/admin_panel', [AdminController::class, 'showAdminPanel'])->name('show.admin_panel');
+    Route::get('/test_mail', [TestController::class, 'testMail'])->name('send.mail');
 
 });
 
@@ -121,7 +123,6 @@ Route::delete('/delete_subj_img/{id}/subj{subj}', [ImgSubjController::class, 'de
 Route::post('/img_subj_order_change/subjId{subjId}', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
 Route::get('/image_del', [TestController::class, 'delete'])->middleware('admin');
-Route::get('/test_mail', [TestController::class, 'testMail'])->middleware('admin');
 Route::get('/test', [TestController::class, 'test'])->name("test")->middleware('admin');
 Route::post('/test_upload', [TestController::class, 'upload'])->name("upload.image")->middleware('admin');
 Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities")->middleware('admin');

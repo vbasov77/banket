@@ -44,7 +44,7 @@ class RoleSelectionController extends Controller
      */
     public function redirect(): RedirectResponse
     {
-        $user = User::with('role')->find(1);
+        $user = User::with('role')->find(Auth::id());
 
         if (!$user->role_id) {
             return redirect()->route('role.select');
