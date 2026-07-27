@@ -22,7 +22,7 @@
     </style>
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
-            <div class="parallax-bg" style="background-image: url('{{ $subj['image_paths'][0] }}');"></div>
+            <div class="parallax-bg" style="background-image: url('{{ $subj['image_paths'][0] }}'); "></div>
             <div class="parallax-content">
                 <div class="parallax-title-center">
                     <h1 class="parallax-title">{!! $subj['obj']['name_obj'] !!}</h1>
