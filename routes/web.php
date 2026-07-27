@@ -61,9 +61,14 @@ Route::get('/dashboard', function () {
 
 Route::middleware('admin')->group(function () {
     Route::get('/show/admin_panel', [AdminController::class, 'showAdminPanel'])->name('show.admin_panel');
+
     Route::get('/test_mail', [TestController::class, 'testMail'])->name('send.mail');
+    Route::post('/test_upload', [TestController::class, 'uploadImg'])->name("upload.image");
+    Route::get('/test_upload', [TestController::class, 'test'])->name("test.image");
+    Route::get('/clear_img', [TestController::class, 'clearImg'])->name('clear.img');
 
 });
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
@@ -123,8 +128,6 @@ Route::delete('/delete_subj_img/{id}/subj{subj}', [ImgSubjController::class, 'de
 Route::post('/img_subj_order_change/subjId{subjId}', [ImgSubjController::class, 'imgOrderChange'])->name('img_subj.order_change')->middleware('auth');
 
 Route::get('/image_del', [TestController::class, 'delete'])->middleware('admin');
-Route::get('/test', [TestController::class, 'test'])->name("test")->middleware('admin');
-Route::post('/test_upload', [TestController::class, 'upload'])->name("upload.image")->middleware('admin');
 Route::get('/test_cities', [TestController::class, 'testCities'])->name("test.cities")->middleware('admin');
 Route::get('/test_img', [TestController::class, 'show'])->name("test.img")->middleware('admin');
 Route::post('/store_test_img', [TestController::class, 'store'])->name('test_img_obj.store')->middleware('auth');

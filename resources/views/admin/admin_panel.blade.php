@@ -16,6 +16,11 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-5 pt-5">
         <div class="mb-10">
+            @if(session('message') || !empty($message))
+                <div class="alert alert-success">
+                    {{ session('message') ?? $message}}
+                </div>
+            @endif
             <h2 class="text-3xl font-bold text-gray-900 dark:text-white">Панель управления и тесты</h2>
             <p class="text-gray-500 mt-2">Выберите нужный раздел для работы</p>
         </div>
@@ -32,8 +37,11 @@
                     <a href="{{route('send.mail')}}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
                         ✉️ Послать письмо
                     </a>
-                    <a href="#" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
+                    <a href="{{route('test.image')}}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
                         🖼 Загрузить фото
+                    </a>
+                    <a href="{{ route('clear.img') }}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
+                        🧹 Почистить фото
                     </a>
                     <a href="#" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
                         🏷 Добавить метку

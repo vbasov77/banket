@@ -27,6 +27,7 @@ class ImgBanSubjService extends Service
         $this->imgBanRepository = $imgBanRepository;
     }
 
+
     public function createInImgBan(Request $request, int $const)
     {
         $resizeImage = $this->compressImageIfLarge($const, $request->file('img'));
@@ -57,56 +58,87 @@ class ImgBanSubjService extends Service
     public function compressImageIfLarge(int $const, UploadedFile $file): array
     {
         $path = 'resized/';
-        $quality = 98;
+        $quality = 97;
+        $watermarkText = "FeastBoom.ru";
+        $fontPath = public_path('fonts/FredokaOneCyrillic-Regular.ttf');
 
         try {
-            // Проверяем валидность загруженного файла
             if (!$file->isValid()) {
                 throw new \Exception('Файл не прошёл валидацию загрузки');
             }
 
-            // Создаём менеджер с драйвером
             $manager = new ImageManager(new Driver());
             $image = $manager->read($file->getPathname());
-            $height = $image->height();
-            $width = $image->width();
 
+            // Ресайз
             if ($image->width() > $const) {
                 $newWidth = $const;
-                $newHeight = (int)($newWidth * $height / $width); // Приводим к целому числу
+                $newHeight = (int)($newWidth * $image->height() / $image->width());
                 $image->resize($newWidth, $newHeight);
             }
 
-            // Определяем формат и кодируем с нужным качеством
-            $format = strtolower($file->extension());
-            if (in_array($format, ['jpg', 'jpeg'])) {
-                $encodedImage = $image->toJpeg($quality);
-            } elseif ($format === 'png') {
-                $encodedImage = $image->toPng(6); // уровень сжатия 6 (0–9)
-            } elseif ($format === 'webp') {
-                $encodedImage = $image->toWebp($quality);
+            $hasFont = file_exists($fontPath);
+
+            if ($hasFont && $const >= 900) {
+                // Для JPG используем контрастный контур:
+                // Вариант: чёрная обводка + белая заливка — читается почти на любом фоне.
+                // Если хочешь наоборот (белый контур на тёмном фоне) — поменяй цвета ниже.
+
+                $image->text(
+                    $watermarkText,
+                    $image->width() - 90,
+                    $image->height() - 30,
+                    function ($font) use ($fontPath) {
+                        $font->file($fontPath);
+                        $font->size(15);
+
+                        // Основной цвет текста (заливка) — белый
+                        $font->color('#ffffff');
+
+                        // Обводка (контур) — чёрная, толщина 2px
+                        $font->stroke('#000000', 1);
+
+                        $font->align('right');
+                        $font->valign('bottom');
+                    }
+                );
+
+                // Принудительно JPG — прозрачность не нужна, контур реализован цветом
+                $format = 'jpg';
             } else {
-                // Для остальных форматов — JPEG с заданным качеством
-                $encodedImage = $image->toJpeg($quality);
-                $format = 'jpg'; // Корректируем формат для имени файла
-            }
 
-            // Генерируем уникальное имя
-            $filename = md5(uniqid() . $file->getClientOriginalName()) . '.' . $format;
-            $fullPath = $path . $filename;
-
-            // Формируем полный путь в публичной директории
-            $publicFullPath = public_path($fullPath);
-
-            // Создаём директорию, если её нет
-            $directory = dirname($publicFullPath);
-            if (!is_dir($directory)) {
-                if (!mkdir($directory, 0755, true)) {
-                    throw new \Exception('Не удалось создать директорию для сохранения изображения: ' . $directory);
+                $format = strtolower($file->extension());
+                if (!in_array($format, ['jpg', 'jpeg', 'png', 'webp'])) {
+                    $format = 'jpg';
                 }
             }
 
-            // Сохраняем файл напрямую в публичную директорию
+
+            // Кодирование
+            if (in_array($format, ['jpg', 'jpeg'])) {
+                $encodedImage = $image->toJpeg($quality);
+                $format = 'jpg';
+            } elseif ($format === 'png') {
+                $encodedImage = $image->toPng(6);
+            } elseif ($format === 'webp') {
+                $encodedImage = $image->toWebp($quality);
+            } else {
+                $encodedImage = $image->toJpeg($quality);
+                $format = 'jpg';
+            }
+
+            // Сохранение
+            $filename = md5(uniqid() . $file->getClientOriginalName()) . '.' . $format;
+            $fullPath = $path . $filename;
+            $publicFullPath = public_path($fullPath);
+
+            $directory = dirname($publicFullPath);
+            if (!is_dir($directory)) {
+                if (!mkdir($directory, 0755, true)) {
+                    throw new \Exception('Не удалось создать директорию: ' . $directory);
+                }
+            }
+
             $bytesWritten = file_put_contents($publicFullPath, (string)$encodedImage);
             if ($bytesWritten === false) {
                 throw new \Exception('Ошибка записи файла на диск');
@@ -114,64 +146,30 @@ class ImgBanSubjService extends Service
 
             $fileSize = filesize($publicFullPath);
             if ($fileSize === false) {
-                throw new \Exception('Не удалось получить размер сохранённого файла');
+                throw new \Exception('Не удалось получить размер файла');
             }
 
             return [
                 'success' => true,
                 'path' => $fullPath,
                 'size' => $fileSize,
-                'error' => null
+                'error' => null,
             ];
-
         } catch (\InvalidArgumentException $e) {
-            Log::channel('error_file')->error(
-                'Invalid image format in compressImageIfLarge: ' . $e->getMessage(),
-                [
-                    'trace' => $e->getTrace(),
-                    'file_name' => $file->getClientOriginalName(),
-                    'file_size' => $file->getSize(),
-                    'file_type' => $file->getMimeType(),
-                ]
-            );
-
-            return [
-                'success' => false,
-                'path' => null,
-                'size' => null,
-                'error' => 'Неподдерживаемый формат изображения'
-            ];
+            Log::channel('error_file')->error('Invalid image format: ' . $e->getMessage(), [
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+            return ['success' => false, 'path' => null, 'size' => null, 'error' => 'Неподдерживаемый формат изображения'];
         } catch (\RuntimeException $e) {
-            Log::channel('error_file')->error(
-                'Image processing error in compressImageIfLarge: ' . $e->getMessage(),
-                [
-                    'trace' => $e->getTrace(),
-                    'file_name' => $file->getClientOriginalName(),
-                ]
-            );
-
-            return [
-                'success' => false,
-                'path' => null,
-                'size' => null,
-                'error' => 'Ошибка обработки изображения'
-            ];
+            Log::channel('error_file')->error('Image processing error: ' . $e->getMessage(), [
+                'file_name' => $file->getClientOriginalName(),
+            ]);
+            return ['success' => false, 'path' => null, 'size' => null, 'error' => 'Ошибка обработки изображения'];
         } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Unexpected error in compressImageIfLarge: ' . $e->getMessage(),
-                [
-                    'trace' => $e->getTrace(),
-                    'file_name' => $file->getClientOriginalName() ?? 'unknown',
-                    'file_size' => $file->getSize() ?? 'unknown',
-                ]
-            );
-
-            return [
-                'success' => false,
-                'path' => null,
-                'size' => null,
-                'error' => 'Произошла непредвиденная ошибка при обработке изображения'
-            ];
+            Log::channel('error_file')->error('Unexpected error: ' . $e->getMessage(), [
+                'file_name' => $file->getClientOriginalName() ?? 'unknown',
+            ]);
+            return ['success' => false, 'path' => null, 'size' => null, 'error' => $e->getMessage()];
         }
     }
 
@@ -255,5 +253,76 @@ class ImgBanSubjService extends Service
         }
 
     }
+
+    public function getAllImageBanIds()
+    {
+        $imagebanConfig = config('services.imageban');
+
+        if (empty($imagebanConfig['client_secret'])) {
+            Log::channel('error_file')->error('CLIENT_ID не найден в конфигурации (services.php)');
+            dd('Ошибка: CLIENT_ID не настроен в config/services.php');
+        }
+
+        $allIds = [];
+        $page = 1;
+        $limit = 50; // ImageBan отдаёт по 50 записей на страницу
+
+        try {
+            do {
+                $response = Http::withHeaders([
+                    'Authorization' => 'TOKEN ' . $imagebanConfig['client_secret'],
+                ])->get("https://api.imageban.ru/v1/account/me/images/ids/{$page}");
+
+                if (!$response->successful()) {
+                    Log::channel('error_file')->error('HTTP ошибка при получении ID', [
+                        'status' => $response->status(),
+                        'body' => $response->body()
+                    ]);
+                    dd('HTTP ошибка от API: ' . $response->status() . ' - ' . $response->body());
+                }
+
+                $data = $response->json();
+
+                // Проверка структуры ответа
+                if (!isset($data['success']) || $data['success'] !== true || !isset($data['data'])) {
+                    $msg = $data['error']['message'] ?? 'Неизвестная ошибка ответа API';
+                    Log::channel('error_file')->error('Ошибка логики API при получении ID', ['message' => $msg]);
+                    dd('Ошибка API: ' . $msg);
+                }
+
+                $idsPage = $data['data'];
+
+                if (empty($idsPage)) {
+                    break; // Больше страниц нет
+                }
+
+                $allIds = array_merge($allIds, $idsPage);
+
+                // Если пришло меньше лимита — значит, это последняя страница
+                if (count($idsPage) < $limit) {
+                    break;
+                }
+
+                $page++;
+
+                // ВАЖНО: Небольшая пауза, чтобы не упереться в rate limit при большом количестве фото
+                usleep(200000); // 0.2 секунды между запросами
+
+            } while (true);
+
+            // Вывод результата для проверки
+
+            return $allIds;
+
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('Исключение при сборе ID фото', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return null;
+        }
+    }
+
 
 }

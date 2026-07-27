@@ -51,11 +51,9 @@ class ImgSubjService extends Service
                 $smallPhoto = $this->imgBanSubjService->createInImgBan($request, 360);
 
             } catch (\Exception $e) {
-                throw new VkApiException(
-                    'Ошибка при загрузке изображения в VK: ' . $e->getMessage(),
-                    0,
-                    (array)$e
-                );
+                Log::channel('error_file')->error(['Ошибка сохранения фото: ', $e]);
+
+                return null;
             }
             $position = $this->imgBanRepository->getNextPosition($id);
 
