@@ -12,7 +12,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Factory;
 
@@ -37,13 +36,14 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
+
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 
         try {
             // 1. Параметры из URL (пагинация, явные фильтры)
             $requestFilters = $request->only([
-                'for_events', 'capacity_to', 'per_person', 'features', 'district'
+                'for_events', 'capacity_to', 'per_person', 'features', 'district', 'near_metro_id'
             ]);
 
             // 2. Фильтры из сессии — гарантированно делаем массивом, даже если их нет

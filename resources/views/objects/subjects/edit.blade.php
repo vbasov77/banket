@@ -226,7 +226,17 @@
                                     </div>
                                 </td>
                                 <td style="width: 49%">
-
+                                    <div>
+                                        <label for="loud_music_until"><b>Громкая музыка разрешена до:</b></label>
+                                        <select name="loud_music_until" id="loud_music_until" class="form-control">
+                                            <option value="">— не указано —</option>
+                                            <option value="22:00" {{ old('loud_music_until', $subj->loud_music_until ?? '') === '22:00' ? 'selected' : '' }}>22:00</option>
+                                            <option value="23:00" {{ old('loud_music_until', $subj->loud_music_until ?? '') === '23:00' ? 'selected' : '' }}>23:00</option>
+                                            <option value="00:00" {{ old('loud_music_until', $subj->loud_music_until ?? '') === '00:00' ? 'selected' : '' }}>00:00</option>
+                                            <option value="01:00" {{ old('loud_music_until', $subj->loud_music_until ?? '') === '01:00' ? 'selected' : '' }}>01:00</option>
+                                            <option value="morning" {{ old('loud_music_until', $subj->loud_music_until ?? '') === 'morning' ? 'selected' : '' }}>до утра</option>
+                                        </select>
+                                    </div>
                                 </td>
                             </tr>
                         </table>

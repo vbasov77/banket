@@ -155,99 +155,117 @@ class SubjRepository extends Repository
     public function findById(int $id): ?array
     {
         try {
-            $sql = "SELECT
-    s.id AS subj_id,
-    s.name_subj,
-    s.minimum_cost,
-    s.per_person,
-    s.capacity_to,
-    s.furshet,
-    s.site_type,
-    s.features,
-    s.text_subj,
-    s.published,
-    gao.latitude,
-    gao.longitude,  
-    gao.city_id,  
-    gao.district_id,  
-    asub.address,
-    d.name,
-    CASE
-        WHEN asub.subj_id IS NOT NULL THEN TRUE
-        WHEN aobj.obj_id IS NOT NULL THEN TRUE
-        ELSE FALSE
-    END AS map,
-    -- Флаг «в избранном» для текущего пользователя
-    EXISTS(
-        SELECT 1
-        FROM favorites_subj fs
-        WHERE fs.subj_id = s.id
-          AND fs.user_id = ?  -- Плейсхолдер вместо жёсткого значения
-    ) AS is_favorite,
-    JSON_OBJECT(
-        'obj_id', o.id,
-        'user_id', o.user_id,
-        'name_obj', o.name_obj,
-        'phone_obj', o.phone_obj
-    ) AS obj_json,
-    IF(
-        do.for_events IS NOT NULL OR
-        do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
-        do.alcohol IS NOT NULL OR do.payment_methods IS NOT NULL OR
-        do.text_obj IS NOT NULL,
-        JSON_OBJECT(
-            'for_events', do.for_events,
-            'kitchen', do.kitchen,
-            'service', do.service,
-            'alcohol', do.alcohol,
-            'payment_methods', do.payment_methods,
-            'text_obj', do.text_obj
-        ),
-        NULL
-    ) AS details_obj_json,
-    (
-        SELECT JSON_ARRAYAGG(small_img)
-        FROM img_ban_subj
-        WHERE subj_id = s.id
-    ) AS image_paths_json,
-    (
-        SELECT JSON_ARRAYAGG(big_img)
-        FROM img_ban_subj
-        WHERE subj_id = s.id
-    ) AS big_image_paths_json,
-    (
-        SELECT JSON_ARRAYAGG(
-            JSON_OBJECT(
-                'subj_id', rs.id,
-                'name_subj', rs.name_subj,
-                'image_path', (
-                    SELECT small_img
+            $sql = "
+            SELECT
+                s.id AS subj_id,
+                s.name_subj,
+                s.minimum_cost,
+                s.per_person,
+                s.capacity_to,
+                s.furshet,
+                s.site_type,
+                s.features,
+                s.text_subj,
+                s.published,
+                gao.latitude,
+                gao.longitude,  
+                gao.city_id,  
+                gao.district_id,  
+                asub.address,
+                d.name AS district_name,
+                CASE
+                    WHEN asub.subj_id IS NOT NULL THEN TRUE
+                    WHEN aobj.obj_id IS NOT NULL THEN TRUE
+                    ELSE FALSE
+                END AS map,
+                EXISTS(
+                    SELECT 1
+                    FROM favorites_subj fs
+                    WHERE fs.subj_id = s.id
+                      AND fs.user_id = ?
+                ) AS is_favorite,
+                JSON_OBJECT(
+                    'obj_id', o.id,
+                    'user_id', o.user_id,
+                    'name_obj', o.name_obj,
+                    'phone_obj', o.phone_obj
+                ) AS obj_json,
+                IF(
+                    do.for_events IS NOT NULL OR
+                    do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
+                    do.alcohol IS NOT NULL OR
+                    do.payment_methods IS NOT NULL OR
+                    do.text_obj IS NOT NULL,
+                    JSON_OBJECT(
+                        'for_events', do.for_events,
+                        'kitchen', do.kitchen,
+                        'service', do.service,
+                        'alcohol', do.alcohol,
+                        'payment_methods', do.payment_methods,
+                        'text_obj', do.text_obj
+                    ),
+                    NULL
+                ) AS details_obj_json,
+                (
+                    SELECT JSON_ARRAYAGG(small_img)
                     FROM img_ban_subj
-                    WHERE subj_id = rs.id
-                    ORDER BY id ASC
-                    LIMIT 1
-                ),
-                'capacity_to', rs.capacity_to,
-                'minimum_cost', rs.minimum_cost
-            )
-        )
-        FROM subjs rs
-        WHERE rs.obj_id = s.obj_id
-          AND rs.id != s.id
-          AND rs.published = 1
-    ) AS related_subjs_json
-FROM subjs s
-LEFT JOIN objs o ON s.obj_id = o.id
-LEFT JOIN details_obj do ON o.id = do.obj_id
-LEFT JOIN address_subjs asub ON s.id = asub.subj_id
-LEFT JOIN address_objs aobj ON o.id = aobj.obj_id
-LEFT JOIN group_address_objs gao ON o.id = gao.obj_id
-LEFT JOIN districts d ON gao.district_id = d.id 
-WHERE s.id = ?  -- ID ресторана
-LIMIT 1;";
+                    WHERE subj_id = s.id
+                ) AS image_paths_json,
+                (
+                    SELECT JSON_ARRAYAGG(big_img)
+                    FROM img_ban_subj
+                    WHERE subj_id = s.id
+                ) AS big_image_paths_json,
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'subj_id', rs.id,
+                            'name_subj', rs.name_subj,
+                            'image_path', (
+                                SELECT small_img
+                                FROM img_ban_subj
+                                WHERE subj_id = rs.id
+                                ORDER BY id ASC
+                                LIMIT 1
+                            ),
+                            'capacity_to', rs.capacity_to,
+                            'minimum_cost', rs.minimum_cost
+                        )
+                    )
+                    FROM subjs rs
+                    WHERE rs.obj_id = s.obj_id
+                      AND rs.id != s.id
+                      AND rs.published = 1
+                ) AS related_subjs_json,
+                -- Ближайшие станции метро (rank 1,2,3)
+                (
+                    SELECT JSON_ARRAYAGG(
+                        JSON_OBJECT(
+                            'metro_station_id', snm.metro_station_id,
+                            'distance_km', snm.distance_km,
+                            'rank', snm.rank,
+                            'station_name', ms.name
+                        )
+                    )
+                    FROM subj_near_metro snm
+                    JOIN metro_stations ms ON ms.id = snm.metro_station_id
+                    WHERE snm.subj_id = s.id
+                    ORDER BY snm.rank ASC
+                ) AS nearest_metros_json
+            FROM subjs s
+            LEFT JOIN objs o ON s.obj_id = o.id
+            LEFT JOIN details_obj do ON o.id = do.obj_id
+            LEFT JOIN address_subjs asub ON s.id = asub.subj_id
+            LEFT JOIN address_objs aobj ON o.id = aobj.obj_id
+            LEFT JOIN group_address_objs gao ON o.id = gao.obj_id
+            LEFT JOIN districts d ON gao.district_id = d.id 
+            WHERE s.id = ?
+            LIMIT 1;
+        ";
+
             $userId = Auth::id();
             $results = DB::select($sql, [$userId, $id]);
-            // DB::select возвращает массив, даже если одна строка
+
             if (empty($results)) {
                 return null;
             }
@@ -255,30 +273,33 @@ LIMIT 1;";
             $result = $results[0];
 
             return [
-                'subj_id' => $result->subj_id,
-                'name_subj' => $result->name_subj,
-                'address' => $result->address,
-                'district_id' => $result->district_id,
-                'district_name' => $result->name,
-                'minimum_cost' => $result->minimum_cost,
-                'per_person' => $result->per_person,
-                'capacity_to' => $result->capacity_to,
-                'furshet' => $result->furshet,
-                'site_type' => $this->parseJsonField($result->site_type),
-                'features' => $this->parseJsonField($result->features),
-                'text_subj' => $result->text_subj,
-                'published' => $result->published,
-                'map' => (bool)$result->map,
-                'obj' => $this->parseJsonField($result->obj_json),
-                'details_obj' => $this->parseJsonField($result->details_obj_json),
-                'image_paths' => $this->parseJsonArray($result->image_paths_json),
-                'big_image_paths' => $this->parseJsonArray($result->big_image_paths_json),
-                'related_subjs' => $this->parseJsonArray($result->related_subjs_json),
-                'is_favorite' => $result->is_favorite,
-                'latitude' => $result->latitude,
-                'longitude' => $result->longitude,
+                'subj_id'           => $result->subj_id,
+                'name_subj'         => $result->name_subj,
+                'address'           => $result->address,
+                'district_id'       => $result->district_id,
+                'district_name'     => $result->district_name,
+                'minimum_cost'      => $result->minimum_cost,
+                'per_person'        => $result->per_person,
+                'capacity_to'       => $result->capacity_to,
+                'furshet'           => $result->furshet,
+                'site_type'         => $this->parseJsonField($result->site_type),
+                'features'          => $this->parseJsonField($result->features),
+                'text_subj'         => $result->text_subj,
+                'published'         => (bool)$result->published,
+                'map'               => (bool)$result->map,
+                'obj'               => $this->parseJsonField($result->obj_json),
+                'details_obj'       => $this->parseJsonField($result->details_obj_json),
+                'image_paths'       => $this->parseJsonArray($result->image_paths_json),
+                'big_image_paths'   => $this->parseJsonArray($result->big_image_paths_json),
+                'related_subjs'     => $this->parseJsonArray($result->related_subjs_json),
+                'is_favorite'       => (bool)$result->is_favorite,
+                'latitude'          => $result->latitude,
+                'longitude'         => $result->longitude,
+                // Новые данные: ближайшие станции метро
+                'nearest_metros'    => $this->parseJsonArray($result->nearest_metros_json ?? '[]'),
             ];
         } catch (QueryException $e) {
+            // В продакшене лучше логировать и возвращать null вместо проброса исключения
             throw $e;
         }
     }

@@ -272,22 +272,19 @@ class MapPointController extends Controller
 
             $subjId = (int)$request->id;
             $subj = Subj::with('obj')->find($subjId);
-            // Загружаем AddressSubj с связанными моделями для проверки прав
-            $addressSubjs = AddressSubj::with(['subj.obj'])->where('subj_id', $subjId)->get();
 
-            if ($addressSubjs->isEmpty()) {
+            if (!$subj) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Адреса для удаления не найдены'
+                    'message' => 'Субъект не найден'
                 ], 404);
             }
 
-            // Проверка прав доступа через метод модели isAuthor()
+            // Проверка прав через модель
             if (!$subj->isAuthor()) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [
                     'subj_id' => $subj->id,
                     'user_id' => auth()->id(),
-                    'model_user_id' => 'null', // Всегда null для Subj
                     'related_obj_user_id' => $subj->obj->user_id ?? 'null'
                 ]);
 
@@ -297,42 +294,20 @@ class MapPointController extends Controller
                 ], 403);
             }
 
-            DB::beginTransaction();
+            // Вызов сервиса (вся логика удаления внутри)
+            $result = $this->mapService->removeAddressForSubj($subjId);
 
-            try {
-                if (count($addressSubjs) == 1) {
-                    // Удаляем адрес и группу (если это последняя запись в группе)
-                    $addressSubjs[0]->delete();
-
-                    // Проверяем, есть ли другие адреса в этой группе
-                    $remainingInGroup = AddressSubj::where('group_id', $addressSubjs[0]->group_id)->count();
-                    if ($remainingInGroup == 0) {
-                        GroupAddressObj::where('id', $addressSubjs[0]->group_id)->delete();
-                    }
-                } else {
-                    // Удаляем только первый найденный адрес
-                    $addressSubjs[0]->delete();
-                }
-
-                DB::commit();
-                return response()->json(['success' => true, 'message' => 'Адрес удалён']);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                Log::channel('error_file')->error('Error during destroy operation', [
-                    'exception' => $e->getMessage(),
-                    'subj_id' => $subjId,
-                    'user_id' => $user->id
-                ]);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Ошибка при удалении адреса'
-                ], 500);
+            if (!$result['success']) {
+                $code = $result['code'] ?? 500;
+                return response()->json($result, $code);
             }
+
+            return response()->json($result);
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Unexpected error in destroy method', [
                 'exception' => $e->getMessage(),
                 'request' => $request->all(),
-                'user_id' => auth()->id()
+                'user_id' => $user?->id
             ]);
             return response()->json([
                 'success' => false,

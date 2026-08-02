@@ -1,7 +1,6 @@
 @extends('layouts.app', ['title' => "Банкетные залы"])
 @section('content')
 
-    {{--    <script src="{{asset('css/bootstrap/bootstrap-icons@1.10.0/bootstrap-icons.css')}}"></script>--}}
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <link href="{{ asset('css/front.css') }}" rel="stylesheet">
@@ -19,13 +18,72 @@
             opacity: 0.6;
         }
 
+
+        .district-with-icon {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .details-info h3.details-title {
+            margin-bottom: 4px; /* чуть плотнее к району */
+        }
+
+        .details-title {
+            margin: 0 0 0 0;
+        }
+
+        .location-flow {
+            font-size: 13px;
+            color: #555;
+            line-height: 0.7;
+            margin-bottom: 14px;
+
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .district-text {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .metro-inline-icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .metro-station-item {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .metro-separator {
+            flex-shrink: 0;
+        }
+
+        .d-flex.flex-wrap {
+            line-height: 1.2;
+            font-size: 15px;
+        }
+
     </style>
+
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
     @if(!empty($data) && count($data) > 0)
         <div class="relative w-full h-64 md:h-96 overflow-hidden flex items-center justify-center">
             <!-- Фон: карта из public/map.jpg -->
             <div class="absolute inset-0 bg-cover bg-center"
-                 style="background-image: url('{{ asset('map.jpg') }}')"></div>
+                 style="background-image: url('{{ asset('map/img/map.jpg') }}')"></div>
 
             <!-- Затемнение (опционально, чтобы текст/кнопка читались лучше) -->
             <div class="absolute inset-0 bg-black/50"></div>
@@ -60,6 +118,29 @@
                             @if($countSubj > 1)
                                 <div class="festival">
                                     <h3>{!! $data[$i]['name_obj'] !!}</h3>
+                                    @if(!empty(count($data[$i]['details_obj']['for_events'])))
+                                        @php
+                                            $sections = [
+                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
+                                            ];
+                                        @endphp
+
+                                        @foreach($sections as $section)
+                                            <div class="col">
+                                                <div class="p-1 rounded h-100">
+
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <i style="font-size: 25px"
+                                                           class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                        @foreach($section['data'] as $item)
+                                                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+
                                     <div class="carousel-wrapper">
                                         <div class="carousel">
                                             <div class="carousel-content">
@@ -84,27 +165,60 @@
                                                             <section>
                                                                 <div class="details">
                                                                     <div class="details-info">
-                                                                        <h3 class="details-title">{{ $data[$i]['subjs_data'][$j]['name_subj']}}</h3>
-                                                                        <!-- Вместимость в одной строке -->
-                                                                        <div class="detail">
-                                                                            <span class="detail-label">Район:</span>
-                                                                            <span class="detail-value">{{ $data[$i]['subjs_data'][$j]['district_name'] }}</span>
-                                                                        </div>
-                                                                        <div class="detail">
-                                                                            <span class="detail-label">Вместимость:</span>
-                                                                            <span class="detail-value">до: {{ $data[$i]['subjs_data'][$j]['capacity_to'] }} чел.</span>
+                                                                        <h3 class="details-title">{{ $data[$i]['subjs_data'][$j]['name_subj'] }}</h3>
+
+                                                                        {{-- Район + метро в одной строке (переносится по словам) --}}
+                                                                        <div class="location-flow">
+    <span class="district-text">
+        📍 {{ $data[$i]['subjs_data'][$j]['district_name'] ?? 'Район не указан' }}
+    </span>
+
+                                                                            @if (!empty($data[$i]['subjs_data'][$j]['metro_stations']))
+                                                                                @php
+                                                                                    $stations = $data[$i]['subjs_data'][$j]['metro_stations'];
+                                                                                    $count = count($stations);
+                                                                                @endphp
+
+                                                                                <span class="metro-inline-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="9" fill="#0077b6"/>
+  <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="13"
+        fill="#fff">M</text>
+</svg>
+
+
+        </span>
+
+                                                                                {{-- Цикл по индексам --}}
+                                                                                @for ($k = 0; $k < $count; $k++)
+                                                                                    @php
+                                                                                        $s = $stations[$k];
+                                                                                        $dist = (float)($s['distance_km'] ?? 0);
+                                                                                        $name = $s['station_name'];
+                                                                                        $formattedDist = number_format($dist, 1);
+                                                                                    @endphp
+
+                                                                                    <span class="metro-station-item">
+                {{ $name }} ({{ $formattedDist }} км)</span>
+                                                                                @endfor
+                                                                            @endif
                                                                         </div>
 
-                                                                        <!-- Цена в одной строке (уже правильно обёрнута) -->
+                                                                        <div class="detail">
+                                                                            <span class="detail-label">Вместимость:</span>
+                                                                            <span class="detail-value">до: {{ $data[$i]['subjs_data'][$j]['capacity_to'] ?? '-' }} чел.</span>
+                                                                        </div>
+
                                                                         <div class="detail">
                                                                             <span class="detail-label">Цена:</span>
-                                                                            <span class="detail-value price">от:
-                    {{ number_format($data[$i]['subjs_data'][$j]['per_person'], 0, ' ', ' ') }} ₽
+                                                                            <span class="detail-value price">
+                    от: {{ number_format($data[$i]['subjs_data'][$j]['per_person'] ?? 0, 0, ' ', ' ') }} ₽
                 </span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </section>
+
                                                         </div>
                                                     @endfor
                                                 @endif
@@ -118,38 +232,40 @@
                                             ❯
                                         </button>
                                     </div>
-                                    @if(!empty(count($data[$i]['details_obj']['for_events'])))
-                                        @php
-                                            $sections = [
-                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
-                                            ];
-                                        @endphp
-
-                                        @foreach($sections as $section)
-                                            <div class="col">
-                                                <div class="p-3 bg-light rounded h-100">
-
-                                                    <div class="d-flex flex-wrap gap-2">
-                                                        <i style="font-size: 30px"
-                                                           class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
-                                                        @foreach($section['data'] as $item)
-                                                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
+                                    @if(!empty($data[$i]['details_obj']['description']))
+                                        <div class="bg-light p-4 rounded-10 shadow-sm">
+                                            <p class="lead text-muted" @style(['font-size: 18px'])>
+                                                {{ $data[$i]['details_obj']['description'] }}
+                                            </p>
+                                        </div>
                                     @endif
-                                    <div class="bg-light p-4 rounded-10 shadow-sm">
-                                        <p class="lead text-muted" @style(['font-size: 18px'])>
-                                            {{ $data[$i]['details_obj']['description'] }}
-                                        </p>
-                                    </div>
                                 </div>
                             @else
                                 @if($countSubj)
                                     <div class="festival one">
                                         <h3>{!! $data[$i]['name_obj'] !!}</h3>
+                                        @if(!empty(count($data[$i]['details_obj']['for_events'])))
+                                            @php
+                                                $sections = [
+                                                        ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
+                                                ];
+                                            @endphp
+
+                                            @foreach($sections as $section)
+                                                <div class="col">
+                                                    <div class="p-1 rounded h-100">
+
+                                                        <div class="d-flex flex-wrap gap-2">
+                                                            <i style="font-size: 25px"
+                                                               class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                            @foreach($section['data'] as $item)
+                                                                <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        @endif
                                         <div class="carousel-wrapper">
                                             <div class="carousel">
                                                 <div class="carousel-content">
@@ -186,6 +302,42 @@
                                                     <div class="details">
                                                         <div class="details-info">
                                                             <h3 class="details-title">{{ $data[$i]['subjs_data'][0]['name_subj']}}</h3>
+                                                            {{-- Район + метро в одной строке (переносится по словам) --}}
+                                                            <div class="location-flow">
+    <span class="district-text">
+        📍 {{ $data[$i]['subjs_data'][0]['district_name'] ?? 'Район не указан' }}
+    </span>
+
+                                                                @if (!empty($data[$i]['subjs_data'][0]['metro_stations']))
+                                                                    @php
+                                                                        $stations = $data[$i]['subjs_data'][0]['metro_stations'];
+                                                                        $count = count($stations);
+                                                                    @endphp
+
+                                                                    <span class="metro-inline-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="12" cy="12" r="9" fill="#0077b6"/>
+  <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="13"
+        fill="#fff">M</text>
+</svg>
+
+
+        </span>
+
+                                                                    {{-- Цикл по индексам --}}
+                                                                    @for ($k = 0; $k < $count; $k++)
+                                                                        @php
+                                                                            $s = $stations[$k];
+                                                                            $dist = (float)($s['distance_km'] ?? 0);
+                                                                            $name = $s['station_name'];
+                                                                            $formattedDist = number_format($dist, 1);
+                                                                        @endphp
+
+                                                                        <span class="metro-station-item">
+                {{ $name }} ({{ $formattedDist }} км)</span>
+                                                                    @endfor
+                                                                @endif
+                                                            </div>
                                                             <!-- Вместимость -->
                                                             <div class="detail">
                                                                 <span class="detail-label">Вместимость:</span>
@@ -211,35 +363,13 @@
                                                 </a>
                                             </div>
                                         </div>
-                                        @if(!empty(count($data[$i]['details_obj']['for_events'])))
-                                            @php
-                                                $sections = [
-                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
-                                                ];
-                                            @endphp
-
-                                            @foreach($sections as $section)
-                                                <div class="col">
-                                                    <div class="p-3 bg-light rounded h-100">
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            <i style="font-size: 30px"
-                                                               class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
-                                                            @foreach($section['data'] as $item)
-                                                                <span class="feature-badge bg-white border rounded px-2 py-1">
-{{ $item }}
-</span>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-
+                                        @if(!empty($data[$i]['details_obj']['description']))
+                                            <div class="bg-light p-4 rounded-10 shadow-sm">
+                                                <p class="lead text-muted" @style(['font-size: 18px'])>
+                                                    {{ $data[$i]['details_obj']['description'] }}
+                                                </p>
+                                            </div>
                                         @endif
-                                        <div class="bg-light p-4 rounded-10 shadow-sm">
-                                            <p class="lead text-muted" @style(['font-size: 18px'])>
-                                                {{ $data[$i]['details_obj']['description'] }}
-                                            </p>
-                                        </div>
                                     </div>
                                 @endif
                             @endif

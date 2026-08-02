@@ -50,7 +50,6 @@ class UserCityService extends Service
     {
         $sessionUserCity = session('user_city');
         $sessionCityId = session('city_id');
-
         if (!$sessionUserCity || !$sessionCityId) {
             if (Auth::check()) {
                 $userCity = $this->findUserCity();

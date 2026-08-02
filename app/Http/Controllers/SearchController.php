@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Search\SearchRequest;
 use App\Services\SearchService;
+use App\Services\UserCityService;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
@@ -17,9 +18,12 @@ class SearchController extends Controller
 {
     private SearchService $searchService;
 
-    public function __construct(SearchService $searchService)
+    protected UserCityService $userCityService;
+
+    public function __construct(SearchService $searchService, UserCityService $userCityService)
     {
         $this->searchService = $searchService;
+        $this->userCityService = $userCityService;
 
     }
 
@@ -80,6 +84,23 @@ class SearchController extends Controller
         }
     }
 
+    public function showFilters(Request $request)
+    {
+        $cityId = session('city_id');
+        if (!$cityId) {
+            $this->userCityService->checkSessionUserCity($request);
+            $cityId = session('city_id');
+        }
+        $filterData = $this->searchService->getFiltersDataByCity($cityId);
+
+        return view('filters.filters', [
+            'districtsOptions' => $filterData['districts'],
+            'metrosOptions' => $filterData['metros'],
+            'zagsOptions' => $filterData['zags'],
+            // если нужно, передай и cityId
+        ]);
+    }
+
 
     /**
      * @param SearchRequest $request
@@ -89,13 +110,52 @@ class SearchController extends Controller
     {
         $filters = $request->validated();
 
-        // Сохраняем фильтры в сессии
         session()->put('selected_filters', $filters);
 
-        // Редиректим на GET-маршрут. withInput() сохранит значения полей формы для old()
-        return redirect()->route('front')->withInput();
+        return redirect()->route('search_get.objs');
     }
 
+    public function searchGet(Request $request)
+    {
+        try {
+            // ✅ Читаем из сессии
+            $filters = session('selected_filters', []);
+
+            $data = $this->searchService->searchResults($request);
+
+            $appliedFilters = $this->searchService->getReadableFilters();
+            $arrayDistricts = $filters['district'] ?? null;
+
+            return view('front', [
+                'data' => $data['data'],
+                'pagination' => $data['pagination'],
+                'arrayDistricts' => $arrayDistricts,
+                'appliedFilters' => $appliedFilters,
+            ]);
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database query error in SearchController@searchGet',
+                [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'filters' => $filters,
+                ]
+            );
+            return redirect()->route('front')
+                ->with('error', 'Произошла ошибка базы данных при поиске.');
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in SearchController@searchGet',
+                [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'filters' => $filters,
+                ]
+            );
+            return redirect()->route('front')
+                ->with('error', 'Произошла ошибка при поиске.');
+        }
+    }
 
     /**
      * @return bool

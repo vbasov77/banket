@@ -1,7 +1,7 @@
 <div class="dropdown-container">
     <button type="button"
             class="btn-festive-gradient btn-festive-gradient-white dropdown-toggle none-shadow">
-        Вместимость до
+        Вместимость от
     </button>
     <div class="dropdown-menu-custom">
         <h6 class="px-3 py-2 text-muted fw-semibold">Укажите максимальную вместимость</h6>

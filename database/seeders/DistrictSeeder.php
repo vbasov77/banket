@@ -2,19 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Models\City;
+use App\Models\District;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-
 
 class DistrictSeeder extends Seeder
 {
     public function run(): void
     {
-        // Сначала получаем ID городов
-        $spb = DB::table('cities')->where('name', 'Санкт-Петербург')->first();
-        $moscow = DB::table('cities')->where('name', 'Москва')->first();
-
-        $districts = [];
+        // Сначала получаем города — firstOrFail сразу скажет, если города нет
+        $spb = City::where('name', 'Санкт-Петербург')->firstOrFail();
+        $moscow = City::where('name', 'Москва')->firstOrFail();
 
         // Районы Санкт‑Петербурга
         $spbDistricts = [
@@ -25,11 +23,40 @@ class DistrictSeeder extends Seeder
             'Фрунзенский', 'Центральный'
         ];
 
-        foreach ($spbDistricts as $district) {
-            $districts[] = [
+        // Пригороды СПб: их районы (микрорайоны/территории)
+        $suburbDistricts = [
+            // Пушкин
+            ['city_name' => 'Пушкин', 'names' => ['Центр', 'София', 'Красносёлка', 'БАМ', 'Новая Деревня']],
+            // Петергоф
+            ['city_name' => 'Петергоф', 'names' => ['Старый Петергоф', 'Новый Петергоф', 'Егерская слобода']],
+            // Красное Село
+            ['city_name' => 'Красное Село', 'names' => ['Центр', 'Новое Красное Село', 'Горелово']],
+            // Колпино
+            ['city_name' => 'Колпино', 'names' => ['Центр', 'Промышленный', 'Посёлок Понтонный']],
+            // Сестрорецк
+            ['city_name' => 'Сестрорецк', 'names' => ['Центр', 'Курортная зона', 'Тарховка']],
+            // Кронштадт
+            ['city_name' => 'Кронштадт', 'names' => ['Исторический центр', 'Канонерка', 'Восточная сторона']],
+            // Ломоносов
+            ['city_name' => 'Ломоносов', 'names' => ['Центр', 'Мартышкино', 'Ольгинское']],
+        ];
+
+        foreach ($spbDistricts as $name) {
+            District::firstOrCreate([
                 'city_id' => $spb->id,
-                'name' => $district
-            ];
+                'name'    => $name,
+            ]);
+        }
+
+        // Добавляем районы пригородов
+        foreach ($suburbDistricts as $group) {
+            $city = City::where('name', $group['city_name'])->firstOrFail();
+            foreach ($group['names'] as $districtName) {
+                District::firstOrCreate([
+                    'city_id' => $city->id,
+                    'name'    => $districtName,
+                ]);
+            }
         }
 
         // Районы Москвы
@@ -64,13 +91,11 @@ class DistrictSeeder extends Seeder
             'Якиманка', 'Ярославский', 'Ясенево'
         ];
 
-        foreach ($moscowDistricts as $district) {
-            $districts[] = [
+        foreach ($moscowDistricts as $name) {
+            District::firstOrCreate([
                 'city_id' => $moscow->id,
-                'name' => $district
-            ];
+                'name'    => $name,
+            ]);
         }
-
-        DB::table('districts')->insert($districts);
     }
 }
