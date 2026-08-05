@@ -1,0 +1,1 @@
+$('.mess').show().delay(7000).hide('slow');
