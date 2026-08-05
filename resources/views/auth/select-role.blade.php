@@ -6,6 +6,8 @@
             transition: all 0.2s ease;
             border: 1px solid transparent;
             padding: 1.25rem;
+            background: #f6f9ff;
+            cursor: pointer; /* или pointer */
         }
         .role-card:hover {
             border-color: rgba(0,0,0,.1);

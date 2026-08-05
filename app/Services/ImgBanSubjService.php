@@ -260,7 +260,7 @@ class ImgBanSubjService extends Service
 
         if (empty($imagebanConfig['client_secret'])) {
             Log::channel('error_file')->error('CLIENT_ID не найден в конфигурации (services.php)');
-            dd('Ошибка: CLIENT_ID не настроен в config/services.php');
+
         }
 
         $allIds = [];
@@ -278,7 +278,6 @@ class ImgBanSubjService extends Service
                         'status' => $response->status(),
                         'body' => $response->body()
                     ]);
-                    dd('HTTP ошибка от API: ' . $response->status() . ' - ' . $response->body());
                 }
 
                 $data = $response->json();
@@ -287,7 +286,7 @@ class ImgBanSubjService extends Service
                 if (!isset($data['success']) || $data['success'] !== true || !isset($data['data'])) {
                     $msg = $data['error']['message'] ?? 'Неизвестная ошибка ответа API';
                     Log::channel('error_file')->error('Ошибка логики API при получении ID', ['message' => $msg]);
-                    dd('Ошибка API: ' . $msg);
+
                 }
 
                 $idsPage = $data['data'];

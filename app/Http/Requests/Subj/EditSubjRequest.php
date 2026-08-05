@@ -77,6 +77,11 @@ class EditSubjRequest extends FormRequest
                 'string',
                 'max:100',
             ],
+            'loud_music_until' => [
+                'nullable',
+                'string',
+                Rule::in(['22:00', '23:00', '00:00', '01:00', 'morning']),
+            ],
             'text_subj' => [
                 'required',
                 'string',
@@ -113,6 +118,7 @@ class EditSubjRequest extends FormRequest
 
             'features.min' => 'Необходимо указать хотя бы одну особенность',
             'features.max' => 'Можно указать не более 10 особенностей',
+            'loud_music_until.in' => 'Выберите допустимое время, когда разрешена громкая музыка',
         ];
     }
 

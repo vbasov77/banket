@@ -92,10 +92,8 @@
                     }
                 });
 
-                // Вызываем функцию обновления кнопки, если она существует
-                if (typeof updateDistrictButton === 'function') {
-                    updateDistrictButton();
-                }
+                // Теперь эта строка сработает гарантированно
+                updateDistrictButton();
             }
         }
 
@@ -116,6 +114,30 @@
         // Инициируем загрузку при загрузке страницы (если нужно)
         loadDistricts(); // Уберите эту строку, если хотите загружать только при клике
     });
+
+    // ДОБАВЬ ЭТУ ФУНКЦИЮ В КОНЕЦ СКРИПТА
+    function updateDistrictButton() {
+        const btn = document.getElementById('districtDropdown');
+        if (!btn) return;
+
+        // Считаем все отмеченные чекбоксы с name="district[]"
+        const checkedCount = document.querySelectorAll('input[name="district[]"]:checked').length;
+
+        if (checkedCount > 0) {
+            btn.textContent = `Район (${checkedCount})`;
+        } else {
+            // Если ничего не выбрано, возвращаем исходный текст "Район"
+            // Чтобы не потерять текст, можно хранить его в data-атрибуте, но пока просто жёстко
+            btn.textContent = 'Район';
+        }
+    }
+
+    // Слушаем изменения всех чекбоксов с name="district[]" на странице
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.name === 'district[]') {
+            updateDistrictButton();
+        }
+    }, true); // true нужен, чтобы ловить событие даже если оно всплывает
 
 </script>
 

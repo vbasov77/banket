@@ -21,7 +21,6 @@ return new class extends Migration
             $table->decimal('latitude', 10, 8)->nullable(false); // до 8 знаков после запятой
             $table->decimal('longitude', 11, 8)->nullable(false); // до 8 знаков после запятой
             $table->unsignedBigInteger('obj_id')->nullable(false);
-            // Поле для хранения геометрии (POINT или другие геометрические объекты)
             $table->geometry('location')->nullable(false);
             $table->index(['latitude', 'longitude']);
             // SPATIAL‑индекс для поля geometry

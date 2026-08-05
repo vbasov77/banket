@@ -19,6 +19,47 @@
         .restaurant-card {
             margin-top: 0px;
         }
+
+        .location-flow {
+            font-size: 13px;
+            color: #555;
+            line-height: 0.7;
+            margin-bottom: 14px;
+
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .district-text {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .metro-inline-icon {
+            display: inline-block;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+
+        .metro-station-item {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .metro-separator {
+            flex-shrink: 0;
+        }
+
+        .d-flex.flex-wrap {
+            line-height: 1.2;
+            font-size: 15px;
+        }
     </style>
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
@@ -44,9 +85,6 @@
                         <p class="lead text-muted mb-4">
                             {{ $subj['text_subj'] }}
                         </p>
-                        <div class="price-tag fs-3 fw-bold">
-                            от {{ number_format($subj['minimum_cost'], 0, ' ', ' ') }} ₽
-                        </div>
                         <br>
                     </div>
                 </section>
@@ -128,50 +166,82 @@
                     <div class="col-md-6 mb-4">
                         <div class="bg-light p-4 rounded-10 shadow-sm h-100">
                             <h4 class="section-title mb-4">Адрес, Связь</h4>
-                            <p class="lead text-muted mb-4">
-                                Район: {{ $subj['district_name'] }}<br>
-                                Адрес: {{ $subj['address'] }}
+
+                            {{-- Район + метро в едином потоке --}}
+                            <div class="location-flow mb-3">
+            <span class="district-text">
+                📍 {{ $subj['district_name'] ?? 'Район не указан' }}
+            </span>
+
+                                @if (!empty($subj['nearest_metros']))
+                                    @php
+                                        $stations = $subj['nearest_metros'];
+                                        $count = count($stations);
+                                    @endphp
+
+                                    <span class="metro-inline-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="9" fill="#0077b6"/>
+                        <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="13" fill="#fff">M</text>
+                    </svg>
+                </span>
+
+                                    @for ($k = 0; $k < $count; $k++)
+                                        @php
+                                            $s = $stations[$k];
+                                            $dist = (float)($s['distance_km'] ?? 0);
+                                            $name = $s['station_name'];
+                                            $formattedDist = number_format($dist, 1);
+                                        @endphp
+
+                                        <span class="metro-station-item">
+                        {{ $name }} ({{ $formattedDist }} км)
+                    </span>
+                                    @endfor
+                                @endif
+                            </div>
+
+                            <p class="mb-4">
+                                Адрес: {{ $subj['address'] ?? 'Адрес не указан' }}
                             </p>
+
                             <div>
                                 <span id="phone-masked">+7 (•••)</span>
                                 <a
                                         id="phone-full"
                                         style="display: none; text-decoration: none; color: black; font-weight: 500;"
-                                        href="tel:{{ $subj['obj']['phone_obj'] }}"
+                                        href="tel:{{ $subj['obj']['phone_obj'] ?? '' }}"
                                 >
-                                    {{ $subj['obj']['phone_obj'] }}
+                                    {{ $subj['obj']['phone_obj'] ?? '' }}
                                 </a>
                                 <button type="button" id="toggle-phone" class="btn btn-outline-dark btn-sm ms-2">
                                     Показать номер для звонка
                                 </button>
                             </div>
+
                             <script>
                                 document.addEventListener('DOMContentLoaded', function () {
                                     const masked = document.getElementById('phone-masked');
                                     const full = document.getElementById('phone-full');
                                     const button = document.getElementById('toggle-phone');
 
+                                    if (!masked || !full || !button) return;
+
                                     button.addEventListener('click', function () {
                                         if (full.style.display === 'none') {
-                                            // Показываем номер
                                             masked.style.display = 'none';
                                             full.style.display = 'inline';
                                             button.textContent = 'Скрыть номер';
                                         } else {
-                                            // Скрываем номер
                                             masked.style.display = 'inline';
                                             full.style.display = 'none';
                                             button.textContent = 'Показать номер для звонка';
                                         }
                                     });
                                 });
-
-
                             </script>
 
-
-                            <div class="d-flex flex-column align-items-center justify-content-center text-center">
-                                <!-- Единая плашка, внутри — два состояния -->
+                            <div class="d-flex flex-column align-items-center justify-content-center text-center mt-4">
                                 @if($subj['map'])
                                     <div class="p-3">
                                         <a href="{{ route('show.map', ['id' => $subj['subj_id']])}}" id="map"
@@ -180,7 +250,6 @@
                                         </a>
                                     </div>
                                 @else
-
                                     @auth
                                         @if(Auth::user()->isAuthor(Auth::id()))
                                             <br>

@@ -32,18 +32,21 @@ class SubjFactory extends Factory
             'Ведущий/Тамада'
         ];
 
+        $loudMusicOptions = ['22:00', '23:00', '00:00', '01:00', 'morning'];
+
         return [
             // obj_id НЕ ставим здесь! Он будет задан через ->forObj($obj) в тестах
 
             'name_subj'      => $this->faker->words(3, true),
-            'minimum_cost'  => $this->faker->numberBetween(5000, 50000),
-            'per_person'    => $this->faker->numberBetween(1000, 5000),
-            'capacity_to'   => $this->faker->numberBetween(20, 200),
-            'furshet'       => $this->faker->numberBetween(30, 250),
-            'site_type'     => $this->getRandomSubset($siteTypes, 1, 3),
-            'features'      => $this->getRandomSubset($features, 1, 4),
-            'text_subj'     => $this->faker->realText(150),
-            'published'     => $this->faker->randomElement([0, 1]),
+            'minimum_cost'   => $this->faker->numberBetween(5000, 50000),
+            'per_person'     => $this->faker->numberBetween(1000, 5000),
+            'capacity_to'    => $this->faker->numberBetween(20, 200),
+            'furshet'        => $this->faker->numberBetween(30, 250),
+            'site_type'      => $this->getRandomSubset($siteTypes, 1, 3),
+            'features'       => $this->getRandomSubset($features, 1, 4),
+            'loud_music_until' => $this->faker->optional()->randomElement($loudMusicOptions),
+            'text_subj'      => $this->faker->realText(150),
+            'published'      => $this->faker->randomElement([0, 1]),
         ];
     }
 

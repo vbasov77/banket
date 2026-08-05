@@ -301,6 +301,9 @@
     <div class="row">
         <div class="col-12 pt-3">
             @if(!empty($data) && count($data) > 0)
+
+                @include('blocks.show_filters')
+
                 <!-- Кнопка для открытия фильтров на мобильных -->
                 <button type="button" class="btn-show-filters mb-3">
                     Показать фильтры
@@ -310,12 +313,11 @@
                     <!-- Горизонтальный контейнер для выпадающих меню -->
                     <div class="horizontal-dropdowns">
 
-                        <!-- Первое выпадающее меню: Для мероприятий -->
-                        @include('blocks.for_events')
-
-
                         <!-- Выпадающее меню: Район -->
                         @include('blocks.district')
+
+                        <!-- Выпадающее меню: Метро -->
+                        @include('blocks.metro')
 
                         <!-- Выпадающее меню: Вместимость до -->
                         @include('blocks.capacity_to')
@@ -323,14 +325,14 @@
                         <!-- Выпадающее меню: Сумма на чел до -->
                         @include('blocks.per_person')
 
-                        <!-- Выпадающее меню: Особенности -->
-                        @include('blocks.features')
-
                         <div class="filter-container">
                             <div class="buttons-wrapper">
                                 <div class="button-left">
                                     <button type="reset" class="btn-reset">Сбросить фильтры</button>
+                                    <a href="{{route('show.filters')}}" type="submit" class="btn-reset ml-4">Все фильтры</a>
+
                                 </div>
+
                                 <div class="button-right">
                                     <button type="submit" class="btn-apply">Применить фильтры</button>
                                 </div>

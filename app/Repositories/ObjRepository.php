@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use Illuminate\Pagination\Paginator;
+
 
 class ObjRepository extends Repository
 {
@@ -179,114 +181,114 @@ class ObjRepository extends Repository
     {
         $userCityService = new UserCityService(new UserCityRepository());
         $cityId = (int) session('city_id');
+
         if (!$cityId) {
             $userCityService->checkSessionUserCity($request);
-            $cityId = session('city_id');
+            $cityId = (int) session('city_id');
+            if (!$cityId) {
+                // fallback: пустой пагинатор
+                return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 7);
+            }
         }
 
-        // Фильтрация и пагинация на уровне базы данных
         $paginated = Obj::with([
-            'detailsObj' => function ($q) {
-                $q->select('id', 'obj_id', 'for_events', 'kitchen', 'service',
-                    'alcohol', 'more', 'payment_methods', 'description', 'text_obj');
-            },
-            'subjs' => function ($query) use ($cityId) {
-                $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj')
-                    ->whereHas('addressSubj', function ($q) use ($cityId) {
-                        $q->where('city_id', $cityId);
-                    })
-                    ->with(['addressSubj' => function ($q) use ($cityId) {
-                        $q->select('id', 'subj_id', 'district_id')
-                            ->where('city_id', $cityId)
-                            ->with(['district' => function ($d) {
-                                $d->select('id', 'name');
-                            }]);
-                    }]);
-            },
-            'groupAddressObjs' => function ($v) {
-                $v->select('id', 'district_id', 'obj_id');
-            },
+            'detailsObj' => fn($q) => $q->select(
+                'id', 'obj_id', 'for_events', 'kitchen', 'service',
+                'alcohol', 'more', 'payment_methods', 'description', 'text_obj'
+            ),
+            'subjs' => fn($query) => $query
+                ->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj')
+                ->whereHas('addressSubj', fn($q) => $q->where('city_id', $cityId))
+                ->with([
+                    'addressSubj' => fn($q) => $q
+                        ->select('id', 'subj_id', 'district_id')
+                        ->where('city_id', $cityId)
+                        ->with(['district' => fn($d) => $d->select('id', 'name')]),
+                    'subjNearMetro' => fn($q) => $q
+                        ->orderBy('rank', 'asc')
+                        ->with('metroStation:id,name'),
+                    'primaryImg' => fn($q) => $q->select('subj_id', 'small_img'),
+                    'imgSubjs',
+                ]),
+            'groupAddressObjs' => fn($v) => $v->select('id', 'district_id', 'obj_id'),
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
-            ->whereHas('subjs.addressSubj', function ($query) use ($cityId) {
-                $query->where('city_id', $cityId);
-            })
+            ->whereHas('subjs.addressSubj', fn($q) => $q->where('city_id', $cityId))
             ->paginate(7);
 
         if ($paginated->isEmpty()) {
-            return $paginated; // Возвращаем оригинальный пагинатор, если данных нет
+            return $paginated;
         }
 
-        // Трансформация данных
         $transformedData = $paginated->getCollection()->map(function ($obj) {
+            // Трансформация subjs
+            $subjsData = [];
             if ($obj->subjs) {
-                $obj->subjs->transform(function ($subj) {
-                    $subj->load([
-                        'primaryImg:subj_id,small_img',
-                        'imgSubjs' => function ($q) {
-                            $q->select('subj_id', 'small_img')
-                                ->orderBy('position')
-                                ->take(5);
-                        }
-                    ]);
+                $subjsData = $obj->subjs->map(function ($subj) {
+                    $districtName = $subj->addressSubj?->district?->name;
 
-                    $districtName = null;
-                    if ($subj->addressSubj && $subj->addressSubj->district) {
-                        $districtName = $subj->addressSubj->district->name;
+                    $metroStations = [];
+                    if ($subj->subjNearMetro) {
+                        foreach ($subj->subjNearMetro as $metro) {
+                            if ($metro->metroStation) {
+                                $metroStations[] = [
+                                    'station_name' => $metro->metroStation->name,
+                                    'distance_km'  => $metro->distance_km,
+                                    'rank'         => $metro->rank,
+                                ];
+                            }
+                        }
                     }
 
                     return [
-                        'id' => $subj->id ?? null,
-                        'name_subj' => $subj->name_subj ?? null,
-                        'minimum_cost' => $subj->minimum_cost ?? null,
-                        'per_person' => $subj->per_person ?? null,
-                        'capacity_to' => $subj->capacity_to ?? null,
-                        'site_type' => $subj->site_type ?? null,
-                        'features' => $subj->features ?? null,
-                        'text_subj' => $subj->text_subj ?? null,
-                        'path' => $subj->primaryImg && $subj->primaryImg->small_img ? $subj->primaryImg->small_img : null,
-                        'image_paths' => $subj->imgSubjs ? $subj->imgSubjs->pluck('small_img')->toArray() : [],
-                        'district_name' => $districtName
+                        'id'             => $subj->id,
+                        'name_subj'      => $subj->name_subj,
+                        'minimum_cost'   => $subj->minimum_cost,
+                        'per_person'     => $subj->per_person,
+                        'capacity_to'    => $subj->capacity_to,
+                        'site_type'      => $subj->site_type,
+                        'features'       => $subj->features,
+                        'text_subj'      => $subj->text_subj,
+                        'path'           => $subj->primaryImg?->small_img,
+                        'image_paths'    => $subj->imgSubjs
+                            ? $subj->imgSubjs->take(5)->pluck('small_img')->toArray()
+                            : [],
+                        'district_name'  => $districtName,
+                        'metro_stations' => $metroStations,
                     ];
                 });
             }
 
+            // Трансформация groupAddressObjs
+            $districtsData = [];
             if ($obj->groupAddressObjs) {
-                $obj->groupAddressObjs->transform(function ($groupAddressObjs) {
-                    $groupAddressObjs->load(['district:id,name']);
-
+                $districtsData = $obj->groupAddressObjs->map(function ($group) {
                     return [
-                        'id' => $groupAddressObjs->district && $groupAddressObjs->district->id ? $groupAddressObjs->district->id : null,
-                        'name' => $groupAddressObjs->district && $groupAddressObjs->district->name ? $groupAddressObjs->district->name : null,
+                        'id'   => $group->district?->id,
+                        'name' => $group->district?->name,
                     ];
                 });
             }
 
             return [
-                'obj_id' => $obj->id ?? null,
-                'user_id' => $obj->user_id ?? null,
-                'name_obj' => $obj->name_obj ?? null,
-                'phone_obj' => $obj->phone_obj ?? null,
-                'subjs_data' => $obj->subjs ? $obj->subjs->toArray() : [],
-                'details_obj' => $obj->detailsObj ? $obj->detailsObj->toArray() : [],
-                'districts' => $obj->groupAddressObjs ? $obj->groupAddressObjs->toArray() : [],
-                'districts_names' => $obj->groupAddressObjs ? $obj->groupAddressObjs->pluck('district.name')->toArray() : [],
+                'obj_id'         => $obj->id,
+                'user_id'        => $obj->user_id,
+                'name_obj'       => $obj->name_obj,
+                'phone_obj'      => $obj->phone_obj,
+                'subjs_data'     => $subjsData->toArray(),
+                'details_obj'    => $obj->detailsObj?->toArray(),
+                'districts'      => $districtsData->toArray(),
+                'districts_names'=> $districtsData->pluck('name')->toArray(),
             ];
         });
 
-// Создаём новый пагинатор с трансформированными данными
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        return new \Illuminate\Pagination\LengthAwarePaginator(
             $transformedData->values(),
             $paginated->total(),
             $paginated->perPage(),
             $paginated->currentPage(),
-            [
-                'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
-                'pageName' => 'page',
-            ]
+            ['path' => Paginator::resolveCurrentPath(), 'pageName' => 'page']
         );
-
-        return $paginator;
     }
 
 

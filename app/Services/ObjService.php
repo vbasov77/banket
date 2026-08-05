@@ -148,6 +148,7 @@ class ObjService extends Service
     public function findObjsWithDetails(Request $request): LengthAwarePaginator
     {
         try {
+
             return $this->objRepository->findObjsWithDetails($request);
         } catch (QueryException $e) {
             Log::channel('error_file')->error(

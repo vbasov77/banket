@@ -2,19 +2,36 @@
 
 namespace Database\Seeders;
 
-
+use App\Models\City;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class CitySeeder extends Seeder
 {
     public function run(): void
     {
-        $cities = [
-            ['name' => 'Санкт-Петербург'],
-            ['name' => 'Москва'],
+        // Города-миллионники
+        $millionaires = [
+            'Санкт-Петербург', 'Москва'/*, 'Новосибирск', 'Екатеринбург',
+            'Казань', 'Нижний Новгород', 'Челябинск', 'Красноярск',
+            'Самара', 'Уфа', 'Ростов‑на‑Дону', 'Омск', 'Краснодар',
+            'Пермь', 'Воронеж', 'Волгоград',*/
         ];
 
-        DB::table('cities')->insert($cities);
+        // Пригороды Санкт-Петербурга (как отдельные города в справочнике)
+        $spbSuburbs = [
+            'Пушкин',
+            'Петергоф',
+            'Красное Село',
+            'Колпино',
+            'Сестрорецк',
+            'Кронштадт',
+            'Ломоносов',
+            'Гатчина',
+            'Всеволожск',
+        ];
+
+        foreach (array_merge($millionaires, $spbSuburbs) as $name) {
+            City::firstOrCreate(['name' => $name]);
+        }
     }
 }

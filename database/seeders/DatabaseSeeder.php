@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DistrictSeeder::class);
 //        $this->call(AlbumsVkSeeder::class);
         $this->call(RoleSeeder::class);
-
-
+        $this->call(MetroStationsSeeder::class);
+        $this->call(ZagsSeeder::class);
     }
 }

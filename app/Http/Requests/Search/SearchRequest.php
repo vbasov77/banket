@@ -29,6 +29,8 @@ class SearchRequest extends FormRequest
             'capacity_to' => 'nullable|integer',
             'per_person' => 'nullable|integer',
             'features' => 'nullable|array',
-        ];
+            'near_metro_id' => 'nullable|exists:metro_stations,id',
+            'near_zags_id' => 'nullable|exists:zags,id',
+            ];
     }
 }

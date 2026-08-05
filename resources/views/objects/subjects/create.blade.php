@@ -13,7 +13,6 @@
     </style>
 
     <link href="{{ asset('css/checkbox.css') }}" rel="stylesheet">
-
     <link href="{{ asset('css/tables.css') }}" rel="stylesheet">
     <section>
         <div class="container px-4 px-lg-5">

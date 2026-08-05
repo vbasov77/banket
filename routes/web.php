@@ -23,6 +23,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\MetroController;
+use App\Http\Controllers\ZagsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,10 +113,16 @@ Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.c
 Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
 Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
 
+Route::get('/api/metros/by-city', [MetroController::class, 'byCity'])->name('api.metros.by.city');
+Route::get('/api/zags/by-city', [ZagsController::class, 'byCity'])->name('api.zags.by.city');
+
 Route::get('/show_obj/id{id}', [ObjController::class, 'show'])->name("show.obj");
 
 Route::post('/search', [SearchController::class, 'search'])->name("search.objs");
+Route::get('/search', [SearchController::class, 'searchGet'])->name("search_get.objs");
+Route::get('/show_filters', [SearchController::class, 'showFilters'])->name("show.filters");
 Route::post('/api/clear-filters', [SearchController::class, 'clearFilters'])->name('clear.filters');
+
 
 Route::get('/edit_img_obj/id{id}', [ImgObjController::class, 'edit'])->name("edit.img_obj")->middleware('auth');
 Route::post('/img_obj_store', [ImgObjController::class, 'store'])->name('img_obj.store');

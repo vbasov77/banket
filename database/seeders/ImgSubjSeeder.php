@@ -20,8 +20,8 @@ class ImgSubjSeeder extends Seeder
         $bigPhotoId = 'adadadeqwd';
         $smallPhotoId = 'csnckwncskhkl';
         // Единая ссылка на фото
-        $bigPhotoUrl = 'https://i2.imageban.ru/out/2026/06/18/00eeb8a3c90a333f5debfc92a7d287b9.jpg';
-        $smallPhotoUrl = 'https://i3.imageban.ru/out/2026/06/18/e4906281254c2f226d8762df717de91a.jpg';
+        $bigPhotoUrl = 'https://sun9-39.vkuserphoto.ru/s/v1/ig2/ENlg_KSgMX3E07e9j0Y659RZ7tVX5arEjuDGkhWx4pT1zdWXvnJwXmu_K83Hs5MfIMD1dfwnelJPMCa7uz_YEtxD.jpg?quality=96&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1200x800&from=bu&cs=1200x0';
+        $smallPhotoUrl = 'https://sun9-39.vkuserphoto.ru/s/v1/ig2/ENlg_KSgMX3E07e9j0Y659RZ7tVX5arEjuDGkhWx4pT1zdWXvnJwXmu_K83Hs5MfIMD1dfwnelJPMCa7uz_YEtxD.jpg?quality=96&as=32x21,48x32,72x48,108x72,160x107,240x160,360x240,480x320,540x360,640x427,720x480,1080x720,1200x800&from=bu&cs=360x0';
 
         $recordsToInsert = [];
 

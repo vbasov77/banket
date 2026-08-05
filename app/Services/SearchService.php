@@ -51,5 +51,17 @@ class SearchService extends Service
         }
     }
 
+    public function getFiltersDataByCity(int $cityId): array
+    {
+        return $this->searchRepository->getFiltersDataByCity($cityId);
+    }
+
+    public function getReadableFilters(): array
+    {
+        $rawFilters = session('selected_filters', []);
+
+        return $this->searchRepository->getReadableFilters($rawFilters);
+    }
+
 }
 

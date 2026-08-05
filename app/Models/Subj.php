@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subj extends Model
 {
     use HasFactory;
 
     public $timestamps = false;
+
     protected $fillable = ['obj_id',
         'name_subj',
         'minimum_cost',
@@ -18,6 +20,7 @@ class Subj extends Model
         'furshet',
         'site_type',
         'features',
+        'loud_music_until',
         'text_subj',
         'published',
     ];
@@ -75,9 +78,10 @@ class Subj extends Model
 
     public function imgSubjsWithLimit()
     {
-        return $this->hasMany(ImgSubj::class, 'subj_id', 'id')
+        return $this->hasMany(ImgBanSubj::class, 'subj_id', 'id')
             ->orderBy('position', 'asc')
-            ->limit(5); // берём не более 5 записей
+            ->orderBy('id', 'asc')
+            ->take(5);
     }
 
     public function obj()
@@ -85,11 +89,13 @@ class Subj extends Model
         return $this->belongsTo(Obj::class, 'obj_id');
     }
 
-    public function imgSubjs()
+    public function imgSubjs(): HasMany
     {
-        return $this->hasMany(ImgBanSubj::class, 'subj_id')
-            ->orderBy('position', 'asc');
+        return $this->hasMany(ImgBanSubj::class, 'subj_id', 'id')
+            ->orderBy('position', 'asc')
+            ->orderBy('id', 'asc');
     }
+
 
     public function primaryImg()
     {
@@ -135,6 +141,21 @@ class Subj extends Model
             ['id', 'id']
         );
     }
+
+    public function getLoudMusicUntilDisplayAttribute(): string
+    {
+        if ($this->loud_music_until === 'morning') {
+            return 'до утра';
+        }
+        return $this->loud_music_until;
+    }
+
+    public function subjNearMetro()
+    {
+        return $this->hasMany(SubjNearMetro::class, 'subj_id');
+    }
+
+
 
 }
 
