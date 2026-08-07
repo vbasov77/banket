@@ -35,6 +35,7 @@ class CreateDetailsObjRequest extends FormRequest
             'more_price' => 'nullable|numeric|min:0|max:100000',
             'payment_methods' => ['required', 'array', 'min:1'],
             'payment_methods.*' => ['string', 'in:Наличные,Карта,Перевод'],
+            'service_fee' => ['integer', 'min:0'],
             'description' => ['required', 'string', 'min:10', 'max:150'],
             'text_obj' => ['required', 'string', 'min:10', 'max:10000'],
         ];

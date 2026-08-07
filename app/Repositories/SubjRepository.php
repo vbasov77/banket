@@ -195,6 +195,7 @@ class SubjRepository extends Repository
                     do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
                     do.alcohol IS NOT NULL OR
                     do.payment_methods IS NOT NULL OR
+                    do.service_fee IS NOT NULL OR
                     do.text_obj IS NOT NULL,
                     JSON_OBJECT(
                         'for_events', do.for_events,
@@ -202,6 +203,7 @@ class SubjRepository extends Repository
                         'service', do.service,
                         'alcohol', do.alcohol,
                         'payment_methods', do.payment_methods,
+                        'service_fee', do.service_fee,
                         'text_obj', do.text_obj
                     ),
                     NULL

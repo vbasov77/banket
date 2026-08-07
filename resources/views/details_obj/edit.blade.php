@@ -363,6 +363,32 @@
                                 </td>
                             </tr>
                         </table>
+                        <table class="styled-table">
+                            <tr>
+                                <td style="width: 49%">
+                                    <div>
+                                        <label for="service_fee"><b>Сервисный сбор:</b></label><br>
+                                        <span> Процент за обслуживание. Оставьте пустым, если платы нет </span>
+                                        <input name="service_fee" type="number"
+                                               oninput="
+         if (this.value.length > 7) {
+           this.value = this.value.slice(0, 7);
+           this.style.borderColor = 'red';
+           setTimeout(() => this.style.borderColor = '', 1000);
+         } else {
+           this.style.borderColor = '';
+         }"
+                                               value="{{old('service_fee') ?? $obj->service_fee  }}"
+                                               class="form-control"
+                                               placeholder="Сервисный сбор" autocomplete="off">
+                                        <br>
+                                    </div>
+                                </td>
+                                <td style="width: 49%">
+
+                                </td>
+                            </tr>
+                        </table>
                         <br>
                         <div class="mb-4">
                             <label for="description" class="form-label fw-bold">Описание объекта (до 150 символов)</label>

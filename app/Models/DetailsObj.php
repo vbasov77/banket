@@ -20,6 +20,7 @@ class DetailsObj extends Model
         'service',
         'alcohol',
         'payment_methods',
+        'service_fee',
         'description',
         'text_obj',
     ];

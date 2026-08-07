@@ -73,7 +73,6 @@ Route::middleware('admin')->group(function () {
 
 });
 
-
 Route::middleware('auth')->group(function () {
 
     Route::post('/add_message', [MessageController::class, 'store'])->name('add.message');

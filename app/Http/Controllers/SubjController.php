@@ -164,7 +164,6 @@ class SubjController extends Controller
             $subjModel = Subj::with('obj')->find($id);
 
             $subj = $this->subjService->findById($id);
-
             // Проверка прав доступа через метод модели isAuthor()
             if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [
