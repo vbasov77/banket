@@ -261,6 +261,13 @@
         scrollbar-color: #c1c1c1 #f1f1f1;
     }
 
+    @media (max-width: 480px) {
+        .btn-apply, .btn-reset {
+            margin: 7px;
+            padding: 7px 10px;
+            font-size: 13px;
+        }
+    }
 </style>
 <style>
     .horizontal-dropdowns {
@@ -330,7 +337,6 @@
                                 <div class="button-left">
                                     <button type="reset" class="btn-reset">Сбросить фильтры</button>
                                     <a href="{{route('show.filters')}}" type="submit" class="btn-reset ml-4">Все фильтры</a>
-
                                 </div>
 
                                 <div class="button-right">

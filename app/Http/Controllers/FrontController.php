@@ -36,7 +36,6 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
-
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 

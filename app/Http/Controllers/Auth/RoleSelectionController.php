@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -14,16 +15,19 @@ class RoleSelectionController extends Controller
     /**
      * @return View|RedirectResponse
      */
-    public function show(): View|RedirectResponse
+    public function show(Request $request): View|RedirectResponse
     {
         // Если роль уже выбрана — сразу уводим дальше
         if (Auth::user()->role_id) {
             return $this->redirect();
         }
-
+        $message = null;
+        if (!empty($request->message)) {
+            $message = $request->message;
+        }
         $roles = Role::whereIn('name', ['soon_banquet', 'restaurateur'])->get();
 
-        return view('auth.select-role', compact('roles'));
+        return view('auth.select-role', ['roles' => $roles, 'message' => $message]);
     }
 
     public function store(Request $request): RedirectResponse

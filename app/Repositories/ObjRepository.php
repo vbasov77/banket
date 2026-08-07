@@ -207,7 +207,6 @@ class ObjRepository extends Repository
                     'subjNearMetro' => fn($q) => $q
                         ->orderBy('rank', 'asc')
                         ->with('metroStation:id,name'),
-                    'primaryImg' => fn($q) => $q->select('subj_id', 'small_img'),
                     'imgSubjs',
                 ]),
             'groupAddressObjs' => fn($v) => $v->select('id', 'district_id', 'obj_id'),
@@ -234,7 +233,6 @@ class ObjRepository extends Repository
                                 $metroStations[] = [
                                     'station_name' => $metro->metroStation->name,
                                     'distance_km'  => $metro->distance_km,
-                                    'rank'         => $metro->rank,
                                 ];
                             }
                         }
@@ -249,7 +247,6 @@ class ObjRepository extends Repository
                         'site_type'      => $subj->site_type,
                         'features'       => $subj->features,
                         'text_subj'      => $subj->text_subj,
-                        'path'           => $subj->primaryImg?->small_img,
                         'image_paths'    => $subj->imgSubjs
                             ? $subj->imgSubjs->take(5)->pluck('small_img')->toArray()
                             : [],

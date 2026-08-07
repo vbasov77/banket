@@ -1,286 +1,245 @@
-.messageLink {
-    color: black;
-    padding: 10px;
-
-}
-
-.messageLink:hover {
-    color: red; /* Цвет ссылки */
-}
-
-
-.messageBlock {
-    padding: 10px;
-    background-color: #f5f5f5;
-    margin: 10px 0 0 0;
-    border-radius: 10px;
-    width: 80%;
-}
-
-.myClass {
-    width: 100%;
-    display: inline-block;
-}
-
-
 #framechat {
     width: 100%;
     max-width: 1000px;
     height: 92vh;
     min-height: 300px;
     max-height: 720px;
-    /*background: #E6EAEA;*/
-    box-shadow: 0px 0px 3px #bbbbbb;
-    border-radius: 5px;
+    box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
     overflow: hidden;
-
-    letter-spacing: 0.1px;
-
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
-    -webkit-font-smoothing: antialiased;
     margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 @media screen and (max-width: 360px) {
     #framechat {
         height: 100vh;
+        border-radius: 0;
     }
 }
 
-
 #framechat .content {
-    float: right;
-    width: 100%;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    overflow: hidden;
-    position: relative;
 }
 
+/* --- Header: современный, на Flex --- */
 #framechat .content .header {
-    width: 100%;
-    height: 80px;
-    line-height: 45px;
-    background: #f5f5f5;
-    overflow: hidden;
-    box-shadow: -1px 1px 5px #e2e2e2;
-
+    height: 64px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-#framechat .content .header i {
-    height: 20px;
-    font-size: 20px;
-    width: 20px;
+.header-avatar-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-avatar {
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
-    float: left;
-    margin: 11px 12px 0 13px;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
 }
 
-#framechat .content .header p {
-    float: left;
-    font-weight: 400;
-    font-size: 14px;
-    margin: 0;
-    padding: 0;
-    line-height: 43px;
+.header-info {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
 }
 
+.header-name {
+    font-weight: 600;
+    font-size: 16px;
+    color: #111827;
+}
+
+.header-id {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.header-action {
+    display: flex;
+    align-items: center;
+}
+
+.delete-chat-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    opacity: 0.5;
+    transition: opacity 0.2s, background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.delete-chat-btn:hover {
+    opacity: 1;
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.delete-chat-icon {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
+/* --- Messages area --- */
 #framechat .content .messages {
-    height: auto;
-    min-height: calc(82% - 90px);
-    max-height: calc(82% - 90px);
-    overflow-y: scroll;
-    overflow-x: hidden;
-    width: 100%;
-    margin: 0;
-    padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background-color: #f8fafc;
 }
 
 #framechat .content .messages ul {
-    overflow: hidden;
+    list-style: none;
     margin: 0;
     padding: 0;
 }
 
-
-#framechat .content .messages::-webkit-scrollbar {
-    width: 8px;
-    background: transparent;
-}
-
-#framechat .content .messages::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
 #framechat .content .messages ul li {
-    display: inline-block;
     clear: both;
-    float: left;
-    margin: 15px 15px 5px 15px;
-    width: calc(100% - 25px);
-    font-size: 0.9em;
+    margin-bottom: 14px;
+    display: block;
 }
 
-#framechat .content .messages ul li:nth-last-child(1) {
-    margin-bottom: 20px;
+.messageBlock {
+    padding: 10px 14px;
+    border-radius: 12px;
+    max-width: 75%;
+    word-wrap: break-word;
+    line-height: 1.4;
 }
 
-#framechat .content .messages ul li.sent img {
-    margin: 6px 8px 0 0;
-}
-
-#framechat .content .messages ul li.sent p {
-    background: #435f7a;
-    color: #f5f5f5;
-}
-
-#framechat .content .messages ul li.replies img {
+li.sent .messageBlock {
     float: right;
-    margin: 6px 0 0 8px;
-}
-
-#framechat .content .messages ul li.replies p {
-    background: #f5f5f5;
-    float: right;
-}
-
-#framechat .content .messages ul li img {
-    width: 22px;
-    border-radius: 50%;
-    float: left;
-}
-
-#framechat .content .messages ul li p {
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 205px;
-    line-height: 130%;
-}
-
-@media screen and (min-width: 735px) {
-    #framechat .content .messages ul li p {
-        max-width: 300px;
-    }
-}
-
-#framechat .content .message-input {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    z-index: 99;
-    /*background: #E6EAEA;*/
-    background: #f5f5f5;
-}
-
-#framechat .content .message-input .wrap {
-    position: relative;
+    background-color: #d3e3f3;
+    border-bottom-right-radius: 2px;
     margin: 5px;
 }
 
-#framechat .content .message-input .wrap .emoji-wysiwyg-editor {
-    font-family: "proxima-nova", "Source Sans Pro", sans-serif;
+li.received .messageBlock {
     float: left;
-    border: none;
-    width: calc(100% - 45px);
-    padding: 14px;
-    font-size: 0.9em;
-    color: #32465a;
-    height: 45px;
-    outline: none;
-    background: #fff;
-    position: relative;;
-    overflow: hidden;
-    margin-top: 5px;
+    background-color: #d3e3f3;
+    border-bottom-left-radius: 2px;
 }
 
-
-#framechat .content .message-input .wrap .emoji-picker-icon {
-    right: 55px;
-    top: 11px;
-    font-size: 22px;
-    opacity: 0.9;
-    color: #32465a;
+.message-time {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    opacity: 0.7;
 }
 
-#framechat .content .message-input .wrap .emoji-picker {
-    z-index: 5001;
-    bottom: 0;
-    border: none;
-    border-radius: 5px 0px 0px 0px;
-    box-shadow: none;
-    -webkit-box-shadow: none;
+.myClass {
+    position: relative; /* обязательно: чтобы popup позиционировался относительно сообщения */
+    display: inline-block;
+    width: 100%; /* чтобы блок занимал всю ширину сообщения */
 }
 
-
-#framechat .content .message-input .wrap .emoji-menu {
-    bottom: 1px;
-    border: none;
-    box-shadow: none;
-    border-radius: 5px 0px 0px 0px;
-    -webkit-box-shadow: none;
-}
-
-#framechat .content .message-input .wrap .emoji-menu {
-    overflow-y: scroll;
-    overflow-x: hidden;
-}
-
-#framechat .content .message-input .wrap .emoji-menu .emoji-items-wrap::-webkit-scrollbar {
-    width: 5px;
-    background: transparent;
-}
-
-#framechat .content .message-input .wrap .emoji-menu .emoji-items-wrap::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-
-#framechat .content .message-input .wrap {
-    cursor: pointer;
-}
-
-#framechat .content .message-input .wrap button {
-    float: right;
-    border: none;
-    width: 45px;
-    height: 45px;
-    line-height: 42px;
-    cursor: pointer;
-    background: #32465a;
-    color: #f5f5f5;
-    margin: 5px 5px 5px 0px;
-}
-
-#framechat .content .message-input .wrap button:hover {
-    background: #435f7a;
-}
-
-#framechat .content .message-input .wrap button:focus {
-    outline: none;
-}
-
-.msgImg {
-    margin: 10px auto 5px;
-}
-
-.imgMsg {
-    border: 4px solid white;
-    margin: 0px 10px;
-}
-
+/* Popup удаления сообщения */
 .round-popup {
     display: none;
 }
 
-.myClass:hover .round-popup{
+.myClass:hover .round-popup {
     display: block;
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    z-index: 10; /* чтобы был поверх всего */
 }
 
-.infoBlock {
-    display: inline-block;
-    line-height: 20px;
+.close-msg-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    text-align: center;
+    line-height: 22px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #555;
 }
 
-.iconsSmall {
-    display: inline-block;
+/* Input area */
+#framechat .content .message-input {
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#framechat .content .message-input .wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+#framechat .content .message-input input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    outline: none;
+    font-size: 15px;
+}
+
+#framechat .content .message-input input:focus {
+    border-color: #3b82f6;
+}
+
+#framechat .content .message-input button {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#framechat .content .message-input button:hover {
+    background-color: #2563eb;
+}
+
+/* Scrollbar */
+#framechat .content .messages::-webkit-scrollbar {
+    width: 6px;
+}
+
+#framechat .content .messages::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 3px;
+}
+
+.particle {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    border-radius: 50%;
+    background: currentColor; /* цвет берётся из элемента */
+    z-index: 9999;
 }

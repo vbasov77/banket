@@ -5,7 +5,6 @@
     <link href="{{ asset('css/subj/show_subj.css') }}" rel="stylesheet">
     <link href="{{ asset('css/subj/card_subj.css') }}" rel="stylesheet">
 
-
     <link href="{{ asset('css/modal/modal.css') }}" rel="stylesheet">
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
     <link href="{{ asset('css/cards/cards.css') }}" rel="stylesheet">
@@ -60,6 +59,37 @@
             line-height: 1.2;
             font-size: 15px;
         }
+
+        @media (max-width: 768px) {
+            .parallax-container {
+                height: 50vh;
+            }
+
+            .parallax-title {
+                font-size: clamp(24px, 10vw, 80px);
+            }
+
+
+        }
+
+        @media (max-width: 480px) {
+            .parallax-container {
+                height: 30vh;
+            }
+
+            .parallax-title {
+                font-size: clamp(24px, 10vw, 80px);
+            }
+
+            .text-muted {
+                font-size: 16px;
+            }
+
+            .restaurant-card {
+                margin-bottom: 0px;
+            }
+        }
+
     </style>
     @if (!empty($subj['image_paths']) && count($subj['image_paths']) > 0)
         <div class="parallax-container">
@@ -83,7 +113,8 @@
                         </h1>
 
                         <p class="lead text-muted mb-4">
-                            {{ $subj['text_subj'] }}
+                            {!!nl2br(e($subj['text_subj']))!!}
+
                         </p>
                         <br>
                     </div>
@@ -182,7 +213,8 @@
                                     <span class="metro-inline-icon">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="12" cy="12" r="9" fill="#0077b6"/>
-                        <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="13" fill="#fff">M</text>
+                        <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold"
+                              font-size="13" fill="#fff">M</text>
                     </svg>
                 </span>
 
@@ -320,7 +352,8 @@
                                 </h5>
                                 <div class="bg-light p-4 rounded-10 shadow-sm">
                                     <p class="lead text-muted">
-                                        {{ $subj['details_obj']['text_obj'] }}
+                                        {!!nl2br(e($subj['details_obj']['text_obj']))!!}
+
                                     </p>
                                 </div>
                             </div>
@@ -341,8 +374,9 @@
                                         <div class="restaurant-card">
                                             <div class="item-carousel">
                                                 <a href="{{ route('show.subj', ['id' => $subj['related_subjs'][$j]['subj_id']]) }}">
-                                                    <img class="restaurant-image" src="{{ $subj['related_subjs'][$j]['image_path']}}"
-                                                            alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
+                                                    <img class="restaurant-image"
+                                                         src="{{ $subj['related_subjs'][$j]['image_path']}}"
+                                                         alt="{{ $subj['related_subjs'][$j]['name_subj'] }}"
                                                     >
                                                 </a>
                                                 <div class="details">

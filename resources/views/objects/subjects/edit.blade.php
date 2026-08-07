@@ -27,7 +27,7 @@
                         @endif
                         <input type="hidden" name="subj_id" value="{{$subj->id}}">
                         <label for="name_subj"><b>Название</b></label><br>
-                        <input type="text" maxlength="30" class="form-control @error('name_subj') is-invalid @enderror"
+                        <input type="text" maxlength="25" class="form-control @error('name_subj') is-invalid @enderror"
                                name="name_subj"
                                value="{{$subj->name_subj ?? old('name_subj')}}"><br>
                         <br>

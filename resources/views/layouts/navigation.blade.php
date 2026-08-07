@@ -75,6 +75,7 @@
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.show')">Профиль</x-dropdown-link>
                             <x-dropdown-link :href="route('my.obj')">Панель управления</x-dropdown-link>
+                            <x-dropdown-link :href="route('messages')">Сообщения</x-dropdown-link>
                             <x-dropdown-link :href="route('favorites.subjs')">Избранное</x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -119,6 +120,7 @@
                     @endif
                     <x-responsive-nav-link :href="route('favorites.subjs')">Избранное</x-responsive-nav-link>
                     <x-responsive-nav-link :href="route('my.obj')">Панель управления</x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('messages')">Сообщения</x-responsive-nav-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">

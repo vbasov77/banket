@@ -76,6 +76,14 @@
             font-size: 15px;
         }
 
+        @media (max-width: 767px) {
+            .restaurant-card {
+                min-width: 280px;
+                flex-shrink: 0;
+                flex-basis: 280px;
+            }
+        }
+
     </style>
 
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
@@ -156,12 +164,11 @@
                                                              style="display: block; margin-bottom: 10px;">
                                                             <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">
                                                                 <div class="restaurant-image">
-                                                                    <img src="{{$data[$i]['subjs_data'][$j]['path']}}"
+                                                                    <img src="{{$data[$i]['subjs_data'][$j]['image_paths'][0]}}"
                                                                          alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
                                                                     <br>
                                                                 </div>
                                                             </a>
-
                                                             <section>
                                                                 <div class="details">
                                                                     <div class="details-info">
@@ -235,7 +242,7 @@
                                     @if(!empty($data[$i]['details_obj']['description']))
                                         <div class="bg-light p-4 rounded-10 shadow-sm">
                                             <p class="lead text-muted" @style(['font-size: 18px'])>
-                                                {{ $data[$i]['details_obj']['description'] }}
+                                                {!!   $data[$i]['details_obj']['description'] !!}
                                             </p>
                                         </div>
                                     @endif
