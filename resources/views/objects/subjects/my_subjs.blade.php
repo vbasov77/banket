@@ -14,11 +14,11 @@
                             {{$error}}
                         </div>
                     @endif
-                        @if(!empty($message))
-                            <div class="alert alert-success">
-                                {{$message}}
-                            </div>
-                        @endif
+                    @if(!empty($message))
+                        <div class="alert alert-success">
+                            {{$message}}
+                        </div>
+                    @endif
                     @if($data)
                         <div class="row mb-4">
                             <div class="col-12">
@@ -32,7 +32,8 @@
                                 @foreach($data['subjects'] as $value)
                                     <div class="col-12 col-sm-8 col-md-6 col-lg-4 restaurants-grid">
                                         <div class="restaurant-card opacity"
-                                             data-id="{{ $value['id'] }}" style="@if($value['published'] == 0) opacity: .7; @endif">
+                                             data-id="{{ $value['id'] }}"
+                                             style="@if($value['published'] == 0) opacity: .7; @endif">
                                             <!-- Изображение -->
                                             <div class="position-relative">
                                                 <div class="restaurant-image">
@@ -224,7 +225,7 @@
                                             </h5>
                                             <div class="bg-light p-4 rounded-10 shadow-sm">
                                                 <p class="lead text-muted">
-                                                    {{ $data['details_obj']['text_obj'] }}
+                                                    {!!nl2br(e($data['details_obj']['text_obj']))!!}
                                                 </p>
                                             </div>
                                         </div>

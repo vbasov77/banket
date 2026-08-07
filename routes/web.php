@@ -23,8 +23,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\MetroController;
 use App\Http\Controllers\ZagsController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MetroController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +75,15 @@ Route::middleware('admin')->group(function () {
 
 
 Route::middleware('auth')->group(function () {
+
+    Route::post('/add_message', [MessageController::class, 'store'])->name('add.message');
+    Route::get('/message{to_user_id}', [MessageController::class, 'show'])->name('show.messages');
+    Route::get('/delete_message', [MessageController::class, 'deleteMsg'])->name('delete.message');
+    Route::get('/delete_chat', [MessageController::class, 'deleteChat'])->name('delete.chat');
+    Route::post('/check_message', [MessageController::class, 'checkNewMsg'])->name('check.message');
+    Route::post('/notified', [MessageController::class, 'notified'])->name('notified.message');
+    Route::get('/my_messages', [MessageController::class, 'myMessages'])->name('messages');
+
     Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -104,6 +115,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('ensureRole:admin,restaurateur');
 
 });
+
+
 
 require __DIR__ . '/auth.php';
 

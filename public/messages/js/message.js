@@ -21,7 +21,6 @@ function notified() {
         data = {
             "to_user_id": to_user_id,
             "from_user_id": from_user_id,
-            "obj_id": obj_id,
             "array_id": arrayId,
         };
 
@@ -58,7 +57,6 @@ function checkNewMsg() {
     data = {
         "to_user_id": to_user_id,
         "from_user_id": from_user_id,
-        "obj_id": obj_id,
     };
     $.ajax({
             headers: {
@@ -94,7 +92,6 @@ function newMessage() {
     data = {
         "to_user_id": to_user_id,
         "from_user_id": from_user_id,
-        "obj_id": obj_id,
         "body": message,
     };
     $.ajax({

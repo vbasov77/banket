@@ -392,7 +392,7 @@
                         <input id="office" style="margin-bottom: 50px;"
                                class="btn-festive-gradient btn-festive-gradient-white"
                                type="submit"
-                               value="Перейти в офис">
+                               value="Перейти в панель управления">
 
                     </form>
                 </div>

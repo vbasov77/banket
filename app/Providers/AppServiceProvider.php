@@ -2,10 +2,11 @@
 
 namespace App\Providers;
 
+use App\Repositories\MessageRepository;
 use App\Repositories\ObjRepository;
+use App\Services\MessageService;
 use App\Services\ObjService;
 use App\Services\Service;
-use Doctrine\DBAL\Types\Type;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
@@ -28,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(Service::class, ObjService::class);
+
+        $this->app->singleton(MessageRepository::class);
+        $this->app->singleton(MessageService::class);
+
     }
 
     /**

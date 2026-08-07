@@ -32,6 +32,11 @@
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8 col-lg-6">
+                @if(session('message'))
+                    <div class="alert alert-success">
+                        {{ session('message') }}
+                    </div>
+                @endif
                 <div class="text-center mb-5">
                     <h2 class="fw-bold">Выберите вашу роль</h2>
                     <p class="text-muted">От этого зависит, какие возможности будут доступны в системе «BanKet»</p>
