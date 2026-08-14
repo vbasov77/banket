@@ -5,6 +5,7 @@
     <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
     <link href="{{ asset('css/front.css') }}" rel="stylesheet">
     <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
 
     <style>
         .details-title {
@@ -86,7 +87,7 @@
 
     </style>
 
-    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
+
     @if(!empty($data) && count($data) > 0)
         <div class="relative w-full h-64 md:h-96 overflow-hidden flex items-center justify-center">
             <!-- Фон: карта из public/map.jpg -->
@@ -241,7 +242,7 @@
                                     </div>
                                     @if(!empty($data[$i]['details_obj']['description']))
                                         <div class="bg-light p-4 rounded-10 shadow-sm">
-                                            <p class="lead text-muted" @style(['font-size: 18px'])>
+                                            <p class="lead text-muted">
                                                 {!!   $data[$i]['details_obj']['description'] !!}
                                             </p>
                                         </div>
@@ -372,7 +373,7 @@
                                         </div>
                                         @if(!empty($data[$i]['details_obj']['description']))
                                             <div class="bg-light p-4 rounded-10 shadow-sm">
-                                                <p class="lead text-muted" @style(['font-size: 18px'])>
+                                                <p class="lead text-muted">
                                                     {{ $data[$i]['details_obj']['description'] }}
                                                 </p>
                                             </div>

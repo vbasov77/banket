@@ -194,6 +194,7 @@ class SubjRepository extends Repository
                     do.for_events IS NOT NULL OR
                     do.kitchen IS NOT NULL OR do.service IS NOT NULL OR
                     do.alcohol IS NOT NULL OR
+                    do.more IS NOT NULL OR
                     do.payment_methods IS NOT NULL OR
                     do.service_fee IS NOT NULL OR
                     do.text_obj IS NOT NULL,
@@ -202,6 +203,7 @@ class SubjRepository extends Repository
                         'kitchen', do.kitchen,
                         'service', do.service,
                         'alcohol', do.alcohol,
+                        'more', do.more,
                         'payment_methods', do.payment_methods,
                         'service_fee', do.service_fee,
                         'text_obj', do.text_obj

@@ -1,4 +1,4 @@
-@if(!session('cookie_accepted'))
+@if(!session('cookie_accepted') && !auth()->check())
     <style>
         .cookie-banner {
             position: fixed !important;
@@ -28,13 +28,23 @@
             font-weight: 600 !important;
         }
 
+        .cookie-policy-link {
+            color: #ddd !important;
+            text-decoration: underline !important;
+            font-size: 0.85rem !important;
+        }
+
+        .cookie-policy-link:hover {
+            color: #fff !important;
+        }
+
         /* Адаптив для мобильных */
         @media (max-width: 480px) {
             .cookie-banner {
                 max-width: 95% !important;
                 padding: 12px 16px !important;
-                flex-direction: column; /* на узких экранах текст и кнопка друг под другом */
-                align-items: stretch; /* кнопка на всю ширину блока */
+                flex-direction: column;
+                align-items: stretch;
                 gap: 10px !important;
                 width: 100%;
             }
@@ -44,15 +54,19 @@
                 text-align: center;
             }
 
-            /* Опционально: чуть уменьшаем шрифт, если текст не влезает */
-            .cookie-banner span {
+            .cookie-banner span,
+            .cookie-policy-link {
                 font-size: 0.85rem !important;
             }
         }
     </style>
 
     <div class="cookie-banner" id="cookie-banner">
-        <span>Оставаясь на сайте, вы соглашаетесь на обработку ваших персональных данных (файлов cookie).</span>
+        <span>
+            Оставаясь на сайте, вы соглашаетесь на обработку ваших персональных данных (файлов cookie).
+            <br>
+            <a href="{{ route('cookie.policy') }}" target="_blank" class="cookie-policy-link">Подробнее о cookie</a>
+        </span>
         <button type="button" id="accept-cookies" class="btn-cookie-accept">Принять</button>
     </div>
 
@@ -74,6 +88,9 @@
                             const banner = document.getElementById('cookie-banner');
                             if (banner) banner.remove();
                         }
+                    })
+                    .catch(err => {
+                        console.error('Cookie accept error', err);
                     });
             });
         })();

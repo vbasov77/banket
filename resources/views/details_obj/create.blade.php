@@ -441,7 +441,8 @@
                             <tr>
                                 <td style="width: 49%">
                                     <div>
-                                        <label for="service_fee"><b>Сервисный сбор:</b></label>
+                                        <label for="service_fee"><b>Сервисный сбор:</b></label><br>
+                                        <span> Процент за обслуживание. Оставьте пустым, если платы нет </span>
                                         <input name="service_fee" type="number"
                                                oninput="
          if (this.value.length > 7) {
@@ -453,7 +454,7 @@
          }"
                                                value="{{old('service_fee') }}"
                                                class="form-control"
-                                               placeholder="Сервисный сбор" autocomplete="off">%
+                                               placeholder="Сервисный сбор" autocomplete="off">
                                         <br>
                                     </div>
                                 </td>

@@ -6,6 +6,7 @@ use App\Http\Requests\Obj\CreateObjRequest;
 use App\Http\Requests\Obj\EditObjRequest;
 use App\Models\Obj;
 use App\Services\ImgObjService;
+use App\Services\MailService;
 use App\Services\ObjService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\RedirectResponse;
@@ -83,7 +84,7 @@ class ObjController extends Controller
      * @return RedirectResponse|View
      * @throws ValidationException
      */
-    public function store(CreateObjRequest $request): RedirectResponse|View
+    public function store(CreateObjRequest $request, MailService $mailService): RedirectResponse|View
     {
         $obj = Obj::where('user_id', Auth::id())->first();
         if ($obj) {
@@ -92,6 +93,8 @@ class ObjController extends Controller
 
         try {
             $obj = $this->objService->store($request->validated());
+            $mailService->sendAddNewObj();
+
             return redirect()->route("create.details_obj", ['obj' => $obj]);
         } catch (ValidationException $e) {
             Log::channel('error_file')->error(
@@ -246,8 +249,10 @@ class ObjController extends Controller
         }
     }
 
+
     /**
-     * @throws AuthenticationException
+     * @param Request $request
+     * @return View
      */
     public function myObj(Request $request): View
     {

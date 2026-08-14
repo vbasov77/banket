@@ -339,13 +339,49 @@
                                             <i class="bi bi-wine text-danger me-2"></i>
                                             Алкоголь:
                                         </h5>
-                                        @if($subj['details_obj']['alcohol'])
-                                            <span class="badge bg-success bg-gradient">Разрешён</span>
-                                        @else
-                                            <span class="badge bg-danger bg-gradient">Не разрешён</span>
+                                        @if($subj['details_obj']['alcohol'] == 0)
+                                            <span class="badge bg-success bg-gradient">Разрешёно</span>
+                                        @elseif($subj['details_obj']['alcohol'] == 1)
+                                            <span class="badge bg-danger bg-gradient">Не разрешёно</span>
+                                        @elseif(!empty(explode(':', $subj['details_obj']['alcohol'])[0]) == 2)
+                                            <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
+                                            <br>
+                                            <span>{!! explode(':', $subj['details_obj']['alcohol'])[1] !!} руб.</span>
                                         @endif
                                     </div>
                                 </div>
+
+                                <!-- Своё -->
+                                <div class="col">
+                                    <div class="p-3 bg-light rounded h-100">
+                                        <h5 class="fw-semibold mb-3">
+                                            <i class="bi bi-wine text-danger me-2"></i>
+                                            Свои фрукты, другое:
+                                        </h5>
+                                        @if($subj['details_obj']['more'] == 0)
+                                            <span class="badge bg-success bg-gradient">Разрешёно</span>
+                                        @elseif($subj['details_obj']['more'] == 1)
+                                            <span class="badge bg-danger bg-gradient">Не разрешёно</span>
+                                        @elseif(!empty(explode(':', $subj['details_obj']['more'])[0]) == 2)
+                                            <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
+                                            <br>
+                                            <span>{!! explode(':', $subj['details_obj']['more'])[1] !!} руб.</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($subj['details_obj']['service_fee'])
+                                    <div class="col">
+                                        <div class="p-3 bg-light rounded h-100">
+                                            <h5 class="fw-semibold mb-3">
+                                                <i class="bi bi-wine text-danger me-2"></i>
+                                                Сервисный сбор:
+                                            </h5>
+                                            <div>
+                                                <h4>{!! $subj['details_obj']['service_fee'] !!} %</h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                             <div style="margin-top: 40px" class="col-md-12 mb-12">
                                 <h5 class="fw-semibold mb-3"><i class="bi bi-wine text-danger me-2"></i>Описание:

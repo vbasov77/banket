@@ -249,6 +249,11 @@
             z-index: 9999;
         }
 
+        .msg-unread { background-color: #fff; border: 1px solid #dad6f5; }
+        .msg-read  { background-color: #f3f4f6; border: none; }
+        li.sent .msg-unread { float: right; background-color: #dad6f5; margin: 5px; }
+        li.sent .msg-read  { float: right; background-color: #e5e7eb; margin: 5px; }
+
     </style>
 
     <section>
@@ -310,8 +315,7 @@
                                                             </button>
                                                         </div>
                                                     @endif
-
-                                                    <div class="messageBlock"
+                                                    <div class="messageBlock {{ $msg['status'] ? 'msg-read' : 'msg-unread' }}"
                                                          id="{{ $msg['id'] }}"
                                                          data-id="{{ $msg['id'] }}"
                                                          data-notified="{{ $msg['status'] }}">

@@ -8,6 +8,7 @@ use App\Models\AddressSubj;
 use App\Models\ImgBanSubj;
 use App\Models\Obj;
 use App\Models\Subj;
+use App\Services\MailService;
 use App\Services\ObjService;
 use App\Services\SubjService;
 use Illuminate\Auth\AuthenticationException;
@@ -78,11 +79,10 @@ class SubjController extends Controller
      * @return RedirectResponse
      * @throws ValidationException
      */
-    public function store(CreateSubjRequest $request): RedirectResponse
+    public function store(CreateSubjRequest $request, MailService $mailService): RedirectResponse
     {
 
         try {
-
             $nameSubj = $request->input('name_subj');
             $objId = $request->input('obj_id');
             // Получаем объект
@@ -110,6 +110,8 @@ class SubjController extends Controller
             if ($result['success']) {
                 return redirect()->route('map.edit', ['id' => $result['subj']->id]);
             }
+
+            $mailService->sendAddNewSubj();
 
             return redirect()->route('my.obj')->with([
                 'error' => 'Не удалось создать субъект'
@@ -164,6 +166,7 @@ class SubjController extends Controller
             $subjModel = Subj::with('obj')->find($id);
 
             $subj = $this->subjService->findById($id);
+
             // Проверка прав доступа через метод модели isAuthor()
             if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [

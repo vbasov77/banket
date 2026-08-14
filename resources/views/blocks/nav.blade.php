@@ -97,7 +97,6 @@
     }
 
     .text-muted {
-        font-size: 12px;
         line-height: 1.4;
         color: #6b7280;
     }
@@ -146,6 +145,10 @@
             font-size: 13px;
             padding: 9px 12px;
             text-align: center; /* Центрирование текста на очень маленьких экранах */
+        }
+
+        .text-muted {
+            font-size: 15px;
         }
     }
 </style>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\MailService;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,7 +31,7 @@ class RegisteredUserController extends Controller
         return view('auth.register', compact('word'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, MailService $mailService): RedirectResponse
     {
         $captchaWord = session('register_captcha_word');
         $expiresAt = session('register_captcha_expires');
@@ -67,6 +68,8 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
         Auth::login($user);
+
+        $mailService->sendUserRegister();
 
         $message = "Регистрация прошла успешно. На ваш email {$request->email} была выслана ссылка на подтверждение.\n"
             . "Пройдите по ней, чтобы подтвердить почту. Если письма не пришло, проверьте папку «Спам».\n"

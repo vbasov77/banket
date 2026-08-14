@@ -36,7 +36,7 @@
                      data-id="{{ $value['obj_id'] }}">
                     <!-- Изображение -->
                     <div class="position-relative">
-                        <div class="restaurant-image nearestObjects">
+                        <div class="restaurant-image nearestObjects m-3">
                             <a href="{{route('group.address.show', ['id' => $value['group_id']])}}">
                                 @if($value['path'])
                                     <img src="{{ $value['path']}}"

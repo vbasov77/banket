@@ -7,7 +7,14 @@
 
     <link rel="stylesheet" href="{{asset('map/leaflet/css/leaflet.css')}}"/>
     <script src="{{asset('map/leaflet/js/leaflet.js')}}" defer></script>
+    <style>
+        @media (max-width: 480px) {
+            .text-muted {
+                font-size: 16px;
+            }
 
+        }
+    </style>
     @if (!empty($subjs[0]['image_paths']) && count($subjs[0]['image_paths']) > 0)
         <div class="parallax-container">
             <div class="parallax-bg" style="background-image: url('{{ $subjs[0]['image_paths'][0] }}');"></div>
@@ -30,7 +37,7 @@
                             </h1>
 
                             <p class="lead text-muted mb-4">
-                                {{ $group['details_obj']['text_obj'] }}
+                                {!!nl2br(e($group['details_obj']['text_obj']))!!}
                             </p>
                         </div>
                     </section>

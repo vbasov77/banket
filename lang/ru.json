@@ -721,5 +721,6 @@
     "Åland Islands": "Аландские острова",
     "Type the word below": "Введите слово ниже",
     "Incorrect word. Please check spelling.": "Неверное слово. Пожалуйста, проверьте написание.",
-    "Enter word": "Введите слово"
+    "Enter word": "Введите слово",
+    "Captcha session expired. Please refresh the page.": "Срок действия капчи истёк. Пожалуйста, обновите страницу."
 }

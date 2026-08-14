@@ -41,7 +41,7 @@ class EditDetailsObjRequest extends FormRequest
             'more_price' => 'nullable|numeric|min:0|max:100000',
             'payment_methods' => ['required', 'array', 'min:1'],
             'payment_methods.*' => ['string', 'in:Наличные,Карта,Перевод'],
-            'service_fee' => ['integer', 'min:0'],
+            'service_fee' => 'nullable|numeric|min:0',
             'description' => ['required', 'string', 'min:10', 'max:150'],
             'text_obj' => ['required', 'string', 'min:10', 'max:10000'],
         ];
@@ -59,6 +59,7 @@ class EditDetailsObjRequest extends FormRequest
             'more_status' => 'Дополнительно (статус)',
             'more_price' => 'Цена дополнительных услуг',
             'payment_methods' => 'Способ оплаты',
+            'service_fee' => 'Сервисный сбор',
             'text_obj' => 'Описание',
         ];
     }

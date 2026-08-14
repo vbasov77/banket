@@ -77,6 +77,19 @@
                 </div>
             </div>
 
+            <!-- Блок: Рестораны -->
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:border-orange-200 dark:hover:border-orange-700 card-hover">
+                <div class="flex items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Почта</h3>
+                </div>
+                <div class="space-y-3">
+                    <a href="{{route('admin_mail.show')}}" class="inline-flex items-center px-4 py-2 bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300 border border-orange-100 dark:border-orange-800 rounded-lg hover:bg-orange-100 dark:hover:bg-orange-800 transition-colors">
+                        📢 Написать письмо
+                    </a>
+                    <!-- Сюда можно добавить ещё кнопки, если нужно -->
+                </div>
+            </div>
+
         </div>
     </div>
 @endsection

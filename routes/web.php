@@ -26,6 +26,10 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\ZagsController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\MetroController;
+use App\Http\Controllers\CookiePolicyController;
+use App\Http\Controllers\CookieController;
+use App\Http\Controllers\MailController;
+use Illuminate\Support\Facades\Log;
 
 
 /*
@@ -71,6 +75,9 @@ Route::middleware('admin')->group(function () {
     Route::get('/test_upload', [TestController::class, 'test'])->name("test.image");
     Route::get('/clear_img', [TestController::class, 'clearImg'])->name('clear.img');
 
+    Route::get('/mail', [MailController::class, 'show'])->name('admin_mail.show');
+    Route::post('/mail', [MailController::class, 'store'])->name('admin_mail.store');
+
 });
 
 Route::middleware('auth')->group(function () {
@@ -115,7 +122,8 @@ Route::middleware('auth')->group(function () {
 
 });
 
-
+Route::get('/privacy/cookies', [CookiePolicyController::class, 'show'])->name('cookie.policy');
+Route::post('/cookie/accept', [CookieController::class, 'accept'])->name('cookie.accept');
 
 require __DIR__ . '/auth.php';
 
@@ -178,7 +186,4 @@ Route::get('/clear', function () {
     Artisan::call('route:clear');
     return "Кэш очищен.";
 });
-
-
-
 
