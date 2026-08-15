@@ -6,7 +6,6 @@
     <link href="{{ asset('css/front.css') }}" rel="stylesheet">
     <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
     <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
-
     <style>
         .details-title {
             white-space: nowrap; /* Запрещаем перенос строк */
@@ -83,6 +82,7 @@
                 flex-shrink: 0;
                 flex-basis: 280px;
             }
+
         }
 
     </style>
@@ -242,7 +242,7 @@
                                     </div>
                                     @if(!empty($data[$i]['details_obj']['description']))
                                         <div class="bg-light p-4 rounded-10 shadow-sm">
-                                            <p class="lead text-muted">
+                                            <p class="lead text-muted" @style(['font-size: 18px'])>
                                                 {!!   $data[$i]['details_obj']['description'] !!}
                                             </p>
                                         </div>
@@ -373,7 +373,7 @@
                                         </div>
                                         @if(!empty($data[$i]['details_obj']['description']))
                                             <div class="bg-light p-4 rounded-10 shadow-sm">
-                                                <p class="lead text-muted">
+                                                <p class="lead text-muted" @style(['font-size: 18px'])>
                                                     {{ $data[$i]['details_obj']['description'] }}
                                                 </p>
                                             </div>

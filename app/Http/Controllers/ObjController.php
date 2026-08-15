@@ -249,10 +249,8 @@ class ObjController extends Controller
         }
     }
 
-
     /**
-     * @param Request $request
-     * @return View
+     * @throws AuthenticationException
      */
     public function myObj(Request $request): View
     {

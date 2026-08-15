@@ -44,18 +44,29 @@ class MessageRepository extends Repository
         return Message::query()
             ->whereIn('from_user_id', [$userId, $toUserId])
             ->whereIn('to_user_id', [$userId, $toUserId])
-            ->where('from_user_id', '!=', 'to_user_id')
+            // Убираем условие where('from_user_id', '!=', 'to_user_id'), если хочешь видеть и самосообщения (опционально)
+            ->with(['fromUser' => fn($q) => $q->select('id', 'name'),
+                'toUser'   => fn($q) => $q->select('id', 'name')])
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(function ($message) {
+            ->map(function ($message) use ($userId) {
+                $isMine = $message->from_user_id === $userId;
+                $otherUserId = $isMine ? $message->to_user_id : $message->from_user_id;
+
+                // Получаем имя собеседника: если это моё сообщение — берём toUser, иначе fromUser
+                $otherUser = $isMine ? $message->toUser : $message->fromUser;
+                $otherName = $otherUser?->name ?? 'Собеседник';
+
                 return [
                     'id'           => $message->id,
                     'from_user_id' => $message->from_user_id,
                     'to_user_id'   => $message->to_user_id,
                     'body'         => $message->body,
                     'status'       => $message->status,
-                    // формат: день.месяц.год, час:минута
                     'created_at'   => $message->created_at->format('H:i, d.m.Y'),
+                    'is_mine'      => $isMine,
+                    'other_user_id'=> $otherUserId,
+                    'other_name'   => $otherName,
                 ];
             })
             ->toArray();

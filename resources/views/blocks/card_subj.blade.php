@@ -32,11 +32,11 @@
         @foreach($nearestObjects as $value)
 
             <div class="col-sm-12 col-md-6 col-lg-3">
-                <div class="restaurant-card nearestObjects"
+                <div class="restaurant-card nearestObjects m-3"
                      data-id="{{ $value['obj_id'] }}">
                     <!-- Изображение -->
                     <div class="position-relative">
-                        <div class="restaurant-image nearestObjects m-3">
+                        <div class="restaurant-image nearestObjects">
                             <a href="{{route('group.address.show', ['id' => $value['group_id']])}}">
                                 @if($value['path'])
                                     <img src="{{ $value['path']}}"
