@@ -188,7 +188,10 @@ class SubjController extends Controller
                 );
             }
 
+            $isAuthorOrAdmin = $this->subjService->canEdit();
+
             return view('objects.subjects.show', [
+                'isAuthorOrAdmin' => $isAuthorOrAdmin,
                 'subj' => $subj,
                 'nearestObjects' => $nearestObjects
             ]);

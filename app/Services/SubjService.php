@@ -7,6 +7,7 @@ use App\Models\Subj;
 use App\Repositories\SubjRepository;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 
@@ -168,6 +169,17 @@ class SubjService extends Service
             );
             throw $e;
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function canEdit(): bool
+    {
+        $isOwner = !empty($subj['obj']['user_id']) && $subj['obj']['user_id'] === Auth::id();
+        $user = Auth::user();
+
+        return $isOwner || ($user && $user->isAdmin());
     }
 
 
