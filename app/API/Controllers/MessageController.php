@@ -2,80 +2,92 @@
 
 namespace App\API\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Message;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
-use Kreait\Firebase\Messaging\CloudMessage;
-use Kreait\Laravel\Firebase\Facades\Firebase;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
-class MessageController
+class MessageController extends Controller
 {
-    public function store(Request $request): JsonResponse
+    public function index(Request $request)
     {
-        $request->validate([
-            'to_user_id' => 'required|exists:users,id',
-            'body'      => 'required|string|max:2000',
+        // 1. Валидация входных параметров
+        $validator = Validator::make($request->all(), [
+            'partner_id' => ['required', 'integer', 'min:1'],
+            'last_timestamp' => ['nullable', 'numeric', 'min:0'],
+            'limit' => ['nullable', 'integer', 'between:1,100'],
         ]);
 
-        $fromUserId = auth()->id();
-        $toUserId = (int)$request->input('to_user_id');
-
-        $message = Message::create([
-            'from_user_id' => $fromUserId,
-            'to_user_id'   => $toUserId,
-            'body'         => $request->input('body'),
-            'status'       => 0,
-        ]);
-
-        // Пуш только если есть токен
-        $receiver = \App\Models\User::find($toUserId);
-        if ($receiver && $receiver->fcm_token) {
-            try {
-                $cloudMessage = CloudMessage::withTarget('token', $receiver->fcm_token)
-                    ->withNotification([
-                        'title' => 'Новое сообщение',
-                        'body'  => 'У вас новое сообщение в чате',
-                    ])
-                    ->setData([
-                        'message_id'    => (string)$message->id,
-                        'from_user_id'  => (string)$fromUserId,
-                        'to_user_id'    => (string)$toUserId,
-                    ]);
-
-                Firebase::messaging()->send($cloudMessage);
-            } catch (\Exception $e) {
-                Log::error('FCM send failed for user ' . $toUserId . ': ' . $e->getMessage());
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Некорректные параметры запроса',
+                'errors' => $validator->errors(),
+            ], 400);
         }
 
-        return response()->json($message, 201);
-    }
+        $partnerId = (int)$request->partner_id;
+        $limit = $request->has('limit') ? (int)$request->limit : 50;
+        $lastTimestamp = $request->has('last_timestamp') ? (float)$request->last_timestamp : 0;
 
-    public function index(Request $request): JsonResponse
-    {
-        $request->validate([
-            'to_user_id' => 'required|exists:users,id',
-        ]);
-
-        $currentUserId = auth()->id();
-        $toUserId = (int)$request->input('to_user_id');
-        $since = $request->input('since');
-
-        $query = Message::where(function ($q) use ($currentUserId, $toUserId) {
-            $q->where('from_user_id', $currentUserId)->where('to_user_id', $toUserId)
-                ->orWhere('from_user_id', $toUserId)->where('to_user_id', $currentUserId);
-        });
-
-        if ($since) {
-            $query->where('created_at', '>', \Carbon\Carbon::parse($since));
+        // 2. Проверка существования собеседника
+        if (!\App\Models\User::find($partnerId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Собеседник не найден',
+            ], 404);
         }
 
-        $messages = $query
+        $authId = auth()->id();
+
+        // Если пользователь запрашивает сообщения с самим собой — это странно, можно отклонить
+        if ($authId === $partnerId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Нельзя запрашивать сообщения с самим собой',
+            ], 400);
+        }
+
+        // 3. Выборка сообщений между двумя пользователями
+        $messages = Message::where(function ($query) use ($authId, $partnerId) {
+            $query->where('from_user_id', $authId)->where('to_user_id', $partnerId)
+                ->orWhere('from_user_id', $partnerId)->where('to_user_id', $authId);
+        })
+            ->when($lastTimestamp > 0, function ($query) use ($lastTimestamp) {
+                // Конвертируем UNIX timestamp в формат даты для сравнения с created_at
+                $date = \Carbon\Carbon::createFromTimestamp($lastTimestamp);
+                $query->where('created_at', '>', $date);
+            })
             ->orderBy('created_at', 'asc')
-            ->limit(50)
+            ->limit($limit)
             ->get();
 
-        return response()->json($messages);
+        // 4. Подготовка ответа
+        $data = $messages->map(function ($msg) {
+            return [
+                'id' => $msg->id,
+                'from_user_id' => $msg->from_user_id,
+                'to_user_id' => $msg->to_user_id,
+                'body' => $msg->body,
+                'status' => $msg->status,
+                'created_at' => $msg->created_at->toIso8601String(),
+            ];
+        });
+
+        // next_cursor — временная метка последнего сообщения (для подгрузки истории)
+        $nextCursor = $messages->isNotEmpty()
+            ? $messages->last()->created_at->timestamp
+            : null;
+
+        return response()->json([
+            'success' => true,
+            'data' => $data,
+            'meta' => [
+                'has_more' => $messages->count() === $limit,
+                'next_cursor' => $nextCursor,
+                'total_count' => $messages->count(),
+            ],
+        ], 200);
     }
 }
