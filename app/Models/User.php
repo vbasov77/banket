@@ -50,12 +50,12 @@ class User extends Authenticatable implements MustVerifyEmail
 
 
     /**
-     * @param int $userId
+     *
      * @return bool
      */
-    public function isAuthor(int $userId): bool
+    public function isAuthor(): bool
     {
-        return $this->id == $userId;
+        return (bool)($this->obj && $this->obj->user_id === $this->id);
     }
 
     /**

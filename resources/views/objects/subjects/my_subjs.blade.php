@@ -129,25 +129,23 @@
                                         </div>
                                     </div>
                                 @endforeach
-                            @else
-                                <div class="col-12">
-                                    <p class="text-center text-muted fs-5">К сожалению, у вас пока нет субъектов...</p>
-                                    <div class="row mt-5">
-                                        <div class="col-12 text-center">
-                                            <a class="btn-festive-gradient btn-festive-gradient-green"
-                                               href="{{ route('create.subj') }}">
-                                                <i class="bi bi-pencil-square me-2"></i>
-                                                Добавьте субъект
-                                            </a>
-                                            <br>
-                                            <br>
-                                            <span>
+                            @endif
+                            <div class="col-12">
+                                <div class="row mt-5">
+                                    <div class="col-12 text-center">
+                                        <a class="btn-festive-gradient btn-festive-gradient-green"
+                                           href="{{ route('create.subj') }}">
+                                            <i class="bi bi-pencil-square me-2"></i>
+                                            Добавьте субъект
+                                        </a>
+                                        <br>
+                                        <br>
+                                        <span>
                                                 Субъект — это структурное подразделение вашей компании: например, банкетный зал, кафе или ресторан.
                                             </span>
-                                        </div>
                                     </div>
                                 </div>
-                            @endif
+                            </div>
                             <!-- Особенности и услуги -->
                             @if(!empty($data['details_obj']))
                                 <div class="row g-4">

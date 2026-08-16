@@ -121,7 +121,7 @@
                 </section>
                 <section class="mb-5">
                     @auth
-                        @if(Auth::user()->isAuthor(Auth::id()))
+                        @if($isAuthorOrAdmin)
                             <div style="margin-bottom: 10px; margin-top: 10px; width: auto; float: right">
                                 @if($subj['published'])
                                     <span class="badge bg-success fs-5 px-4 py-2">Опубликовано</span>
@@ -132,11 +132,9 @@
                         @endif
                     @endauth
                     <h4 class="section-title mb-4">Тип площадки</h4>
-                    <div class="d-flex align-items-center gap-4">
+                    <div class="d-flex flex-wrap gap-2">
                         @for ($i = 0; $i < count($subj['site_type']); $i++)
-                            <span class="feature-badge">
-                    {{ $subj['site_type'][$i] }}
-                </span>
+                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $subj['site_type'][$i] }}</span>
                         @endfor
                     </div>
                 </section>
@@ -283,7 +281,7 @@
                                     </div>
                                 @else
                                     @auth
-                                        @if(Auth::user()->isAuthor(Auth::id()))
+                                        @if($isAuthorOrAdmin)
                                             <br>
                                             <a href="{{ route('map.create', ['id' => $subj['subj_id']])}}" id="map"
                                                class="p-3 btn-festive-gradient btn-festive-gradient-red">
@@ -442,11 +440,11 @@
                         </div>
                     @endif
                     @auth
-                        @if(Auth::user()->isAuthor(Auth::id()))
+                        @if($isAuthorOrAdmin)
                             <div>
                                 <button class="btn-festive-gradient btn-festive-gradient-green"
                                         style="margin-top: 25px; margin-bottom: 50px"
-                                        onclick="window.location.href = '{{route('edit.subj', ['id'=>$subj['subj_id']])}}'">
+                                        onclick="window.location.href = '{{ route('edit.subj', ['id' => $subj['subj_id']]) }}'">
                                     Редактировать субъект
                                 </button>
                             </div>
