@@ -2,46 +2,64 @@
 
 namespace App\API\Controllers;
 
+
 use App\Http\Controllers\Controller;
 use App\Models\Message;
+use App\Models\User;
+use App\Services\FirebaseService;
+use App\Services\MessageService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class MessageController extends Controller
 {
-    public function index(Request $request)
+    protected MessageService $messageService;
+
+    /**
+     * @param MessageService $messageService
+     */
+    public function __construct(MessageService $messageService)
     {
-        // 1. Валидация входных параметров
+        $this->messageService = $messageService;
+    }
+
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function index(Request $request): JsonResponse
+    {
         $validator = Validator::make($request->all(), [
             'partner_id' => ['required', 'integer', 'min:1'],
             'last_timestamp' => ['nullable', 'numeric', 'min:0'],
-            'limit' => ['nullable', 'integer', 'between:1,100'],
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Некорректные параметры запроса',
-                'errors' => $validator->errors(),
+                'errors' => $validator->errors()->toArray(),
             ], 400);
         }
 
         $partnerId = (int)$request->partner_id;
-        $limit = $request->has('limit') ? (int)$request->limit : 50;
         $lastTimestamp = $request->has('last_timestamp') ? (float)$request->last_timestamp : 0;
-
-        // 2. Проверка существования собеседника
-        if (!\App\Models\User::find($partnerId)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Собеседник не найден',
-            ], 404);
-        }
 
         $authId = auth()->id();
 
-        // Если пользователь запрашивает сообщения с самим собой — это странно, можно отклонить
+        // Отмечаем непрочитанные сообщения
+        $arrayIds = $this->messageService->getUnreadMessageIdsForChat($authId, $partnerId);
+        if (count($arrayIds) > 0) {
+            $this->messageService->changeStatus($arrayIds);
+        }
+
+        if (!$authId) {
+            return response()->json(['success' => false, 'message' => 'Пользователь не авторизован'], 401);
+        }
+
         if ($authId === $partnerId) {
             return response()->json([
                 'success' => false,
@@ -49,21 +67,37 @@ class MessageController extends Controller
             ], 400);
         }
 
-        // 3. Выборка сообщений между двумя пользователями
-        $messages = Message::where(function ($query) use ($authId, $partnerId) {
-            $query->where('from_user_id', $authId)->where('to_user_id', $partnerId)
-                ->orWhere('from_user_id', $partnerId)->where('to_user_id', $authId);
-        })
-            ->when($lastTimestamp > 0, function ($query) use ($lastTimestamp) {
-                // Конвертируем UNIX timestamp в формат даты для сравнения с created_at
-                $date = \Carbon\Carbon::createFromTimestamp($lastTimestamp);
-                $query->where('created_at', '>', $date);
-            })
-            ->orderBy('created_at', 'asc')
-            ->limit($limit)
-            ->get();
+        $partner = \App\Models\User::find($partnerId);
+        if (!$partner) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Собеседник не найден',
+            ], 404);
+        }
 
-        // 4. Подготовка ответа
+        // Основной запрос: двусторонняя переписка
+        $query = Message::with(['fromUser:id,name', 'toUser:id,name'])
+            ->where(function ($q) use ($authId, $partnerId) {
+                $q->where('from_user_id', $authId)->where('to_user_id', $partnerId)
+                    ->orWhere('from_user_id', $partnerId)->where('to_user_id', $authId);
+            });
+
+        // Фильтр по времени только если передан корректный last_timestamp
+        if ($lastTimestamp > 0) {
+            $date = \Carbon\Carbon::createFromTimestamp($lastTimestamp);
+            $query->where('created_at', '>', $date);
+        }
+
+        // Лимит для пагинации: можно вынести в конфиг или константу
+        $limit = 20;
+        $messages = $query->orderBy('created_at', 'asc')->limit($limit + 1)->get();
+
+        // Проверяем, есть ли «ещё»
+        $hasMore = $messages->count() > $limit;
+        if ($hasMore) {
+            $messages = $messages->take($limit);
+        }
+
         $data = $messages->map(function ($msg) {
             return [
                 'id' => $msg->id,
@@ -71,23 +105,136 @@ class MessageController extends Controller
                 'to_user_id' => $msg->to_user_id,
                 'body' => $msg->body,
                 'status' => $msg->status,
-                'created_at' => $msg->created_at->toIso8601String(),
+                'created_at' => $msg->created_at->timestamp,
+                'from_name' => $msg->fromUser?->name,
+                'to_name' => $msg->toUser?->name,
             ];
         });
 
-        // next_cursor — временная метка последнего сообщения (для подгрузки истории)
-        $nextCursor = $messages->isNotEmpty()
-            ? $messages->last()->created_at->timestamp
-            : null;
+        $nextCursor = null;
+        if ($hasMore || $messages->isNotEmpty()) {
+            // Если мы обрезали список, берём timestamp последнего из «обрезанного» набора
+            $nextCursor = $messages->last()->created_at->timestamp;
+        }
 
         return response()->json([
             'success' => true,
             'data' => $data,
             'meta' => [
-                'has_more' => $messages->count() === $limit,
+                'has_more' => $hasMore,
                 'next_cursor' => $nextCursor,
-                'total_count' => $messages->count(),
+            ],
+            'partner' => [
+                'id' => $partner->id,
+                'name' => $partner->name,
             ],
         ], 200);
     }
+
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'to_user_id' => ['required', 'integer', 'min:1'],
+            'body' => ['required', 'string', 'max:4000'],
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Некорректные данные',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        $authId = auth()->id();
+        $toId = (int)$request->to_user_id;
+        $body = $request->body;
+
+        // Нельзя писать самому себе
+        if ($authId === $toId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Нельзя отправлять сообщения самому себе',
+            ], 400);
+        }
+
+        // Проверяем, существует ли собеседник
+        if (!User::find($toId)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Собеседник не найден',
+            ], 404);
+        }
+
+        // Сохраняем сообщение
+        $message = Message::create([
+            'from_user_id' => $authId,
+            'to_user_id' => $toId,
+            'body' => $body,
+            'status' => 0, // например, 0 = отправлено, 1 = доставлено, 2 = прочитано
+        ]);
+
+        // --- ВОТ ЗДЕСЬ ДОБАВЛЯЕМ ПУШ ---
+        $fcmToken = User::where('id', (int)$toId)->value('fcm_token');
+        if ($fcmToken) {
+            $firebase = new FirebaseService();
+            $response = $firebase->sendPush(
+                $fcmToken,
+                'Новое сообщение',
+                'У вас новое сообщение в чате',
+                ['from_user_id' => (string)$authId]
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $message->id,
+                'from_user_id' => $message->from_user_id,
+                'to_user_id' => $message->to_user_id,
+                'body' => $message->body,
+                'status' => $message->status,
+                'created_at' => $message->created_at->toIso8601String(),
+            ],
+        ], 201);
+    }
+
+    public function deleteMsgApi(Request $request)
+    {
+        $ids = $request->input('ids');
+
+        // Приводим к массиву и оставляем только числа
+        $ids = array_filter((array)$ids, 'is_numeric');
+
+        if (empty($ids)) {
+            return response()->json([
+                'answer' => 'error',
+                'message' => 'Не переданы корректные ID сообщений',
+            ], 400);
+        }
+
+        try {
+            $deletedCount = Message::whereIn('id', $ids)->delete();
+
+            return response()->json([
+                'answer' => 'ok',
+                'deleted_count' => $deletedCount,
+                'ids' => array_values($ids), // опционально: вернуть, какие именно удалили
+            ], 200);
+
+        } catch (\Exception $e) {
+            // Логируем реальную ошибку (в production лучше не отдавать её клиенту)
+            Log::channel('error_file')->error('Ошибка удаления сообщений: ' . $e->getMessage(), [
+                'ids' => $ids,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'answer' => 'error',
+                'message' => 'Произошла ошибка при удалении сообщений',
+            ], 500);
+        }
+    }
+
+
 }

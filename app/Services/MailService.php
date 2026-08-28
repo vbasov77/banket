@@ -4,21 +4,37 @@
 namespace App\Services;
 
 
-use App\Mail\ContactMessage;
+
 use Illuminate\Support\Facades\Mail;
 
 class MailService extends Service
 {
-    /**
-     * @return void
-     */
-    public function sendUserRegister(): void
-    {
+    protected AdminAlertService $adminAlertService;
 
-        Mail::raw('Добавлен новый пользователь...', function ($message) {
-            $message->to(config('app.admin_email'))
-                ->subject('Новый пользователь');
-        });
+    /**
+     * @param AdminAlertService $adminAlertService
+     */
+    public function __construct(AdminAlertService $adminAlertService)
+    {
+        $this->adminAlertService = $adminAlertService;
+    }
+
+    /**
+     * @return bool
+     */
+    public function sendUserRegister(): bool
+    {
+        try {
+            Mail::raw('Добавлен новый пользователь...', function ($message) {
+                $message->to(config('app.admin_email'))
+                    ->subject('Новый пользователь');
+            });
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+
+
     }
 
     /**
