@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Repositories\ImgBanRepository;
 use App\Repositories\KeyRepository;
 use App\Requests\VkRequests;
+use App\Services\AdminAlertService;
 use App\Services\ImgBanSubjService;
 use App\Services\ImgObjService;
 use App\Services\ImgSubjService;
@@ -30,12 +31,15 @@ class TestController extends Controller
     protected KeyRepository $keyRepository;
     protected ImgBanRepository $imgBanRepository;
 
+    protected AdminAlertService $adminAlertService;
+
     public function __construct(ImgObjService     $imgObjService,
                                 ImgSubjService    $imgSubjService,
                                 VkRequests        $vkRequests,
                                 KeyRepository     $keyRepository,
                                 ImgBanSubjService $imgBanSubjService,
-                                ImgBanRepository  $imgBanRepository)
+                                ImgBanRepository  $imgBanRepository,
+                                AdminAlertService $adminAlertService)
     {
         $this->imgObjService = $imgObjService;
         $this->imgSubjService = $imgSubjService;
@@ -43,6 +47,7 @@ class TestController extends Controller
         $this->keyRepository = $keyRepository;
         $this->imgBanSubjService = $imgBanSubjService;
         $this->imgBanRepository = $imgBanRepository;
+        $this->adminAlertService = $adminAlertService;
     }
 
     /**
@@ -141,10 +146,19 @@ class TestController extends Controller
 
     public function testMail()
     {
-        Mail::raw('Hello!', function ($message) {
-            $message->to('0120912@mail.ru')
-                ->subject('Test email');
-        });
+        try {
+            Mail::raw('Hello!', function ($message) {
+                $message->to('0120912@mail.ru')
+                    ->subject('Test email');
+            });
+        } catch (\Exception $e) {
+
+            Log::channel("error_file")->error( ['Failed to send email: '=> $e->getMessage()]);
+            $this->adminAlertService->sendMsgToAdmin("Письмо не отправлено", "Письмо не отправлено");
+
+            return redirect()->route('login');
+        }
+
 
         $message = 'На почту 0120912@mail.ru отправлено письмо';
         return redirect()->back()->with('message', $message);

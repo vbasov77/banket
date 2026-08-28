@@ -79,30 +79,6 @@
             align-items: center;
         }
 
-        .delete-chat-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            opacity: 0.5;
-            transition: opacity 0.2s, background-color 0.2s;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .delete-chat-btn:hover {
-            opacity: 1;
-            background-color: #fee2e2;
-            color: #dc2626;
-        }
-
-        .delete-chat-icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-        }
-
         /* --- Messages area --- */
         #framechat .content .messages {
             flex: 1;
@@ -155,32 +131,6 @@
             position: relative; /* обязательно: чтобы popup позиционировался относительно сообщения */
             display: inline-block;
             width: 100%; /* чтобы блок занимал всю ширину сообщения */
-        }
-
-        /* Popup удаления сообщения */
-        .round-popup {
-            display: none;
-        }
-
-        .myClass:hover .round-popup {
-            display: block;
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            z-index: 10; /* чтобы был поверх всего */
-        }
-
-        .close-msg-btn {
-            background: rgba(255, 255, 255, 0.9);
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 22px;
-            cursor: pointer;
-            font-size: 13px;
-            color: #555;
         }
 
         /* Input area */
@@ -249,10 +199,32 @@
             z-index: 9999;
         }
 
-        .msg-unread { background-color: #fff; border: 1px solid #dad6f5; }
-        .msg-read  { background-color: #f3f4f6; border: none; }
-        li.sent .msg-unread { float: right; background-color: #dad6f5; margin: 5px; }
-        li.sent .msg-read  { float: right; background-color: #e5e7eb; margin: 5px; }
+        .msg-unread {
+            background-color: #fff;
+            border: 1px solid #dad6f5;
+        }
+
+        .msg-read {
+            background-color: #f3f4f6;
+            border: none;
+        }
+
+        li.sent .msg-unread {
+            float: right;
+            background-color: #dad6f5;
+            margin: 5px;
+        }
+
+        li.sent .msg-read {
+            float: right;
+            background-color: #e5e7eb;
+            margin: 5px;
+        }
+
+        .msg-selected {
+            outline: 2px solid #3b82f6;
+            background-color: #dbeafe;
+        }
 
     </style>
 
@@ -275,23 +247,10 @@
                                         <span class="header-name">{{ $name }}</span>
                                     </div>
                                 </div>
+                                <div class="header-action">
+                                    <button type="button" id="trashBtn" style="display:none;">🗑️</button>
+                                </div>
 
-                                {{-- Кнопка удаления чата --}}
-                                @if (!empty($messages))
-                                    <div class="header-action">
-                                        <button type="button"
-                                                class="delete-chat-btn"
-                                                onclick="return confirm('Подтвердите удаление чата?') ? window.location.href='{{ route('delete.chat', [
-                                                    'to_user_id' => $toUser,
-                                                    'from_user_id' => $userId
-                                                ]) }}' : false;">
-                                            <svg class="delete-chat-icon" viewBox="0 0 24 24" fill="none"
-                                                 stroke="currentColor" stroke-width="2">
-                                                <path d="M18 6L6 18M6 6l12 12"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                @endif
                             </div>
 
                             {{-- Область сообщений --}}
@@ -301,33 +260,39 @@
                                         @foreach ($messages as $msg)
                                             @php
                                                 $isMine = ($msg['from_user_id'] == $userId);
+
+                                                // Создаём Carbon-объект из created_at
+                                                $msgDate = \Carbon\Carbon::parse($msg['created_at']);
+
+                                                // Проверяем, сегодня ли это сообщение
+                                                $isToday = $msgDate->isToday();
+
+                                                // Формируем строку времени
+                                                if ($isToday) {
+                                                    $timeString = $msgDate->format('H:i'); // Только часы и минуты
+                                                } else {
+                                                    $timeString = $msgDate->format('d.m H:i'); // Дата + часы и минуты
+                                                }
                                             @endphp
 
                                             <li class="{{ $isMine ? 'sent' : 'received' }}">
                                                 <div class="myClass">
-                                                    {{-- Popup удаления сообщения --}}
-                                                    @if ($isMine)
-                                                        <div class="round-popup">
-                                                            <button type="button"
-                                                                    class="close-msg-btn"
-                                                                    data-id="{{ $msg['id'] }}">
-                                                                &times;
-                                                            </button>
-                                                        </div>
-                                                    @endif
                                                     <div class="messageBlock {{ $msg['status'] ? 'msg-read' : 'msg-unread' }}"
                                                          id="{{ $msg['id'] }}"
                                                          data-id="{{ $msg['id'] }}"
                                                          data-notified="{{ $msg['status'] }}">
+
                                                         {!! $msg['body'] !!}
-                                                        <span class="message-time">{{ $msg['created_at'] }}</span>
+
+                                                        <span class="message-time">{{ $timeString }}</span>
                                                     </div>
                                                 </div>
                                             </li>
                                         @endforeach
                                     @else
-
+                                        {{-- Опционально: блок "нет сообщений" --}}
                                     @endif
+
                                 </ul>
                             </div>
 
@@ -357,34 +322,93 @@
         <script>
             var to_user_id = @json($toUser);
             var from_user_id = @json($userId);
-            // obj_id больше не нужен, так как мы убрали привязку к объекту
         </script>
         {{--    <script src="{{ asset('messages/js/message.js') }}"></script>--}}
         <script>
             const escapeHtml = (unsafe) => {
-                return unsafe.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;');
+                if (!unsafe) return '';
+                return unsafe
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#039;');
             };
 
             let arrayId = [];
 
-            // Формируем массив по data
-            const attributes = document.getElementsByClassName('messageBlock');
-            for (const attribute of attributes) {
-
-                if (attribute.getAttribute('data-notified') == 0) {
-                    arrayId.push(attribute.getAttribute('id'))
+            // Инициализация массива ID при загрузке (если нужно)
+            document.querySelectorAll('.messageBlock').forEach(el => {
+                if (el.getAttribute('data-notified') == 0) {
+                    arrayId.push(el.getAttribute('id'));
                 }
+            });
+
+            function scrollToBottom() {
+                $('.messages').animate({scrollTop: $('.messages ul').prop('scrollHeight')}, "fast");
             }
 
-            $('.messages').animate({scrollTop: $('.messages ul').height()}, "fast");
+            $(document).ready(function () {
+                scrollToBottom();
+            });
 
             function newMessage() {
-                var message = escapeHtml($('.message-input input').val());
+                // 1. Получаем текст
+                var messageText = $('.message-input input').val();
+                var editorHtml = $('.message-input .emoji-wysiwyg-editor').html();
+
+                // Если поле ввода пустое, пробуем взять из редактора
+                if ($.trim(messageText) == '') {
+                    messageText = editorHtml;
+                }
+
+                // Экранируем только если это обычный текст, если это HTML из редактора - экранировать нельзя, иначе теги сломаются
+                // Но будь осторожен с XSS, если используешь .html() ниже. Для простого текста оставь escapeHtml.
+                // В твоем коде ты вставляешь ${res.body} прямо в HTML. Если body может содержать теги - ок.
+                // Если там только текст - лучше использовать .text() или экранировать.
+                // Оставим как у тебя, но для переменной messageText (для проверки пустоты) используем trim.
+
+                if ($.trim(messageText) === '') {
+                    return false; // Ничего не отправляем
+                }
+
+                const to_user_id = window.to_user_id; // Убедись, что эта переменная определена где-то глобально
+                const from_user_id = window.from_user_id;
+
                 data = {
                     "to_user_id": to_user_id,
                     "from_user_id": from_user_id,
-                    "body": message,
+                    "body": messageText,
                 };
+
+                // --- ГЛАВНОЕ ИСПРАВЛЕНИЕ: Время ДО отправки ---
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const localTimeString = `${hours}:${minutes}`; // Формат 14:35
+
+                // Сразу рисуем сообщение со временем "Сейчас", чтобы интерфейс не висел
+                const tempMessageId = 'temp_' + Date.now(); // Временный ID, если сервер не ответит
+
+                const $newLi = $(`<li class="sent">
+            <div class="myClass">
+                <div id="${tempMessageId}"
+                     data-id="${tempMessageId}"
+                     style="float: right; font-size: 17px; background-color: #dad6f5; "
+                     class="messageBlock">
+                    ${escapeHtml(messageText)}<br>
+                    <small style="font-size: 10px; color: #666;" class="mb-0 text-left">${localTimeString}</small>
+                </div>
+            </div>
+        </li>`);
+
+                $('.messages ul').append($newLi);
+                scrollToBottom();
+
+                // Очищаем поля
+                $('.message-input input').val('');
+                $('.message-input .emoji-wysiwyg-editor').html('');
+
                 $.ajax({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -394,95 +418,57 @@
                     data: data,
                     dataType: 'json',
                     success: function (res) {
-                        arrayId.push(res.id);
-                        let date = new Date(res.date);
-                        if ($.trim(message) == '') {
-                            message = $('.message-input .emoji-wysiwyg-editor').html();
-                            if ($.trim(message) == '') {
-                                return false;
-                            }
-                        }
+                        // Обновляем ID и время, если сервер ответил успешно
+                        if (res.id) {
+                            const $block = $('#' + tempMessageId);
+                            $block.attr('id', res.id);
+                            $block.data('id', res.id);
+                            arrayId.push(res.id);
 
-                        $(`<li class="sent"> <div class="myClass">
-<div id="` + res.id + `" data-id="` + res.id + `" style="float: right; font-size: 17px; background-color: #dad6f5; " class="messageBlock">
-<div class="round-popup">
-<button data-id="${res.id}" type="button" class="close-msg-btn">&times;</button>
- </div>
-${res.body}<br>
-                <small  style="font-size: 10px" class="mb-0 text-left">${date.toLocaleString()}</small >
-                </div></div></li>`).appendTo($('.messages ul'));
-                        $('.message-input input').val('');
-                        $('.message-input .emoji-wysiwyg-editor').html('');
-                        $('.messages').animate({scrollTop: $('.messages ul').height()}, "fast");
+                            // Если сервер прислал дату - обновляем время.
+                            // Если нет - оставляем локальное (оно самое точное для пользователя)
+                            let timeToShow = localTimeString;
+
+                            if (res.date) {
+                                try {
+                                    const serverDate = new Date(res.date);
+                                    if (!isNaN(serverDate.getTime())) {
+                                        const h = String(serverDate.getHours()).padStart(2, '0');
+                                        const m = String(serverDate.getMinutes()).padStart(2, '0');
+                                        timeToShow = `${h}:${m}`;
+                                    }
+                                } catch (e) {
+                                    console.warn('Не удалось распарсить дату с сервера', e);
+                                }
+                            }
+
+                            $block.find('small').text(timeToShow);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Ошибка отправки:', xhr.responseText);
+                        const $block = $('#' + tempMessageId);
+                        $block.css('background-color', '#ffcccc'); // Показываем ошибку красным
+                        alert('Не удалось отправить сообщение. Проверьте соединение.');
+                        // Можно добавить кнопку "Повторить" здесь
                     }
                 });
-            };
+            }
 
             $('.submit').click(function () {
                 newMessage();
             });
 
-            // отправить сообщение по Enter
             $("#framechat .content .message-input").keyup(function (event) {
                 if (event.keyCode === 13) {
                     $(".submit").click();
                 }
             });
 
-
-            // Удаление сообщения
-            // Удаление сообщения с эффектом взрыва
-            $('body').on('click', '.close-msg-btn', function (e) {
-                e.preventDefault();
-                if (!confirm('Подтвердите удаление')) return;
-
-                const $btn = $(this);
-                const id = $btn.data('id');
-
-                // Находим блок сообщения по data-id
-                const messageBlock = document.querySelector(`div[data-id="${id}"]`);
-                if (!messageBlock) {
-                    console.warn('Сообщение не найдено в DOM');
-                    return;
-                }
-
-                data = {'id': id};
-
-                $.ajax({
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    url: '/delete_message',
-                    type: 'get',
-                    data: data,
-                    dataType: 'json',
-                    success: function (res) {
-                        if (res.answer === 'ok') {
-                            // 1. Запускаем эффект взрыва на блоке сообщения
-                            createParticleEffect(messageBlock);
-
-                            // 2. Удаляем элемент через то же время, что и частицы (900 мс)
-                            setTimeout(() => {
-                                messageBlock.remove();
-                                // Если нужно, можно прокрутить чат вниз
-                                $('.messages').animate({scrollTop: $('.messages ul').height()}, 'fast');
-                            }, 900);
-                        } else {
-                            alert('Не удалось удалить сообщение');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Ошибка удаления:', xhr.responseText);
-                        alert('Ошибка при удалении сообщения');
-                    }
-                });
-            });
-
             function createParticleEffect(element, forceColor = null) {
                 const rect = element.getBoundingClientRect();
                 const container = document.body;
                 const particlesCount = 80;
-
                 const elementColor = forceColor || window.getComputedStyle(element).color;
 
                 for (let i = 0; i < particlesCount; i++) {
@@ -500,7 +486,6 @@ ${res.body}<br>
                     particle.style.color = elementColor;
 
                     const angle = Math.random() * Math.PI * 2;
-                    const speed = Math.random() * 200 + 100;
                     const distance = Math.random() * 150 + 120;
 
                     const endX = x + Math.cos(angle) * distance;
@@ -509,7 +494,7 @@ ${res.body}<br>
                     container.appendChild(particle);
 
                     particle.animate([
-                        { transform: `translate(0, 0) scale(1)`, opacity: 1 },
+                        {transform: `translate(0, 0) scale(1)`, opacity: 1},
                         {
                             transform: `translate(${endX}px, ${endY}px) scale(${Math.random() * 0.3 + 0.1})`,
                             opacity: Math.random() * 0.3
@@ -527,7 +512,67 @@ ${res.body}<br>
                 element.style.opacity = '0';
             }
 
+            let selectionMode = false;
+            let selectedIds = [];
 
+            // Двойной клик — вход в режим отмечания
+            $('.messages').on('dblclick', '.messageBlock', function () {
+                selectionMode = true;
+                selectedIds = [];
+                $('.messageBlock').removeClass('msg-selected');
+                $(this).addClass('msg-selected');
+                selectedIds.push($(this).data('id'));
+                $('#trashBtn').show();
+            });
+
+            // Одинарный клик в режиме — отметить/снять
+            $('.messages').on('click', '.messageBlock', function () {
+                if (!selectionMode) return;
+
+                const id = $(this).data('id');
+                if ($(this).hasClass('msg-selected')) {
+                    $(this).removeClass('msg-selected');
+                    selectedIds = selectedIds.filter(x => x != id);
+                } else {
+                    $(this).addClass('msg-selected');
+                    selectedIds.push(id);
+                }
+            });
+
+            // Клик по корзине — подтверждение и удаление массива
+            $('#trashBtn').on('click', function () {
+                if (!selectedIds.length) return;
+                if (!confirm('Подтвердите удаление ' + selectedIds.length + ' сообщений?')) return;
+
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    url: '/delete_message',
+                    type: 'get',
+                    data: {ids: selectedIds},
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.answer === 'ok') {
+                            $('.messageBlock.msg-selected').each(function () {
+                                createParticleEffect(this);
+                            });
+                            setTimeout(() => {
+                                $('.messageBlock.msg-selected').closest('li').remove();
+                                selectedIds = [];
+                                selectionMode = false;
+                                $('#trashBtn').hide();
+                                scrollToBottom();
+                            }, 900);
+                        } else {
+                            alert('Не удалось удалить сообщения');
+                        }
+                    },
+                    error: function () {
+                        alert('Ошибка при удалении сообщений');
+                    }
+                });
+            });
         </script>
     @endpush
 @endsection
