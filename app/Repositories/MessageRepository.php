@@ -185,14 +185,15 @@ class MessageRepository extends Repository
             }
 
             // --- ВОТ ЗДЕСЬ ДОБАВЛЯЕМ ПУШ ---
-            $fcmToken = User::where('id', (int)$data['to_user_id'])->value('fcm_token');
+            $fcmToken = User::where('id', (int)$payload['to_user_id'])->value('fcm_token');
             if ($fcmToken) {
                 $firebase = new FirebaseService();
-                $response = $firebase->sendPush(
+                $response = $firebase->sendPushWithCode(
                     $fcmToken,
                     'Новое сообщение',
-                    'У вас новое сообщение в чате',
-                    ['from_user_id' => (string)$data['from_user_id']]
+                    ['from_user_id' => (string)$payload['from_user_id'],
+                        'code' => 111
+                    ]
                 );
             }
 

@@ -20,7 +20,7 @@ class MailController extends Controller
         return view('mails.show_form');
     }
 
-    public function store(Request $request): \Illuminate\Http\RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'email'   => ['required', 'email', 'max:255'],

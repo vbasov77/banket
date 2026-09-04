@@ -57,4 +57,35 @@ class FirebaseService
             ];
         }
     }
+
+    public function sendPushWithCode(string $token,string $title, array $data): array
+    {
+        try {
+            $message = CloudMessage::fromArray([
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                ],
+                'data' => $data,
+            ]);
+            // Отправляем. Если тут ошибка — она уйдёт в catch
+            $this->messaging->send($message);
+
+            return [
+                'success' => true,
+            ];
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('FCM push failed', [
+                'error_class'  => get_class($e),
+                'error_message' => $e->getMessage(),
+                'token_prefix'  => substr($token, 0, 10) . '...',
+            ]);
+
+            return [
+                'success'      => false,
+                'error_message' => $e->getMessage(),
+            ];
+        }
+    }
+
 }

@@ -14,15 +14,9 @@
 
                     <h1>Профиль пользователя</h1>
 
-                    <div>
-                        <strong>Имя:</strong> {{ $userData['name'] }}
-                    </div>
-                    <div>
-                        <strong>Email:</strong> {{ $userData['email'] }}
-                    </div>
-
+                    {{-- Статус верификации (твой существующий блок) --}}
                     @php
-                        $isVerified = !empty($userData['is_verified']); // или $userData['email_verified_at'] !== null
+                        $isVerified = !empty($userData['is_verified']);
                         $linkSentAt = session('verification_link_sent_at');
                         $canRequestAgain = false;
                         $minutesLeft = 0;
@@ -35,7 +29,6 @@
                                 $minutesLeft = $nextAllowedAt->diffInMinutes(now());
                             }
                         } elseif (!$isVerified) {
-                            // Не подтверждён и ещё ни разу не запрашивали ссылку
                             $canRequestAgain = true;
                         }
                     @endphp
@@ -53,7 +46,8 @@
                                 </form>
                             @else
                                 <p class="text-muted small mb-0">
-                                    Ссылка уже была отправлена. Повторный запрос будет доступен через {{ $minutesLeft }} мин.
+                                    Ссылка уже была отправлена. Повторный запрос будет доступен через {{ $minutesLeft }}
+                                    мин.
                                 </p>
                             @endif
                         </div>
@@ -62,6 +56,63 @@
                             Ваш email подтверждён!
                         </div>
                     @endif
+
+                    <div>
+                        <strong>Имя:</strong> {{ $userData['name'] }}
+                    </div>
+                    <div>
+                        <strong>Email:</strong> {{ $userData['email'] }}
+                    </div>
+                    <div>
+                        <strong>Ваш id:</strong> {{ $userData['id'] }}
+                    </div>
+                    <a class="btn-festive-gradient btn-festive-gradient-green mt-2 mb-3"
+                       href="{{route('account.edit')}}">Редактировать
+                        профиль</a>
+                    <br>
+                    <br>
+
+                    {{-- ФОРМА СМЕНЫ ПАРОЛЯ --}}
+                    <div class="card p-3 bg-light">
+                        <h4>Сменить пароль</h4>
+                        @if(session('password_changed'))
+                            <div class="alert alert-success">{{ session('password_changed') }}</div>
+                        @endif
+                        @if($errors->has('current_password') || $errors->has('password') || $errors->has('password_confirmation'))
+                            <div class="alert alert-danger">
+                                Проверьте правильность введённых данных.
+                            </div>
+                        @endif
+
+                        <form action="{{ route('profile.change-password') }}" method="POST">
+                            @csrf
+
+                            <div class="mb-2">
+                                <label for="current_password">Текущий пароль</label>
+                                <input type="password" name="current_password" id="current_password"
+                                       class="form-control" required>
+                                @error('current_password')<small class="text-danger">{{ $message }}</small>@enderror
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="password">Новый пароль</label>
+                                <input type="password" name="password" id="password" class="form-control" minlength="8"
+                                       required>
+                                @error('password')<small class="text-danger">{{ $message }}</small>@enderror
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password_confirmation">Подтверждение нового пароля</label>
+                                <input type="password" name="password_confirmation" id="password_confirmation"
+                                       class="form-control" required>
+                                @error('password_confirmation')<small
+                                        class="text-danger">{{ $message }}</small>@enderror
+                            </div>
+
+                            <button type="submit" class="btn-festive-gradient btn-festive-gradient-green">Сменить пароль</button>
+                        </form>
+                    </div>
+                    {{-- Конец формы смены пароля --}}
 
                     <br>
 

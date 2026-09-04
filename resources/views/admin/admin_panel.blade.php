@@ -27,7 +27,6 @@
 
         <!-- Сетка карточек: на мобильных 1 в ряд, на планшетах 2, на десктопе 3 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
             <!-- Блок: Тесты -->
             <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm hover:border-indigo-200 dark:hover:border-indigo-700 card-hover">
                 <div class="flex items-center mb-4">
@@ -60,6 +59,9 @@
                     </a>
                     <a href="#" class="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-100 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition-colors">
                         🔍 Искать пользователя
+                    </a>
+                    <a href="{{route('admin.users.create')}}" class="inline-flex items-center px-4 py-2 bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-300 border border-green-100 dark:border-green-800 rounded-lg hover:bg-green-100 dark:hover:bg-green-800 transition-colors">
+                        🆕 Зарегистрировать пользователя
                     </a>
                 </div>
             </div>

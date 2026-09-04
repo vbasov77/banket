@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Message;
 use App\Models\User;
+use App\Services\FirebaseService;
 use App\Services\MessageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,6 +47,18 @@ class MessageController extends Controller
         $arrayIds = $this->messageService->getUnreadMessageIdsForChat($userId, $toUserId);
         if (count($arrayIds) > 0) {
             $this->messageService->changeStatus($arrayIds);
+            $fcmToken = User::where('id', (int)$toUser)->value('fcm_token');
+            if ($fcmToken) {
+                $firebase = new FirebaseService();
+                $response = $firebase->sendPushWithCode(
+                    $fcmToken,
+                    'Сообщение прочитано',
+                    ['from_user_id' => (string)$userId,
+                        'code' => 222,
+                        'message_ids' => implode(',', $arrayIds)
+                    ]
+                );
+            }
         }
 
         return view('messages.show', [

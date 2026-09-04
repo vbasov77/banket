@@ -14,8 +14,6 @@ class ChatController
         try {
             $userId = $request->user()->id;
 
-            Log::channel('info_file')->info();
-
             // 1. Находим ID всех собеседников и время последнего сообщения
             $chatsQuery = DB::table('messages')
                 ->where(function ($query) use ($userId) {
@@ -37,18 +35,16 @@ class ChatController
                 ]);
             }
 
-            // Получаем IDs партнёров для массовых запросов
             $partnerIds = $chats->pluck('partner_id')->toArray();
 
             // 2. Получаем непрочитанные сообщения для всех партнёров одним запросом
             $unreadCounts = DB::table('messages')
-                ->whereIn('from_user_id', $partnerIds)      // сообщения ОТ собеседников
-                ->where('to_user_id', $userId)              // К тебе
-                ->where('status', 0)                        // ещё не прочитаны
-                ->groupBy('from_user_id')                   // группируем по отправителю (партнёру)
+                ->whereIn('from_user_id', $partnerIds)
+                ->where('to_user_id', $userId)
+                ->where('status', 0)
+                ->groupBy('from_user_id')
                 ->get(['from_user_id as partner_id', DB::raw('COUNT(*) AS unread_count')]);
 
-            // Превращаем в ассоциативный массив [partner_id => count]
             $unreadMap = $unreadCounts->pluck('unread_count', 'partner_id')->all();
 
             // 3. Получаем данные пользователей (партнёров) одним запросом
@@ -86,9 +82,9 @@ class ChatController
                     'id' => $partnerId,
                     'title' => $partner ? $partner->name : 'Чат без имени',
                     'last_message' => $lastMessage ? $lastMessage->body : null,
+                    'last_message_status' => $lastMessage ? $lastMessage->status : null,
                     'last_time' => $lastTime,
                     'unread_count' => $unreadMap[$partnerId] ?? 0,
-                    'avatar_url' => $partner ? ($partner->avatar_url ?? null) : null,
                 ];
             });
 

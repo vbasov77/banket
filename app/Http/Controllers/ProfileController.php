@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Mail\EmailChangeVerificationMail;
+use App\Services\AdminAlertService;
 use App\Services\ImgBanSubjService;
+use App\Services\ProfilePasswordService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 
@@ -39,17 +44,11 @@ class ProfileController extends Controller
     /**
      * Update the user's profile information.
      */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update()
     {
-        $request->user()->fill($request->validated());
-
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
-        }
-
-        $request->user()->save();
-
-        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+        /**
+         *
+         */
     }
 
     /**
@@ -66,6 +65,7 @@ class ProfileController extends Controller
         $userData = [
             'name' => $user->name,
             'email' => $user->email,
+            'id' => $user->id,
             'is_verified' => !is_null($user->email_verified_at),
         ];
         $message = $request->message ?? null;
@@ -122,5 +122,28 @@ class ProfileController extends Controller
     public function deleteProfile()
     {
         return \view('auth.destroy_profile');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => ['required'],
+            'password' => ['required', 'confirmed', Password::min(8)],
+            'password_confirmation' => ['same:password'],
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            abort(403, 'Доступ запрещён');
+        }
+
+        $passwordService = new ProfilePasswordService();
+        if ($passwordService->changePassword($user, $request->all())) {
+            // Важно: разлогиниваем пользователя, чтобы он залогинился заново с новым паролем
+            Auth::logout();
+            return redirect()->route('login')->with('password_changed', 'Пароль успешно изменён. Пожалуйста, войдите снова.');
+        }
+
+        return back()->withErrors(['current_password' => 'Неверный текущий пароль.']);
     }
 }

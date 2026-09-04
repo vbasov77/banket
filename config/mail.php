@@ -41,6 +41,7 @@ return [
             'encryption' => env('MAIL_ENCRYPTION', 'ssl'),
             'username' => env('MAIL_USERNAME'),
             'password' => env('MAIL_PASSWORD'),
+            'queue' => null,
             'stream' => [
                 'ssl' => [
                     'verify_peer'       => false,
@@ -112,8 +113,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
-        'name' => env('MAIL_FROM_NAME', 'Example'),
+        'address' => env('MAIL_FROM_ADDRESS', 'admin@feast-boom.ru'),
+        'name' => env('MAIL_FROM_NAME', 'FestBoom'),
     ],
 
     /*
