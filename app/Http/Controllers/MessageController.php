@@ -16,12 +16,13 @@ class MessageController extends Controller
 {
     private MessageService $messageService;
 
-    /**
-     * @param MessageService $messageService
-     */
-    public function __construct(MessageService $messageService)
+    protected FirebaseService $firebaseService;
+
+    public function __construct(MessageService $messageService,
+                                FirebaseService $firebaseService)
     {
         $this->messageService = $messageService;
+        $this->firebaseService = $firebaseService;
     }
 
     public function show(Request $request, MessageService $service)
@@ -47,18 +48,12 @@ class MessageController extends Controller
         $arrayIds = $this->messageService->getUnreadMessageIdsForChat($userId, $toUserId);
         if (count($arrayIds) > 0) {
             $this->messageService->changeStatus($arrayIds);
-            $fcmToken = User::where('id', (int)$toUser)->value('fcm_token');
-            if ($fcmToken) {
-                $firebase = new FirebaseService();
-                $response = $firebase->sendPushWithCode(
-                    $fcmToken,
-                    'Сообщение прочитано',
-                    ['from_user_id' => (string)$userId,
-                        'code' => 222,
-                        'message_ids' => implode(',', $arrayIds)
-                    ]
-                );
-            }
+
+            $this->firebaseService->sendToUser($toUserId, 'Сообщение прочитано', [
+                'from_user_id' => (string)$userId,
+                'code' => '222',
+                'message_ids' => implode(',', $arrayIds),
+            ]);
         }
 
         return view('messages.show', [
@@ -79,13 +74,57 @@ class MessageController extends Controller
     {
         $validated = $request->validate([
             'from_user_id' => 'required|integer',
-            'to_user_id' => 'required|integer',
-            'body' => 'required|string|max:4000',
+            'to_user_id'   => 'required|integer',
+            'body'         => 'required|string|max:4000',
         ]);
+
+        // Запрет писать самому себе
+        if ($validated['from_user_id'] === $validated['to_user_id']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Нельзя отправлять сообщения самому себе',
+            ], 400);
+        }
+
+        // Проверка существования получателя (если в сервисе этого нет)
+        if (!User::find($validated['to_user_id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Собеседник не найден',
+            ], 404);
+        }
 
         $result = $this->messageService->store($validated);
 
-        return response()->json($result);
+        // Если сохранение не удалось — сразу возвращаем ошибку из сервиса
+        if (!$result['bool']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['error'] ?? 'Не удалось сохранить сообщение. Попробуйте позже.',
+            ], 500);
+        }
+
+        // Пуш отправляем ТОЛЬКО после успешного сохранения
+        $this->firebaseService->sendToUser(
+            $result['to_user_id'],
+            'Новое сообщение',
+            [
+                'from_user_id' => (string)$result['from_user_id'],
+                'code'         => '111',
+                'message_id'   => (string)$result['id'],
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'id'           => $result['id'],
+                'body'         => $result['body'],
+                'date'         => $result['date'],
+                'from_user_id' => $result['from_user_id'],
+                'to_user_id'   => $result['to_user_id'],
+            ],
+        ], 201);
     }
 
     public function notified(Request $request)

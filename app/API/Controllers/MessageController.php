@@ -17,12 +17,16 @@ class MessageController extends Controller
 {
     protected MessageService $messageService;
 
+    protected FirebaseService $firebaseService;
+
     /**
      * @param MessageService $messageService
      */
-    public function __construct(MessageService $messageService)
+    public function __construct(MessageService  $messageService,
+                                FirebaseService $firebaseService)
     {
         $this->messageService = $messageService;
+        $this->firebaseService = $firebaseService;
     }
 
 
@@ -45,32 +49,14 @@ class MessageController extends Controller
             ], 400);
         }
 
-        $partnerId = (int)$request->partner_id;
-        $lastTimestamp = $request->has('last_timestamp') ? (float)$request->last_timestamp : 0;
-
         $authId = auth()->id();
 
-        // Отмечаем непрочитанные сообщения
-        $arrayIds = $this->messageService->getUnreadMessageIdsForChat($authId, $partnerId);
-        if (count($arrayIds) > 0) {
-            $this->messageService->changeStatus($arrayIds);
-            $fcmToken = User::where('id', (int)$partnerId)->value('fcm_token');
-            if ($fcmToken) {
-                $firebase = new FirebaseService();
-                $response = $firebase->sendPushWithCode(
-                    $fcmToken,
-                    'Сообщение прочитано',
-                    ['from_user_id' => (string)$authId,
-                        'code' => 222,
-                        'message_ids' => implode( ',', $arrayIds)
-                    ]
-                );
-            }
-        }
-
+        // Проверки авторизации и самоконтакта — в самом начале, до любой логики
         if (!$authId) {
             return response()->json(['success' => false, 'message' => 'Пользователь не авторизован'], 401);
         }
+
+        $partnerId = (int)$request->partner_id;
 
         if ($authId === $partnerId) {
             return response()->json([
@@ -87,6 +73,20 @@ class MessageController extends Controller
             ], 404);
         }
 
+        $lastTimestamp = $request->has('last_timestamp') ? (float)$request->last_timestamp : 0;
+
+        // Отмечаем непрочитанные сообщения от партнера как прочитанные
+        $arrayIds = $this->messageService->getUnreadMessageIdsForChat($authId, $partnerId);
+        if (count($arrayIds) > 0) {
+            $this->messageService->changeStatus($arrayIds);
+
+            $this->firebaseService->sendToUser($partnerId, 'Сообщение прочитано', [
+                'from_user_id' => (string)$authId,
+                'code' => '222',
+                'message_ids' => implode(',', $arrayIds),
+            ]);
+        }
+
         // Основной запрос: двусторонняя переписка
         $query = Message::with(['fromUser:id,name', 'toUser:id,name'])
             ->where(function ($q) use ($authId, $partnerId) {
@@ -94,17 +94,14 @@ class MessageController extends Controller
                     ->orWhere('from_user_id', $partnerId)->where('to_user_id', $authId);
             });
 
-        // Фильтр по времени только если передан корректный last_timestamp
         if ($lastTimestamp > 0) {
             $date = \Carbon\Carbon::createFromTimestamp($lastTimestamp);
             $query->where('created_at', '>', $date);
         }
 
-        // Лимит для пагинации: можно вынести в конфиг или константу
         $limit = 20;
         $messages = $query->orderBy('created_at', 'desc')->limit($limit + 1)->get();
 
-        // Проверяем, есть ли «ещё»
         $hasMore = $messages->count() > $limit;
         if ($hasMore) {
             $messages = $messages->take($limit);
@@ -125,7 +122,6 @@ class MessageController extends Controller
 
         $nextCursor = null;
         if ($hasMore || $messages->isNotEmpty()) {
-            // Если мы обрезали список, берём timestamp последнего из «обрезанного» набора
             $nextCursor = $messages->last()->created_at->timestamp;
         }
 
@@ -157,7 +153,6 @@ class MessageController extends Controller
                 'errors' => $validator->errors(),
             ], 400);
         }
-
         $authId = auth()->id();
         $toId = (int)$request->to_user_id;
         $body = $request->body;
@@ -187,17 +182,10 @@ class MessageController extends Controller
         ]);
 
         // --- ВОТ ЗДЕСЬ ДОБАВЛЯЕМ ПУШ ---
-        $fcmToken = User::where('id', (int)$toId)->value('fcm_token');
-        if ($fcmToken) {
-            $firebase = new FirebaseService();
-            $response = $firebase->sendPushWithCode(
-                $fcmToken,
-                'Новое сообщение',
-                ['from_user_id' => (string)$authId,
-                    'code' => 111
-                ]
-            );
-        }
+        $this->firebaseService->sendToUser($toId, 'Новое сообщение', [
+            'from_user_id' => (string)$authId,
+            'code' => '111',
+        ]);
 
         return response()->json([
             'success' => true,

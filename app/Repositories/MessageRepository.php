@@ -160,18 +160,16 @@ class MessageRepository extends Repository
 
             $payload = [
                 'from_user_id' => (int)$data['from_user_id'],
-                'to_user_id' => (int)$data['to_user_id'],
-                'body' => $this->sanitizeBody($data['body']),
-                'status' => 0,
+                'to_user_id'   => (int)$data['to_user_id'],
+                'body'         => $this->sanitizeBody($data['body']),
+                'status'       => 0,
             ];
 
             $id = DB::table('messages')->insertGetId($payload);
-
             if (!$id) {
                 throw new \Exception('Не удалось получить ID после вставки сообщения.');
             }
 
-            // Получаем created_at
             $rawDate = DB::table('messages')
                 ->where('id', $id)
                 ->value('created_at');
@@ -184,41 +182,22 @@ class MessageRepository extends Repository
                 throw new \Exception('Не удалось получить created_at для сообщения ID: ' . $id);
             }
 
-            // --- ВОТ ЗДЕСЬ ДОБАВЛЯЕМ ПУШ ---
-            $fcmToken = User::where('id', (int)$payload['to_user_id'])->value('fcm_token');
-            if ($fcmToken) {
-                $firebase = new FirebaseService();
-                $response = $firebase->sendPushWithCode(
-                    $fcmToken,
-                    'Новое сообщение',
-                    ['from_user_id' => (string)$payload['from_user_id'],
-                        'code' => 111
-                    ]
-                );
-            }
-
-
             return [
-                'bool' => true,
-                'id' => $id,
-                'body' => $payload['body'],
-                'date' => $createdAt,
-                'from_user_id' => $payload['from_user_id'],
-                'to_user_id' => $payload['to_user_id'],
+                'bool'          => true,
+                'id'            => $id,
+                'body'          => $payload['body'],
+                'date'          => $createdAt,
+                'from_user_id'  => $payload['from_user_id'],
+                'to_user_id'    => $payload['to_user_id'],
             ];
         } catch (\Throwable $e) {
-            Log::channel('error_file')->error('MessageRepository::store failed', [
-                'message' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'input_data' => array_map(function ($v) {
-                    return is_string($v) ? substr($v, 0, 100) : $v;
-                }, $data),
+            Log::channel('error_file')->error('MessageService::store failed', [
+                'message'   => $e->getMessage(),
+                'input_data'=> array_map(fn($v) => is_string($v) ? substr($v, 0, 100) : $v, $data),
             ]);
 
             return [
-                'bool' => false,
+                'bool'  => false,
                 'error' => 'Не удалось сохранить сообщение. Попробуйте позже.',
             ];
         }

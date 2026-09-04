@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\DeviceToken;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Support\Facades\Log;
@@ -85,6 +86,18 @@ class FirebaseService
                 'success'      => false,
                 'error_message' => $e->getMessage(),
             ];
+        }
+    }
+
+    public function sendToUser(int $userId, string $title, array $data): void
+    {
+        $tokens = DeviceToken::where('user_id', $userId)
+            ->where('is_active', true)
+            ->where('type', 'fcm')
+            ->pluck('token');
+
+        foreach ($tokens as $fcmToken) {
+            $this->sendPushWithCode($fcmToken, $title, $data);
         }
     }
 
