@@ -33,7 +33,6 @@ class VkService extends Service
     {
         $accessToken = $this->keyRepository->accessToken();
         $server = $this->server($groupId, $accessToken, $albumId);
-        Log::channel('info_file')->info('server', [$server]);
         if (!empty($request->file('img'))) {
             sleep(0.5);
             $resizeImage = $this->imgService->compressImageIfLarge($request->file('img'));
@@ -51,7 +50,6 @@ class VkService extends Service
                 }
 
                 $json = json_decode($this->requestRepository->postFile($uploadUrl, $curlFile), true);
-                Log::channel('info_file')->info('json', [$json]);
 
                 // Проверка на ошибки от VK API
                 if (isset($json['error'])) {
@@ -88,8 +86,6 @@ class VkService extends Service
                 ];
 
                 $save = json_decode($this->requestRepository->post($urlSaveWallPhoto, $dataSaveWallPhoto));
-
-                Log::channel('info_file')->info('save', [$save]);
                 unlink($image); // Удаляем временный файл с сервера
 
                 if ($save && isset($save->response) && !empty($save->response)) {

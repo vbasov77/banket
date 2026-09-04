@@ -15,10 +15,8 @@ class NotificationService extends Service
     public function sendPushNotificationToUser(int $userId, Message $message): void
     {
         $user = User::find($userId);
-        Log::channel('info_file')->info([$user]);
 
         if (!$user || empty($user->fcm_token)) {
-            Log::channel('info_file')->info(['FCM push skipped: no token for user_id=' . $userId]);
             return;
         }
 
@@ -39,12 +37,7 @@ class NotificationService extends Service
         ]);
 
         try {
-            $result = Firebase::messaging()->send($messageObj);
-
-            Log::channel('info_file')->info('FCM send success', [
-                'user_id' => $userId,
-                'message_id' => $result->messageId(),
-            ]);
+            Firebase::messaging()->send($messageObj);
         } catch (MessagingException $e) {
             // Firebase возвращает разные ошибки в одном исключении — смотрим текст/код
             $message = $e->getMessage();
@@ -54,18 +47,13 @@ class NotificationService extends Service
                 || str_contains($message, 'Unregistered')
                 || str_contains($message, 'InvalidRegistration')) {
 
-                Log::channel('info_file')->info(['Removing invalid FCM token for user ' . $userId]);
                 User::where('id', $userId)->update(['fcm_token' => null]);
                 return; // Дальше не логируем как общую ошибку
             }
 
             // Остальные ошибки — просто логируем
-            Log::channel('info_file')->error('FCM request failed', [
-                'user_id' => $userId,
-                'error' => $message,
-            ]);
         } catch (\Exception $e) {
-            Log::channel('info_file')->error('Unexpected error while sending FCM', [
+            Log::channel('error_file')->error('Unexpected error while sending FCM', [
                 'user_id' => $userId,
                 'error' => $e->getMessage(),
             ]);

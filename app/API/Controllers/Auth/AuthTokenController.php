@@ -3,6 +3,7 @@
 namespace App\API\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceToken;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,7 @@ class AuthTokenController extends Controller
     {
         $request->validate([
             'token' => ['required', 'string', 'max:512'],
+            'device_model' => ['nullable', 'string', 'max:64'],
         ]);
 
         $user = Auth::user();
@@ -29,10 +31,20 @@ class AuthTokenController extends Controller
             ], 401);
         }
 
-        // Используем fcm_token, как в твоей миграции users
-        $user->update([
-            'fcm_token' => $request->token,
-        ]);
+        // updateOrCreate по полю token: если токен уже есть — обновляем,
+        // если нет — создаём новую запись. Это защищает от дубликатов (unique на token).
+        // Заодно ставим is_active = true (вдруг токен раньше помечали неактивным)
+        // и last_used_at = сейчас — фиксируем момент последнего использования.
+        DeviceToken::updateOrCreate(
+            ['token' => $request->token],
+            [
+                'user_id' => $user->id,
+                'type' => 'fcm',
+                'device_model' => $request->device_model,
+                'is_active' => true,
+                'last_used_at' => now(),
+            ]
+        );
 
         return response()->json([
             'status' => 'ok',

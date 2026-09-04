@@ -24,7 +24,9 @@ class AuthController extends Controller
         $user = Auth::user();
 
         // Удаляем старые токены пользователя (опционально: чтобы на устройстве был только 1 активный)
-        $user->tokens()->delete();
+        // Оставляем только 4 самых свежих токена, остальные удаляем
+        $user->tokens()->latest()->skip(4)->delete();
+
 
         // Создаём настоящий токен Sanctum и получаем его как строку
         $token = $user->createToken('android_app')->plainTextToken;

@@ -84,7 +84,6 @@ class UserVkController extends Controller
             $userInfo = json_decode($this->requestRepository->post($url, $params), true);
 
             $newToken = $this->vkService->refreshVkAccessToken($data['refresh_token']);
-            Log::channel('info_file')->info($newToken);
 
             // Расчёт времени истечения токена
             try {
