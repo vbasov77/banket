@@ -27,13 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/messages', [MessageController::class, 'index']);
     Route::post('/store_msg', [MessageController::class, 'store']);
     Route::get('/delete_message', [MessageController::class, 'deleteMsgApi'])->name('delete.message.api');
-
+    Route::patch('/update/message/{id}', [MessageController::class, 'update']);
     Route::get('/chats/has-new', [ChatController::class, 'hasNewMessages']);
     Route::get('/chats', [ChatController::class, 'index']);
 
-
-
     Route::post('/auth/save-fcm-token', [AuthTokenController::class, 'saveFcmToken']);
-
 
 });

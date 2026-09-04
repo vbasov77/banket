@@ -4,7 +4,9 @@
 namespace App\Services;
 
 
-
+use App\Mail\ContactMessageMail;
+use App\Mail\SendMail;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class MailService extends Service
@@ -31,6 +33,7 @@ class MailService extends Service
             });
             return true;
         } catch (\Exception $e) {
+            Log::channel('error_file')->error(["Ошибка отправки письма Админу о новом пользователе"]);
             return false;
         }
 
@@ -42,10 +45,16 @@ class MailService extends Service
      */
     public function sendAddNewObj(): void
     {
-        Mail::raw('Добавлен новый объект...', function ($message) {
-            $message->to(config('app.admin_email'))
-                ->subject('Новый объект');
-        });
+        try {
+            Mail::raw('Добавлен новый объект...', function ($message) {
+                $message->to(config('app.admin_email'))
+                    ->subject('Новый объект');
+            });
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(["Ошибка отправки письма Админу о новом пользователе" => $e]);
+            $this->adminAlertService->sendMsgToAdmin("Ошибка отправки почты", "Письмо не отправлено. Ошибка в логе");
+        }
+
     }
 
     /**
@@ -53,17 +62,37 @@ class MailService extends Service
      */
     public function sendAddNewSubj(): void
     {
-        Mail::raw('Добавлен новый объект...', function ($message) {
-            $message->to(config('app.admin_email'))
-                ->subject('Новый объект');
-        });
+        try {
+            Mail::raw('Добавлен новый объект...', function ($message) {
+                $message->to(config('app.admin_email'))
+                    ->subject('Новый объект');
+            });
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(["Ошибка отправки письма Админу о новом пользователе" => $e]);
+            $this->adminAlertService->sendMsgToAdmin("Ошибка отправки почты", "Письмо не отправлено. Ошибка в логе");
+        }
     }
 
 
     public function sendContactMessage(array $data): void
     {
-        Mail::raw($data['message'], function ($mess) use ($data) {
-            $mess->to($data['email'])->subject($data['subject']);
-        });
+        try {
+            Mail::to($data['email'])
+                ->send(new SendMail(
+                    $data['subject'],
+                    $data['message']
+                ));
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error([
+                'error' => 'Ошибка отправки письма через Mailable',
+                'email' => $data['email'],
+                'exception' => $e->getMessage(),
+            ]);
+
+            $this->adminAlertService->sendMsgToAdmin(
+                "Ошибка отправки почты",
+                "Письмо не отправлено. Ошибка в логе."
+            );
+        }
     }
 }

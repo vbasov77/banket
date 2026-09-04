@@ -29,11 +29,8 @@ use App\Http\Controllers\MetroController;
 use App\Http\Controllers\CookiePolicyController;
 use App\Http\Controllers\CookieController;
 use App\Http\Controllers\MailController;
-use Illuminate\Support\Facades\Log;
-
-use Kreait\Firebase\Factory;
-use Kreait\Firebase\Messaging\CloudMessage;
-use GuzzleHttp\Client; // <-- подключаем Guzzle явно
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\AccountController;
 
 
 /*
@@ -82,6 +79,9 @@ Route::middleware('admin')->group(function () {
     Route::get('/mail', [MailController::class, 'show'])->name('admin_mail.show');
     Route::post('/mail', [MailController::class, 'store'])->name('admin_mail.store');
 
+    Route::get('/admin/users/create', [AdminUserController::class, 'create'])->name('admin.users.create');
+    Route::post('/admin/users/store', [AdminUserController::class, 'store'])->name('admin.users.store');
+
 });
 
 Route::middleware('auth')->group(function () {
@@ -95,8 +95,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/my_msgs', [MessageController::class, 'myMessages'])->name('messages');
 
     Route::get('/profile/show', [ProfileController::class, 'show'])->name('profile.show');
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/account/edit', [AccountController::class, 'edit'])->name('account.edit');
+    Route::post('/account', [AccountController::class, 'update'])->name('account.update');
+    Route::post('/account/password', [AccountController::class, 'changePassword'])->name('account.password');
+
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/delete_profile', [ProfileController::class, 'deleteProfile'])->name('profile.delete_profile');
 
@@ -124,6 +126,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/subj_take_off', [SubjController::class, 'takeOff'])->name("subj.take_off")->middleware('ensureRole:admin,restaurateur');
     Route::get('/subj_publish', [SubjController::class, 'published'])->name("subj.publish")->middleware('ensureRole:admin,restaurateur');
 
+    Route::post('/profile/change-password', [ProfileController::class, 'changePassword'])
+        ->name('profile.change-password');
 });
 
 Route::get('/privacy/cookies', [CookiePolicyController::class, 'show'])->name('cookie.policy');

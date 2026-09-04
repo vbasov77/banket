@@ -54,6 +54,18 @@ class MessageController extends Controller
         $arrayIds = $this->messageService->getUnreadMessageIdsForChat($authId, $partnerId);
         if (count($arrayIds) > 0) {
             $this->messageService->changeStatus($arrayIds);
+            $fcmToken = User::where('id', (int)$partnerId)->value('fcm_token');
+            if ($fcmToken) {
+                $firebase = new FirebaseService();
+                $response = $firebase->sendPushWithCode(
+                    $fcmToken,
+                    'Сообщение прочитано',
+                    ['from_user_id' => (string)$authId,
+                        'code' => 222,
+                        'message_ids' => implode( ',', $arrayIds)
+                    ]
+                );
+            }
         }
 
         if (!$authId) {
@@ -67,7 +79,7 @@ class MessageController extends Controller
             ], 400);
         }
 
-        $partner = \App\Models\User::find($partnerId);
+        $partner = User::find($partnerId);
         if (!$partner) {
             return response()->json([
                 'success' => false,
@@ -90,7 +102,7 @@ class MessageController extends Controller
 
         // Лимит для пагинации: можно вынести в конфиг или константу
         $limit = 20;
-        $messages = $query->orderBy('created_at', 'asc')->limit($limit + 1)->get();
+        $messages = $query->orderBy('created_at', 'desc')->limit($limit + 1)->get();
 
         // Проверяем, есть ли «ещё»
         $hasMore = $messages->count() > $limit;
@@ -178,11 +190,12 @@ class MessageController extends Controller
         $fcmToken = User::where('id', (int)$toId)->value('fcm_token');
         if ($fcmToken) {
             $firebase = new FirebaseService();
-            $response = $firebase->sendPush(
+            $response = $firebase->sendPushWithCode(
                 $fcmToken,
                 'Новое сообщение',
-                'У вас новое сообщение в чате',
-                ['from_user_id' => (string)$authId]
+                ['from_user_id' => (string)$authId,
+                    'code' => 111
+                ]
             );
         }
 
@@ -198,6 +211,27 @@ class MessageController extends Controller
             ],
         ], 201);
     }
+
+    public function update(Request $request, $id)
+    {
+        $message = Message::findOrFail($id);
+
+        // Редактировать может только отправитель
+        if ($message->from_user_id != $request->user()->id) {
+            return response()->json(['error' => 'Недостаточно прав'], 403);
+        }
+
+        $validated = $request->validate([
+            'body' => 'required|string',
+        ]);
+
+        $message->update([
+            'body' => $validated['body'],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
 
     public function deleteMsgApi(Request $request)
     {
