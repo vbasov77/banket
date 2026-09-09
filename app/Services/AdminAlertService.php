@@ -12,9 +12,9 @@ class AdminAlertService extends Service
     private int $systemUserId = 2;   // системный аккаунт-отправитель
     private int $adminUserId = 1;    // админ (user1)
 
+
     public function sendMsgToAdmin(string $title, string $body): void
     {
-
         $admin = User::find($this->adminUserId);
 
         if (!$admin || !$admin->fcm_token) {
@@ -26,6 +26,7 @@ class AdminAlertService extends Service
             'from_user_id' => $this->systemUserId,
             'to_user_id' => $this->adminUserId,
             'body' => $body,
+            'status' => 0,
         ]);
 
         $fcmToken = $admin->fcm_token;

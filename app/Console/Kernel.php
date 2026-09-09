@@ -12,7 +12,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('messages:delete-old')->daily()->timezone('Europe/Moscow');
+//        $schedule->command('mail:test')->everyFiveMinutes()->timezone('Europe/Moscow');
     }
 
     /**

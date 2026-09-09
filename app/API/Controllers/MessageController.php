@@ -51,7 +51,6 @@ class MessageController extends Controller
 
         $authId = auth()->id();
 
-        // Проверки авторизации и самоконтакта — в самом начале, до любой логики
         if (!$authId) {
             return response()->json(['success' => false, 'message' => 'Пользователь не авторизован'], 401);
         }
@@ -96,7 +95,8 @@ class MessageController extends Controller
 
         if ($lastTimestamp > 0) {
             $date = \Carbon\Carbon::createFromTimestamp($lastTimestamp);
-            $query->where('created_at', '>', $date);
+            // Было '>' — getir сообщения НОВЬЕ. Нужно '<' — getir СТАРЬЕ.
+            $query->where('created_at', '<', $date);
         }
 
         $limit = 20;
@@ -122,6 +122,8 @@ class MessageController extends Controller
 
         $nextCursor = null;
         if ($hasMore || $messages->isNotEmpty()) {
+            // last() — самое старое в текущей выборке (т.к. DESC)
+            // Его timestamp — курсор для следующей подгрузки ещё более старых
             $nextCursor = $messages->last()->created_at->timestamp;
         }
 
@@ -181,9 +183,11 @@ class MessageController extends Controller
             'status' => 0, // например, 0 = отправлено, 1 = доставлено, 2 = прочитано
         ]);
 
+        $preview = mb_substr($body, 0, 50);
         // --- ВОТ ЗДЕСЬ ДОБАВЛЯЕМ ПУШ ---
         $this->firebaseService->sendToUser($toId, 'Новое сообщение', [
             'from_user_id' => (string)$authId,
+            'body'         => $preview,
             'code' => '111',
         ]);
 
@@ -224,6 +228,7 @@ class MessageController extends Controller
     public function deleteMsgApi(Request $request)
     {
         $ids = $request->input('ids');
+        $toUserId = $request->input('to_user_id');
 
         // Приводим к массиву и оставляем только числа
         $ids = array_filter((array)$ids, 'is_numeric');
@@ -235,8 +240,16 @@ class MessageController extends Controller
             ], 400);
         }
 
+        $userId = auth()->id();
+
         try {
             $deletedCount = Message::whereIn('id', $ids)->delete();
+
+            $this->firebaseService->sendToUser((int)$toUserId, 'Сообщение удалено', [
+                'from_user_id' => (string)$userId,
+                'code' => '333',
+                'message_ids' => implode(',', $ids),
+            ]);
 
             return response()->json([
                 'answer' => 'ok',

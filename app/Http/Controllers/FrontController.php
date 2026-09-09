@@ -36,7 +36,11 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
+        $plain = '71|oIelpCRlRjK7PLrgbnmBcHpa5TvGbOdOrLy5q26m6c15e188';
+        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($plain);
 
+        Log::channel('info_file')->info(['token' => $token]);
+        Log::channel('info_file')->info(['user token' => $token?->tokenable]);
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 

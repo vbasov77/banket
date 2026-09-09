@@ -10,6 +10,7 @@ use App\Services\MessageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MessageController extends Controller
@@ -18,7 +19,7 @@ class MessageController extends Controller
 
     protected FirebaseService $firebaseService;
 
-    public function __construct(MessageService $messageService,
+    public function __construct(MessageService  $messageService,
                                 FirebaseService $firebaseService)
     {
         $this->messageService = $messageService;
@@ -27,41 +28,53 @@ class MessageController extends Controller
 
     public function show(Request $request, MessageService $service)
     {
-        $userId = Auth::id();
-        $toUserId = (int)$request->to_user_id;
+        $userId    = Auth::id();
+        $toUserId  = (int)$request->to_user_id;
+        $page      = max(1, (int)$request->get('page', 1));
+        $limit     = 20;
 
-        // Запрет на переписку с самим собой
         if ($userId === $toUserId) {
             return redirect()->back()->with('error', 'Нельзя писать самому себе');
-            // Если у тебя AJAX/API, замени на:
-            // return response()->json(['error' => 'Нельзя писать самому себе'], 403);
         }
 
-        // 1. Получаем сообщения чата
-        $messages = $service->chat($userId, $toUserId);
+        $paginator = $service->chat($userId, $toUserId, $limit, $page);
+
+        $messages = $paginator->getCollection()
+            ->reverse()
+            ->map(function ($message) use ($userId) {
+                $isMine = $message->from_user_id === $userId;
+                return [
+                    'id'           => $message->id,
+                    'from_user_id' => $message->from_user_id,
+                    'to_user_id'   => $message->to_user_id,
+                    'body'         => $message->body,
+                    'status'       => $message->status,
+                    'created_at' => $message->created_at->format('Y-m-d\TH:i:s'),
+                    'is_mine'      => $isMine,
+                ];
+            })
+            ->values()
+            ->toArray();
+
         $name = User::where('id', $toUserId)->value('name');
 
-        // Теперь собеседник — это всегда тот, кого явно передали в запросе.
-        $toUser = $toUserId;
-
-        // Отмечаем непрочитанные сообщения
         $arrayIds = $this->messageService->getUnreadMessageIdsForChat($userId, $toUserId);
-        if (count($arrayIds) > 0) {
+        if (!empty($arrayIds)) {
             $this->messageService->changeStatus($arrayIds);
 
             $this->firebaseService->sendToUser($toUserId, 'Сообщение прочитано', [
                 'from_user_id' => (string)$userId,
-                'code' => '222',
-                'message_ids' => implode(',', $arrayIds),
+                'code'         => '222',
+                'message_ids'  => implode(',', $arrayIds),
             ]);
         }
 
         return view('messages.show', [
-            'messages' => $messages,
-            'userId' => $userId,
-            'toUserId' => $toUserId, // передаём явно, чтобы в Blade брать именно его
-            'toUser' => $toUser,   // можно оставить для совместимости, но теперь это просто копия $toUserId
-            'name' => $name,
+            'messages'   => $messages,
+            'pagination' => $paginator,
+            'userId'     => $userId,
+            'toUser'   => $toUserId,
+            'name'       => $name,
         ]);
     }
 
@@ -74,12 +87,12 @@ class MessageController extends Controller
     {
         $validated = $request->validate([
             'from_user_id' => 'required|integer',
-            'to_user_id'   => 'required|integer',
-            'body'         => 'required|string|max:4000',
+            'to_user_id' => 'required|integer',
+            'body' => 'required|string|max:4000',
         ]);
-
+        $toUserId = $validated['to_user_id'];
         // Запрет писать самому себе
-        if ($validated['from_user_id'] === $validated['to_user_id']) {
+        if ($validated['from_user_id'] === $toUserId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Нельзя отправлять сообщения самому себе',
@@ -87,7 +100,7 @@ class MessageController extends Controller
         }
 
         // Проверка существования получателя (если в сервисе этого нет)
-        if (!User::find($validated['to_user_id'])) {
+        if (!User::find($toUserId)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Собеседник не найден',
@@ -104,25 +117,28 @@ class MessageController extends Controller
             ], 500);
         }
 
+        $preview = mb_substr($result['body'], 0, 50);
+
         // Пуш отправляем ТОЛЬКО после успешного сохранения
         $this->firebaseService->sendToUser(
-            $result['to_user_id'],
+            $toUserId,
             'Новое сообщение',
             [
                 'from_user_id' => (string)$result['from_user_id'],
-                'code'         => '111',
-                'message_id'   => (string)$result['id'],
+                'code' => '111',
+                'body' => $preview,
+                'message_id' => (string)$result['id'],
             ]
         );
 
         return response()->json([
             'success' => true,
-            'data'    => [
-                'id'           => $result['id'],
-                'body'         => $result['body'],
-                'date'         => $result['date'],
+            'data' => [
+                'id' => $result['id'],
+                'body' => $result['body'],
+                'date' => $result['date'],
                 'from_user_id' => $result['from_user_id'],
-                'to_user_id'   => $result['to_user_id'],
+                'to_user_id' => $result['to_user_id'],
             ],
         ], 201);
     }
@@ -158,12 +174,21 @@ class MessageController extends Controller
     public function deleteMsg(Request $request): JsonResponse
     {
         $ids = $request->input('ids');
+        $toUserId = $request->input('to_user_id');
+        $userId = Auth::id();
 
         try {
             $result = $this->messageService->deleteMessages($ids);
 
+            $this->firebaseService->sendToUser($toUserId, 'Сообщение удалено', [
+                'from_user_id' => (string)$userId,
+                'code' => '333',
+                'message_ids' => implode(',', $ids),
+            ]);
+
             return response()->json([
                 'answer' => 'ok',
+                'ids' => $ids,
                 'deleted_count' => $result['deleted_count'],
             ], 200);
         } catch (\InvalidArgumentException $e) {
@@ -231,23 +256,108 @@ class MessageController extends Controller
 
     public function checkNewMsg(Request $request)
     {
-        $messages = Message::where('to_user_id', $request->from_user_id)
-            ->where('from_user_id', $request->to_user_id)
-            ->where('obj_id', $request->obj_id)->where('status', 0)->get();
-        if (!empty(count($messages))) {
-            $array = [];
-            $countMess = count($messages);
-            for ($i = 0; $i < $countMess; $i++) {
-                Message::where('id', $messages[$i]->id)->update(['status' => 1]);
-                $array[] = $messages[$i];
-            }
-            $result = ['bool' => true, 'messages' => $array];
-            exit(json_encode($result));
-        }
-        return response()->json([
-            'bool' => false,
+        // 1. Валидация входящих данных
+        $validated = $request->validate([
+            'from_user_id' => 'required|integer|exists:users,id',
+            'to_user_id' => 'required|integer|exists:users,id',
         ]);
 
+        $fromUserId = $validated['from_user_id'];
+        $toUserId = $validated['to_user_id'];
+
+        // 2. Начинаем транзакцию (если упадет ошибка, ничего не сохранится)
+        return DB::transaction(function () use ($fromUserId, $toUserId) {
+
+            // 3. Получаем непрочитанные сообщения
+            $query = Message::where('to_user_id', $fromUserId)
+                ->where('from_user_id', $toUserId)
+                ->where('status', 0);
+
+            $messages = $query->get();
+
+            // Если сообщений нет, возвращаем false
+            if ($messages->isEmpty()) {
+                return response()->json(['bool' => false]);
+            }
+
+            // 4. Массовое обновление статуса 0 <-> 1
+            $arrayIds = $this->messageService->getUnreadMessageIdsForChat($fromUserId, $toUserId);
+            if (count($arrayIds) > 0) {
+                $this->messageService->changeStatus($arrayIds);
+
+                $this->firebaseService->sendToUser($toUserId, 'Сообщение прочитано', [
+                    'from_user_id' => (string)$fromUserId,
+                    'code' => '222',
+                    'message_ids' => implode(',', $arrayIds),
+                ]);
+            }
+
+
+            // 5. Возвращаем данные
+            return response()->json([
+                'bool' => true,
+                'messages' => $messages,
+            ]);
+        });
+    }
+
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'id'           => 'required|integer',
+            'body'         => 'required|string|max:5000',
+            'to_user_id'   => 'required|integer',
+            'from_user_id' => 'required|integer',
+        ]);
+
+        // Редактировать может только автор сообщения
+        $message = Message::where('id', $validated['id'])
+            ->where('from_user_id', auth()->id())
+            ->first();
+
+        if (!$message) {
+            return response()->json(['answer' => 'error', 'message' => 'Сообщение не найдено'], 404);
+        }
+
+        $message->body = $validated['body'];
+        $message->save();
+
+        return response()->json(['answer' => 'ok']);
+    }
+
+
+    public function loadOlderMessages(Request $request, MessageService $service)
+    {
+        $userId = Auth::id();
+        $toUserId = (int)$request->to_user_id;
+        $page = max(1, (int)$request->page ?? 1);
+        $limit = 20;
+
+        if ($userId === $toUserId) {
+            return response()->json(['messages' => []]);
+        }
+
+        // Используем тот же сервис, что и в show()
+        $paginator = $service->chat($userId, $toUserId, $limit, $page);
+
+        $messages = $paginator->getCollection()->map(function ($message) use ($userId) {
+            $isMine = $message->from_user_id === $userId;
+            return [
+                'id'           => $message->id,
+                'from_user_id' => $message->from_user_id,
+                'to_user_id'   => $message->to_user_id,
+                'body'         => $message->body,
+                'status'       => $message->status,
+                'created_at'   => $message->created_at->toISOString(), // удобно для JS
+                'is_mine'      => $isMine,
+            ];
+        })->toArray();
+
+        return response()->json([
+            'messages'  => $messages,
+            'has_more'  => $paginator->hasMorePages(),
+            'next_page' => $paginator->currentPage() + 1,
+        ]);
     }
 
 }

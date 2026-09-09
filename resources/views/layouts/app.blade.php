@@ -20,7 +20,6 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-    @stack('styles')
 </head>
 <body class="font-sans antialiased">
 <div class="min-h-screen dark:bg-gray-900">
@@ -46,6 +45,7 @@
         <div class="container px-4 px-lg-5">{{config('app.name')}} &copy; {{date('Y')}}</div>
     </footer>
 </section>
+@stack('styles')
 @stack('scripts')
 </body>
 </html>

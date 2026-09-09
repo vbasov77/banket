@@ -31,6 +31,8 @@ use App\Http\Controllers\CookieController;
 use App\Http\Controllers\MailController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\AccountController;
+use App\API\Controllers\Auth\AuthTokenController;
+use App\Http\Controllers\AppController;
 
 
 /*
@@ -64,6 +66,9 @@ Route::delete('/destroy_map_address/id{id}', [MapPointController::class, 'destro
 
 Route::get('/maps', [MapPointController::class, 'index'])->name('map.index');
 
+Route::get('/app/android', [AppController::class, 'android'])->name('app.android');
+Route::get('/app/download', [AppController::class, 'download'])->name('app.download');
+
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -85,7 +90,10 @@ Route::middleware('admin')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::post('/add-fcm-token', [AuthTokenController::class, 'saveFcmToken']);
 
+    Route::post('/update_message', [MessageController::class, 'update'])->name('update.msg');
+    Route::get('/messages/load-older', [MessageController::class, 'loadOlderMessages']);
     Route::post('/add_message', [MessageController::class, 'store'])->name('add.message');
     Route::get('/chat/to_user_id/{to_user_id}', [MessageController::class, 'show'])->name('show.messages');
     Route::get('/delete_message', [MessageController::class, 'deleteMsg'])->name('delete.message');
@@ -151,7 +159,6 @@ Route::get('/search', [SearchController::class, 'searchGet'])->name("search_get.
 Route::get('/show_filters', [SearchController::class, 'showFilters'])->name("show.filters");
 Route::post('/api/clear-filters', [SearchController::class, 'clearFilters'])->name('clear.filters');
 
-
 Route::get('/edit_img_obj/id{id}', [ImgObjController::class, 'edit'])->name("edit.img_obj")->middleware('auth');
 Route::post('/img_obj_store', [ImgObjController::class, 'store'])->name('img_obj.store');
 Route::post('/img_obj_update', [ImgObjController::class, 'update'])->name('img_obj.update');
@@ -193,6 +200,11 @@ Route::get('/clear', function () {
     Artisan::call('view:clear');
     Artisan::call('route:clear');
     return "Кэш очищен.";
+});
+
+Route::get('/link', function () {
+    Artisan::call('storage:link');
+    return "Ссылка создана.";
 });
 
 

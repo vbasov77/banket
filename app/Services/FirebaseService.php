@@ -47,28 +47,36 @@ class FirebaseService
             ];
         } catch (\Exception $e) {
             Log::channel('error_file')->error('FCM push failed', [
-                'error_class'  => get_class($e),
+                'error_class' => get_class($e),
                 'error_message' => $e->getMessage(),
-                'token_prefix'  => substr($token, 0, 10) . '...',
+                'token_prefix' => substr($token, 0, 10) . '...',
             ]);
 
             return [
-                'success'      => false,
+                'success' => false,
                 'error_message' => $e->getMessage(),
             ];
         }
     }
 
-    public function sendPushWithCode(string $token,string $title, array $data): array
+    public function sendPushWithCode(string $token, string $title, array $data): array
     {
         try {
-            $message = CloudMessage::fromArray([
-                'token' => $token,
-                'notification' => [
-                    'title' => $title,
-                ],
-                'data' => $data,
-            ]);
+            if ($data['code'] === "222" || $data['code'] === "333") {
+                $message = CloudMessage::fromArray([
+                    'token' => $token,
+                    'data' => $data,
+                ]);
+            } else {
+                $message = CloudMessage::fromArray([
+                    'token' => $token,
+                    'notification' => [
+                        'title' => $title,
+                    ],
+                    'data' => $data,
+                ]);
+            }
+
             // Отправляем. Если тут ошибка — она уйдёт в catch
             $this->messaging->send($message);
 
@@ -77,13 +85,13 @@ class FirebaseService
             ];
         } catch (\Exception $e) {
             Log::channel('error_file')->error('FCM push failed', [
-                'error_class'  => get_class($e),
+                'error_class' => get_class($e),
                 'error_message' => $e->getMessage(),
-                'token_prefix'  => substr($token, 0, 10) . '...',
+                'token_prefix' => substr($token, 0, 10) . '...',
             ]);
 
             return [
-                'success'      => false,
+                'success' => false,
                 'error_message' => $e->getMessage(),
             ];
         }
@@ -100,5 +108,43 @@ class FirebaseService
             $this->sendPushWithCode($fcmToken, $title, $data);
         }
     }
+
+    public function sendToUserDataOnly(int $userId, array $data): void
+    {
+        $tokens = DeviceToken::where('user_id', $userId)
+            ->where('is_active', true)
+            ->where('type', 'fcm')
+            ->pluck('token');
+
+        foreach ($tokens as $fcmToken) {
+            $this->sendDataOnly($fcmToken, $data);
+        }
+    }
+
+    public function sendDataOnly(string $token, array $data): array
+    {
+        try {
+            $message = CloudMessage::fromArray([
+                'token' => $token,
+                'data' => $data,
+            ]);
+
+            $this->messaging->send($message);
+
+            return ['success' => true];
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error('FCM data-only push failed', [
+                'error_class' => get_class($e),
+                'error_message' => $e->getMessage(),
+                'token_prefix' => substr($token, 0, 10) . '...',
+            ]);
+
+            return [
+                'success' => false,
+                'error_message' => $e->getMessage(),
+            ];
+        }
+    }
+
 
 }

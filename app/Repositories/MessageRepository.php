@@ -9,6 +9,7 @@ use App\Models\Message;
 use App\Models\User;
 use App\Services\FirebaseService;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -96,47 +97,24 @@ class MessageRepository extends Repository
             ->toArray();
     }
 
-    public function getChatMessages(int $userId, int $toUserId): array
+    public function getChatMessages(int $userId, int $toUserId, int $limit = 20, ?int $page = 1): LengthAwarePaginator
     {
-        // Защита от запроса чата с самим собой (опционально, но полезно)
         if ($userId === $toUserId) {
-            return [];
+            return new LengthAwarePaginator([], 0, $limit, $page);
         }
 
         return Message::query()
-            ->where(function ($query) use ($userId, $toUserId) {
-                // Берём только сообщения строго между этой парой пользователей
-                $query->where('from_user_id', $userId)->where('to_user_id', $toUserId)
+            ->where(function ($q) use ($userId, $toUserId) {
+                $q->where('from_user_id', $userId)->where('to_user_id', $toUserId)
                     ->orWhere('from_user_id', $toUserId)->where('to_user_id', $userId);
             })
             ->with([
                 'fromUser' => fn($q) => $q->select('id', 'name'),
-                'toUser' => fn($q) => $q->select('id', 'name'),
+                'toUser'   => fn($q) => $q->select('id', 'name'),
             ])
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->map(function ($message) use ($userId) {
-                $isMine = $message->from_user_id === $userId;
-                $otherUserId = $isMine ? $message->to_user_id : $message->from_user_id;
-
-                $otherUser = $isMine ? $message->toUser : $message->fromUser;
-                $otherName = $otherUser?->name ?? 'Собеседник';
-
-                return [
-                    'id' => $message->id,
-                    'from_user_id' => $message->from_user_id,
-                    'to_user_id' => $message->to_user_id,
-                    'body' => $message->body,
-                    'status' => $message->status,
-                    'created_at' => $message->created_at->format('H:i, d.m.Y'),
-                    'is_mine' => $isMine,
-                    'other_user_id' => $otherUserId,
-                    'other_name' => $otherName,
-                ];
-            })
-            ->toArray();
+            ->orderBy('created_at', 'desc')  // <-- DESC: новейшие первыми
+            ->paginate($limit, ['*'], 'page', $page);
     }
-
     public function markAsReadForUser(int $userId, array $messageIds): int
     {
         if (empty($messageIds)) {
