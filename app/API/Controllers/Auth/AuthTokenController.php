@@ -31,10 +31,6 @@ class AuthTokenController extends Controller
             ], 401);
         }
 
-        // updateOrCreate по полю token: если токен уже есть — обновляем,
-        // если нет — создаём новую запись. Это защищает от дубликатов (unique на token).
-        // Заодно ставим is_active = true (вдруг токен раньше помечали неактивным)
-        // и last_used_at = сейчас — фиксируем момент последнего использования.
         DeviceToken::updateOrCreate(
             ['token' => $request->token],
             [

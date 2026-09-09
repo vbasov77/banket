@@ -74,30 +74,6 @@
     align-items: center;
 }
 
-.delete-chat-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 6px;
-    opacity: 0.5;
-    transition: opacity 0.2s, background-color 0.2s;
-    display: inline-flex;
-    align-items: center;
-}
-
-.delete-chat-btn:hover {
-    opacity: 1;
-    background-color: #fee2e2;
-    color: #dc2626;
-}
-
-.delete-chat-icon {
-    width: 20px;
-    height: 20px;
-    fill: currentColor;
-}
-
 /* --- Messages area --- */
 #framechat .content .messages {
     flex: 1;
@@ -126,17 +102,20 @@
     line-height: 1.4;
 }
 
-li.sent .messageBlock {
-    float: right;
-    background-color: #d3e3f3;
-    border-bottom-right-radius: 2px;
-    margin: 5px;
-}
+
+/*#e5e7eb*/
 
 li.received .messageBlock {
     float: left;
-    background-color: #d3e3f3;
+    background-color: #e5e7ea;
     border-bottom-left-radius: 2px;
+}
+
+li.sent .messageBlock {
+    float: right;
+    background-color: #ccd7ec;
+    border-bottom-right-radius: 2px;
+    margin: 5px;
 }
 
 .message-time {
@@ -150,32 +129,6 @@ li.received .messageBlock {
     position: relative; /* обязательно: чтобы popup позиционировался относительно сообщения */
     display: inline-block;
     width: 100%; /* чтобы блок занимал всю ширину сообщения */
-}
-
-/* Popup удаления сообщения */
-.round-popup {
-    display: none;
-}
-
-.myClass:hover .round-popup {
-    display: block;
-    position: absolute;
-    top: 4px;
-    right: 8px;
-    z-index: 10; /* чтобы был поверх всего */
-}
-
-.close-msg-btn {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    text-align: center;
-    line-height: 22px;
-    cursor: pointer;
-    font-size: 13px;
-    color: #555;
 }
 
 /* Input area */
@@ -242,4 +195,21 @@ li.received .messageBlock {
     border-radius: 50%;
     background: currentColor; /* цвет берётся из элемента */
     z-index: 9999;
+}
+
+.msg-unread {
+    background-color: #fff;
+    border: 1px solid #dad6f5;
+}
+
+.msg-read {
+    background-color: #f3f4f6;
+    border: none;
+}
+
+
+
+.msg-selected {
+    outline: 2px solid #3b82f6;
+    background-color: #dbeafe;
 }

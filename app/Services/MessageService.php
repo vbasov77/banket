@@ -4,20 +4,8 @@
 namespace App\Services;
 
 
-use App\Models\AddressSubj;
-use App\Models\GroupAddressObj;
 use App\Models\Message;
-use App\Models\Obj;
-use App\Models\Subj;
-use App\Repositories\AddressSubjRepository;
-use App\Repositories\MapRepository;
 use App\Repositories\MessageRepository;
-use App\Requests\Request;
-use Illuminate\Database\QueryException;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class MessageService extends Service
 {
@@ -39,10 +27,11 @@ class MessageService extends Service
         return $this->messageRepository->findMyMessages();
     }
 
-    public function chat(int $currentUserId, int $toUserId): array
+    public function chat(int $currentUserId, int $toUserId, int $limit = 20, ?int $page = 1): \Illuminate\Pagination\LengthAwarePaginator
     {
-        return $this->messageRepository->getChatMessages($currentUserId, $toUserId);
+        return $this->messageRepository->getChatMessages($currentUserId, $toUserId, $limit, $page);
     }
+
 
     public function markRead(int $currentUserId, array $messageIds): int
     {
