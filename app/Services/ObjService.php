@@ -6,9 +6,10 @@ namespace App\Services;
 use App\Models\Obj;
 use App\Repositories\ObjRepository;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -145,11 +146,33 @@ class ObjService extends Service
      * @return LengthAwarePaginator
      * @throws \Exception
      */
+
     public function findObjsWithDetails(Request $request): LengthAwarePaginator
     {
         try {
+            // 1. Получаем данные из репозитория
+            $data = $this->objRepository->findObjsWithDetails($request);
 
-            return $this->objRepository->findObjsWithDetails($request);
+            // Если данных нет — возвращаем как есть
+            if ($data->isEmpty()) {
+                return $data;
+            }
+
+            // 2. Перемешиваем коллекцию элементов текущей страницы
+            $shuffledItems = $data->getCollection()->shuffle();
+
+            // 3. Собираем новый пагинатор с перемешанными элементами
+            return new LengthAwarePaginator(
+                $shuffledItems,
+                $data->total(),
+                $data->perPage(),
+                $data->currentPage(),
+                [
+                    'path' => Paginator::resolveCurrentPath(),
+                    'pageName' => 'page',
+                ]
+            );
+
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ObjService@findObjsWithDetails: ' . $e->getMessage(),
@@ -204,16 +227,6 @@ class ObjService extends Service
             }
 
             $objId = $this->objRepository->findIdObjByUserId();
-
-            if ($objId === null) {
-                Log::channel('error_file')->error(
-                    'Объект не найден для пользователя',
-                    [
-                        'user_id' => auth()->id()
-                    ]
-                );
-                // Это не ошибка — просто объект не найден, возвращаем null
-            }
 
             return $objId;
         } catch (QueryException $e) {

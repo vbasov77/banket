@@ -45,6 +45,9 @@
                     <a href="#" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
                         🏷 Добавить метку
                     </a>
+                    <a href="{{route('reports')}}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-800 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-800 transition-colors">
+                        📊 Графики
+                    </a>
                 </div>
             </div>
 

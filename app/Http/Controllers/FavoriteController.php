@@ -160,7 +160,6 @@ class FavoriteController extends Controller
             }
 
             $favorites = $this->favoriteService->getFavoriteRestaurants($user->id);
-
             return view('favorites.index', ['favorites' => $favorites]);
         } catch (UserNotFoundException $e) {
             Log::channel('error_file')->error(

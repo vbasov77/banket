@@ -60,6 +60,10 @@
             font-size: 15px;
         }
 
+        #phone-display {
+            font-size: 23px;
+        }
+
         @media (max-width: 768px) {
             .parallax-container {
                 height: 50vh;
@@ -88,6 +92,10 @@
             .restaurant-card {
                 margin-bottom: 0px;
             }
+
+            .nameBoom {
+                font-size: 14px;
+            }
         }
 
     </style>
@@ -105,20 +113,13 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <!-- Hero section -->
-                <section class="hero-section p-4 mb-5">
-                    <div class="row align-items-center">
-                        @include('blocks.favorite')
-                        <h1 class="section-title display-5 fw-bold text-dark mb-3">
-                            {{ $subj['name_subj'] }}
-                        </h1>
+                <div class="row align-items-center">
+                    @include('blocks.favorite')
+                    <h1 class="section-title display-5 fw-bold text-dark mb-3 nameBoom">
+                        {{ $subj['name_subj'] }}
+                    </h1>
+                </div>
 
-                        <p class="lead text-muted mb-4">
-                            {!!nl2br(e($subj['text_subj']))!!}
-
-                        </p>
-                        <br>
-                    </div>
-                </section>
                 <section class="mb-5">
                     @auth
                         @if($isAuthorOrAdmin)
@@ -131,15 +132,9 @@
                             </div>
                         @endif
                     @endauth
-                    <h4 class="section-title mb-4">Тип площадки</h4>
-                    <div class="d-flex flex-wrap gap-2">
-                        @for ($i = 0; $i < count($subj['site_type']); $i++)
-                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $subj['site_type'][$i] }}</span>
-                        @endfor
-                    </div>
                 </section>
                 @if(!empty(count($subj['image_paths'])))
-                    <div class="carousel-wrapper festival">
+                    <div class="carousel-wrapper">
                         <div class="carousel">
                             <div class="carousel-content">
                                 @foreach ($subj['image_paths'] as $index => $image)
@@ -174,17 +169,17 @@
                                             <span class="detail-value">до {{ $subj['capacity_to'] }} чел </span>
                                         </div>
                                         <div class="detail">
-                                            <span class="detail-label">На фуршет до:</span>
-                                            <span class="detail-value">{{ $subj['furshet'] }} чел</span>
+                                            <span class="detail-label">На фуршет:</span>
+                                            <span class="detail-value">до {{ $subj['furshet'] }} чел</span>
                                         </div>
                                         <div class="detail">
-                                            <span class="detail-label">На человека от:</span>
-                                            <span class="detail-value">{{ number_format($subj['per_person'], 0, ' ', ' ') }}
+                                            <span class="detail-label">На человека:</span>
+                                            <span class="detail-value">от {{ number_format($subj['per_person'], 0, ' ', ' ') }}
                                     ₽/чел</span>
                                         </div>
                                         <div class="detail">
-                                            <span class="detail-label">Стоимость от:</span>
-                                            <span class="detail-value price">{{ number_format($subj['minimum_cost'], 0, ' ', ' ') }}
+                                            <span class="detail-label">Стоимость:</span>
+                                            <span class="detail-value price">от {{ number_format($subj['minimum_cost'], 0, ' ', ' ') }}
                                     ₽</span>
                                         </div>
                                     </div>
@@ -231,46 +226,25 @@
                                 @endif
                             </div>
 
-                            <p class="mb-4">
-                                Адрес: {{ $subj['address'] ?? 'Адрес не указан' }}
-                            </p>
 
-                            <div>
-                                <span id="phone-masked">+7 (•••)</span>
-                                <a
-                                        id="phone-full"
-                                        style="display: none; text-decoration: none; color: black; font-weight: 500;"
-                                        href="tel:{{ $subj['obj']['phone_obj'] ?? '' }}"
-                                >
-                                    {{ $subj['obj']['phone_obj'] ?? '' }}
-                                </a>
-                                <button type="button" id="toggle-phone" class="btn btn-outline-dark btn-sm ms-2">
-                                    Показать номер для звонка
-                                </button>
-                            </div>
+                            Адрес: {{ $subj['address'] ?? 'Адрес не указан' }}
+
+                            <br>
+                            <span id="phone-display" class="cursor-pointer" title="+7(***)Показать телефон">
+    +7(***)Показать телефон
+</span>
 
                             <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    const masked = document.getElementById('phone-masked');
-                                    const full = document.getElementById('phone-full');
-                                    const button = document.getElementById('toggle-phone');
-
-                                    if (!masked || !full || !button) return;
-
-                                    button.addEventListener('click', function () {
-                                        if (full.style.display === 'none') {
-                                            masked.style.display = 'none';
-                                            full.style.display = 'inline';
-                                            button.textContent = 'Скрыть номер';
-                                        } else {
-                                            masked.style.display = 'inline';
-                                            full.style.display = 'none';
-                                            button.textContent = 'Показать номер для звонка';
-                                        }
-                                    });
+                                document.getElementById('phone-display').addEventListener('click', function () {
+                                    const phone = '{{ $subj["obj"]["phone_obj"] ?? "" }}';
+                                    if (phone) {
+                                        this.textContent = phone;
+                                        this.classList.remove('text-primary'); // опционально: убрать акцент после клика
+                                    } else {
+                                        this.textContent = 'Телефон не указан';
+                                    }
                                 });
                             </script>
-
                             <div class="d-flex flex-column align-items-center justify-content-center text-center mt-4">
                                 @if($subj['map'])
                                     <div class="p-3">
@@ -294,11 +268,15 @@
                         </div>
                     </div>
                 </div>
+
+                <p class="lead text-muted mb-4">
+                    {!!nl2br(e($subj['text_subj']))!!}
+
+                </p>
                 <hr class="my-5">
                 <section class="mt-5">
                     <h3 class="section-title fs-4 mb-4">Общая информация "{!! $subj['obj']['name_obj'] !!}"</h3>
                 </section>
-
                 @if(!empty($subj['details_obj']))
                     <div class="row g-4">
                         <div class="col-12">
@@ -306,6 +284,7 @@
                                 <!-- Все блоки особенностей -->
                                 @php
                                     $sections = [
+                                        ['title' => 'Тип площадки:', 'icon' => 'bi-calendar-event', 'color' => 'text-success', 'data' => $subj['site_type']],
                                         ['title' => 'Подходит для:', 'icon' => 'bi-calendar-event', 'color' => 'text-danger', 'data' => $subj['details_obj']['for_events']],
                                         ['title' => 'Кухня:', 'icon' => 'bi-cutlery', 'color' => 'text-warning', 'data' => $subj['details_obj']['kitchen']],
                                         ['title' => 'Способы оплаты:', 'icon' => 'bi-credit-card', 'color' => 'text-dark', 'data' => $subj['details_obj']['payment_methods']]
@@ -316,13 +295,12 @@
                                     <div class="col">
                                         <div class="p-3 bg-light rounded h-100">
                                             <h5 class="fw-semibold mb-3">
-                                                <i class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
+                                                <i class="{{ $section['color'] }} me-2"></i>
                                                 {{ $section['title'] }}
                                             </h5>
                                             <div class="d-flex flex-wrap gap-2">
                                                 @foreach($section['data'] as $item)
-                                                    <span class="feature-badge bg-white border rounded px-2 py-1">
-{{ $item }}
+                                                    <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}
 </span>
                                                 @endforeach
                                             </div>
@@ -338,11 +316,11 @@
                                             Алкоголь:
                                         </h5>
                                         @if($subj['details_obj']['alcohol'] == 0)
-                                            <span class="badge bg-success bg-gradient">Разрешёно</span>
+                                            <span class="badge bg-success bg-gradient">Разрешено</span>
                                         @elseif($subj['details_obj']['alcohol'] == 1)
-                                            <span class="badge bg-danger bg-gradient">Не разрешёно</span>
+                                            <span class="badge bg-danger bg-gradient">Не разрешено</span>
                                         @elseif(!empty(explode(':', $subj['details_obj']['alcohol'])[0]) == 2)
-                                            <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
+                                            <span class="badge bg-success bg-gradient">Разрешено за определённую плату</span>
                                             <br>
                                             <span>{!! explode(':', $subj['details_obj']['alcohol'])[1] !!} руб.</span>
                                         @endif
@@ -357,11 +335,11 @@
                                             Свои фрукты, другое:
                                         </h5>
                                         @if($subj['details_obj']['more'] == 0)
-                                            <span class="badge bg-success bg-gradient">Разрешёно</span>
+                                            <span class="badge bg-success bg-gradient">Разрешено</span>
                                         @elseif($subj['details_obj']['more'] == 1)
-                                            <span class="badge bg-danger bg-gradient">Не разрешёно</span>
+                                            <span class="badge bg-danger bg-gradient">Не разрешено</span>
                                         @elseif(!empty(explode(':', $subj['details_obj']['more'])[0]) == 2)
-                                            <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
+                                            <span class="badge bg-success bg-gradient">Разрешено за определённую плату</span>
                                             <br>
                                             <span>{!! explode(':', $subj['details_obj']['more'])[1] !!} руб.</span>
                                         @endif

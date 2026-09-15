@@ -173,6 +173,12 @@
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"
+                                                   value="Гостиница/Отель">
+                                            <span class="checkmark"></span>
+                                            Гостиница/Отель
+                                        </label>
+                                        <label class="checkbox-container">
+                                            <input name="site_type[]" class="site_type" type="checkbox"
                                                    value="Загородный дом">
                                             <span class="checkmark"></span>
                                             Загородный дом
@@ -215,37 +221,6 @@
                         {{--                        Для мероприятий, Особенности--}}
                         <table class="styled-table">
                             <tr>
-                                <td style="width: 49%">
-                                    <div>
-                                        <label><b>Для мероприятий:</b></label>
-                                        <div class="checkbox-group">
-                                            <label class="checkbox-container">
-                                                <input name="for_events[]" class="for_events" type="checkbox"
-                                                       value="Свадьба">
-                                                <span class="checkmark"></span>
-                                                Свадьба
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="for_events[]" class="for_events" type="checkbox"
-                                                       value="Корпоратив">
-                                                <span class="checkmark"></span>
-                                                Корпоратив
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="for_events[]" class="for_events" type="checkbox"
-                                                       value="День рождения">
-                                                <span class="checkmark"></span>
-                                                День рождения
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="for_events[]" class="for_events" type="checkbox"
-                                                       value="Выпускной">
-                                                <span class="checkmark"></span>
-                                                Выпускной
-                                            </label>
-                                        </div>
-                                    </div>
-                                </td>
                                 <td style="width: 49%">
                                     <div>
                                         <label for="features"><b>Особенности:</b></label>
@@ -295,9 +270,21 @@
                                         </div>
                                     </div>
                                 </td>
+                                <td style="width: 49%">
+                                    <div>
+                                        <label for="loud_music_until"><b>Громкая музыка разрешена до:</b></label>
+                                        <select name="loud_music_until" id="loud_music_until" class="form-control">
+                                            <option value="">— не указано —</option>
+                                            <option value="22:00" {{ old('loud_music_until' ?? '') === '22:00' ? 'selected' : '' }}>22:00</option>
+                                            <option value="23:00" {{ old('loud_music_until' ?? '') === '23:00' ? 'selected' : '' }}>23:00</option>
+                                            <option value="00:00" {{ old('loud_music_until' ?? '') === '00:00' ? 'selected' : '' }}>00:00</option>
+                                            <option value="01:00" {{ old('loud_music_until' ?? '') === '01:00' ? 'selected' : '' }}>01:00</option>
+                                            <option value="morning" {{ old('loud_music_until' ?? '') === 'morning' ? 'selected' : '' }}>до утра</option>
+                                        </select>
+                                    </div>
+                                </td>
                             </tr>
                         </table>
-
                         <br>
                         <div>
                             <label for="text_subj"><b>Описание:</b></label><br>
@@ -324,15 +311,6 @@
             for (var i = 0; i < checkboxSiteType.length; i++) {
                 if (oldSiteTypeArray.includes(checkboxSiteType[i].value)) {
                     checkboxSiteType[i].checked = true;
-                }
-            }
-
-            var checkboxForEvents = document.getElementsByClassName('for_events');
-            const oldSiteForEvents = @json(old('for_events'));
-
-            for (var i = 0; i < checkboxForEvents.length; i++) {
-                if (oldSiteForEvents.includes(checkboxForEvents[i].value)) {
-                    checkboxForEvents[i].checked = true;
                 }
             }
 

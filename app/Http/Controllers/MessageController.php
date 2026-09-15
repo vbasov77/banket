@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Http\Requests\Chat\DeleteChatRequest;
 use App\Models\Message;
 use App\Models\User;
 use App\Services\FirebaseService;
@@ -49,8 +50,7 @@ class MessageController extends Controller
                     'to_user_id'   => $message->to_user_id,
                     'body'         => $message->body,
                     'status'       => $message->status,
-                    'created_at' => $message->created_at->format('Y-m-d\TH:i:s'),
-                    'is_mine'      => $isMine,
+                    'created_at' => $message->created_at->format('Y-m-d\TH:i:s'),                    'is_mine'      => $isMine,
                 ];
             })
             ->values()
@@ -204,54 +204,31 @@ class MessageController extends Controller
         }
     }
 
-
-    public function deleteChat(Request $request)
+    /**
+     * @param DeleteChatRequest $request
+     * @return JsonResponse
+     */
+    public function deleteChat(DeleteChatRequest $request)
     {
         $userId = Auth::id();
-
-        if (!$request->filled('from_user_id') || !$request->filled('to_user_id')) {
-            return response()->json(['success' => false, 'message' => 'Недостаточно данных для удаления чата'], 400);
-        }
-
         $fromUserId = (int)$request->from_user_id;
         $toUserId = (int)$request->to_user_id;
 
-        // Проверка прав: пользователь должен быть участником чата
         if ($userId !== $fromUserId && $userId !== $toUserId) {
-            Log::channel('error_file')->error('Попытка удаления чужого чата', [
-                'user_id' => $userId,
-                'from_user_id' => $fromUserId,
-                'to_user_id' => $toUserId,
-            ]);
+            Log::channel('error_file')->error('Попытка удаления чужого чата', compact('userId', 'fromUserId', 'toUserId'));
             return response()->json(['success' => false, 'message' => 'Вы не можете удалять чужой чат'], 403);
         }
 
         try {
-            $deletedCount = Message::where(function ($query) use ($fromUserId, $toUserId) {
-                $query->where('from_user_id', $fromUserId)
-                    ->where('to_user_id', $toUserId);
-            })
-                ->orWhere(function ($query) use ($fromUserId, $toUserId) {
-                    $query->where('from_user_id', $toUserId)
-                        ->where('to_user_id', $fromUserId);
-                })
+            Message::where(fn ($q) => $q->where('from_user_id', $fromUserId)->where('to_user_id', $toUserId))
+                ->orWhere(fn ($q) => $q->where('from_user_id', $toUserId)->where('to_user_id', $fromUserId))
                 ->delete();
 
-
-            $message = "Чат был удалён";
-
-            return redirect()->route('messages', ['message' => $message]);
-
+            return response()->json(['success' => true, 'message' => 'Чат был удалён']);
         } catch (\Exception $e) {
-            Log::channel('error_file')->error('Ошибка при удалении чата', [
-                'user_id' => $userId,
-                'from_user_id' => $fromUserId,
-                'to_user_id' => $toUserId,
-                'exception' => $e->getMessage(),
-            ]);
-
-            return response()->json(['success' => false, 'message' => 'Произошла ошибка при удалении чата'], 500);
-        }
+            Log::channel('error_file')->error(['Ошибка при удалении чата ' => $e->getMessage()]);
+        return response()->json(['success' => false, 'message' => 'Произошла ошибка при удалении чата'], 500);
+    }
     }
 
     public function checkNewMsg(Request $request)

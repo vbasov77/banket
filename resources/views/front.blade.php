@@ -76,6 +76,24 @@
             font-size: 15px;
         }
 
+        .descriptionBoom {
+            padding: 20px;
+        }
+
+        .bi-fork-knife {
+            font-size: 25px;
+        }
+
+        .festival {
+            border: 1px solid #4facf5;
+        }
+
+        .festival:hover {
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0); /* Чуть более тёмная тень при наведении */
+            /*transform: translateY(-1px);*/
+            border-color: #4facf5;
+        }
+
         @media (max-width: 767px) {
             .restaurant-card {
                 min-width: 280px;
@@ -83,11 +101,33 @@
                 flex-basis: 280px;
             }
 
+            .front-body {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .front-body {
+                font-size: 14px;
+            }
+
+            .descriptionBoom {
+                padding: 10px;
+            }
+
+            .feature-badge {
+                font-size: 10px;
+            }
+
+            .carousel-wrapper {
+                margin: 5px 0 0 0;
+            }
+
         }
 
     </style>
 
-
+    @include('blocks.search')
     @if(!empty($data) && count($data) > 0)
         <div class="relative w-full h-64 md:h-96 overflow-hidden flex items-center justify-center">
             <!-- Фон: карта из public/map.jpg -->
@@ -99,7 +139,8 @@
 
             <!-- Кнопка по центру -->
             <a href="{{ route('map.index') }}"
-               class="btn-festive-gradient btn-festive-gradient-white m-3 z-10 px-6 py-3 rounded-lg font-bold text-white shadow-lg hover:scale-105 transition-transform">
+               class="btn-festive-gradient btn-festive-gradient-white m-3 z-10 px-6 py-3 rounded-lg font-bold text-white shadow-lg hover:scale-105 transition-transform"
+               style="width: 70%">
                 Смотреть на карте
             </a>
         </div>
@@ -127,29 +168,6 @@
                             @if($countSubj > 1)
                                 <div class="festival">
                                     <h3>{!! $data[$i]['name_obj'] !!}</h3>
-                                    @if(!empty(count($data[$i]['details_obj']['for_events'])))
-                                        @php
-                                            $sections = [
-                                                    ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
-                                            ];
-                                        @endphp
-
-                                        @foreach($sections as $section)
-                                            <div class="col">
-                                                <div class="p-1 rounded h-100">
-
-                                                    <div class="d-flex flex-wrap gap-2">
-                                                        <i style="font-size: 25px"
-                                                           class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
-                                                        @foreach($section['data'] as $item)
-                                                            <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @endif
-
                                     <div class="carousel-wrapper">
                                         <div class="carousel">
                                             <div class="carousel-content">
@@ -177,7 +195,9 @@
 
                                                                         {{-- Район + метро в одной строке (переносится по словам) --}}
                                                                         <div class="location-flow">
+                                                                            🚩 {{ $data[$i]['subjs_data'][0]['address'] ?? 'Адрес не указан' }}
     <span class="district-text">
+        {{ $data[$i]['subjs_data'][$j]['address'] ?? 'Адрес не указан' }}<br>
         📍 {{ $data[$i]['subjs_data'][$j]['district_name'] ?? 'Район не указан' }}
     </span>
 
@@ -241,8 +261,8 @@
                                         </button>
                                     </div>
                                     @if(!empty($data[$i]['details_obj']['description']))
-                                        <div class="bg-light p-4 rounded-10 shadow-sm">
-                                            <p class="lead text-muted" @style(['font-size: 18px'])>
+                                        <div class="bg-light rounded-10 shadow-sm descriptionBoom">
+                                            <p class="lead text-muted">
                                                 {!!   $data[$i]['details_obj']['description'] !!}
                                             </p>
                                         </div>
@@ -252,28 +272,6 @@
                                 @if($countSubj)
                                     <div class="festival one">
                                         <h3>{!! $data[$i]['name_obj'] !!}</h3>
-                                        @if(!empty(count($data[$i]['details_obj']['for_events'])))
-                                            @php
-                                                $sections = [
-                                                        ['title' => 'Кухня:', 'icon' => 'bi bi-fork-knife', 'color' => 'text-warning', 'data' => $data[$i]['details_obj']['kitchen']],
-                                                ];
-                                            @endphp
-
-                                            @foreach($sections as $section)
-                                                <div class="col">
-                                                    <div class="p-1 rounded h-100">
-
-                                                        <div class="d-flex flex-wrap gap-2">
-                                                            <i style="font-size: 25px"
-                                                               class="{{ $section['icon'] }} {{ $section['color'] }} me-2"></i>
-                                                            @foreach($section['data'] as $item)
-                                                                <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
-                                                            @endforeach
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        @endif
                                         <div class="carousel-wrapper">
                                             <div class="carousel">
                                                 <div class="carousel-content">
@@ -310,8 +308,8 @@
                                                     <div class="details">
                                                         <div class="details-info">
                                                             <h3 class="details-title">{{ $data[$i]['subjs_data'][0]['name_subj']}}</h3>
-                                                            {{-- Район + метро в одной строке (переносится по словам) --}}
                                                             <div class="location-flow">
+                                                                🚩 {{ $data[$i]['subjs_data'][0]['address'] ?? 'Адрес не указан' }}
     <span class="district-text">
         📍 {{ $data[$i]['subjs_data'][0]['district_name'] ?? 'Район не указан' }}
     </span>
@@ -366,14 +364,14 @@
                                             <div class="col-12 col-sm-3 col-md-5 col-lg-7 d-flex align-items-center justify-content-center">
                                                 <a style="width: auto"
                                                    href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][0]['id']])}}"
-                                                   class="btn-festive-gradient btn-festive-gradient-green front-btn m-3">
+                                                   class="btn-festive-gradient btn-festive-gradient-blue front-btn m-3">
                                                     Подробнее
                                                 </a>
                                             </div>
                                         </div>
                                         @if(!empty($data[$i]['details_obj']['description']))
-                                            <div class="bg-light p-4 rounded-10 shadow-sm">
-                                                <p class="lead text-muted" @style(['font-size: 18px'])>
+                                            <div class="bg-light rounded-10 shadow-sm descriptionBoom">
+                                                <p class="lead text-muted front-body">
                                                     {{ $data[$i]['details_obj']['description'] }}
                                                 </p>
                                             </div>
@@ -382,21 +380,21 @@
                                 @endif
                             @endif
                         @endfor
+                        @if(!empty($pagination))
+                            <div class="pagination">
+                                @if($pagination['prev_page_url'])
+                                    <a href="{{ $pagination['prev_page_url'] }}">Назад</a>
+                                @endif
+                                <span>Страница {{ $pagination['current_page'] }} из {{ $pagination['last_page'] }}</span>
+                                @if($pagination['next_page_url'])
+                                    <a href="{{ $pagination['next_page_url'] }}">Вперед</a>
+                                @endif
+                            </div>
+                        @else
+                            {{ $data->links() }}
+                        @endif
                 </div>
 
-                @if(!empty($pagination))
-                    <div class="pagination">
-                        @if($pagination['prev_page_url'])
-                            <a href="{{ $pagination['prev_page_url'] }}">Назад</a>
-                        @endif
-                        <span>Страница {{ $pagination['current_page'] }} из {{ $pagination['last_page'] }}</span>
-                        @if($pagination['next_page_url'])
-                            <a href="{{ $pagination['next_page_url'] }}">Вперед</a>
-                        @endif
-                    </div>
-                @else
-                    {{ $data->links() }}
-                @endif
 
                 @else
                     <center>К сожалению, ничего не найдено...</center>

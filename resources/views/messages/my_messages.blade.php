@@ -149,6 +149,9 @@
 
     @push('scripts')
         <script>
+            window.deleteChat = '{{route('delete.chat')}}';
+        </script>
+        <script>
             document.addEventListener('DOMContentLoaded', function () {
                 const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
@@ -172,7 +175,7 @@
                         formData.append('from_user_id', fromId);
                         formData.append('to_user_id', toId);
 
-                        fetch('{{ route("delete.chat") }}', {
+                        fetch(window.deleteChat, {
                             method: 'POST',
                             headers: {
                                 'X-CSRF-TOKEN': csrfToken,

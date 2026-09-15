@@ -49,4 +49,13 @@ return [
         'credentials' => env('FIREBASE_CREDENTIALS'),
     ],
 
+    'yandex_maps' => [
+        'key' => env('YANDEX_GEOCODER_API_KEY'),
+    ],
+
+    'dadata' => [
+        'api_key' => env('DADATA_API_KEY'),
+        'secret_key' => env('DADATA_SECRET_KEY'),
+    ],
+
 ];

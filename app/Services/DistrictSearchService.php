@@ -16,6 +16,7 @@ class DistrictSearchService extends Service
         $cityId = $params['city_data_city_id'] ?? null;
         $query = trim($params['q'] ?? '');
 
+
         // Валидация
         if (empty($query) || mb_strlen($query) < 2) {
             return [

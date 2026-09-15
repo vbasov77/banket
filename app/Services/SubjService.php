@@ -105,16 +105,6 @@ class SubjService extends Service
 
             $objId = $this->subjRepository->findIdObjByUserId();
 
-            if ($objId === null) {
-                Log::channel('error_file')->error(
-                    'Объект не найден для пользователя',
-                    [
-                        'user_id' => auth()->id()
-                    ]
-                );
-                // Это не ошибка — просто объект не найден, возвращаем null
-            }
-
             return $objId;
         } catch (QueryException $e) {
             Log::channel('error_file')->error(

@@ -14,7 +14,7 @@
                     <div class="details-info">
                         <div class="detail mb-2">
                             <span class="detail-label text-muted">Адрес:</span>
-                            <span class="detail-value d-block">{{ $map->address }}</span>
+                            <span class="detail-value d-block">{{$map?->city?->name ." ". $map->address }}</span>
                         </div>
                         <button type="button" id="destroy"
                                 class="btn-festive-gradient btn-festive-gradient-red">Удалить метку

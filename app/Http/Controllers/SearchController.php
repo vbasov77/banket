@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Search\SearchRequest;
+use App\Models\Obj;
+use App\Models\Subj;
 use App\Services\SearchService;
 use App\Services\UserCityService;
 use Illuminate\Contracts\Foundation\Application;
@@ -235,6 +237,107 @@ class SearchController extends Controller
             return false;
         }
     }
+
+    /**
+     * @param Request $request
+     * @return View|RedirectResponse
+     */
+    public function searchByName(Request $request): View|RedirectResponse
+    {
+        $message = $request->message ?? null;
+        try {
+
+            // Используем только новый метод сервиса
+            $data = $this->searchService->searchByName($request);
+
+            return view('front', [
+                'data' => $data,
+                'message' => $message,
+            ]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in SearchController@searchByName',
+                [
+                    'message' => $e->getMessage(),
+                    'trace'   => $e->getTraceAsString(),
+                    'query'   => $query ?? '',
+                ]
+            );
+
+            return redirect()->route('front')
+                ->with('error', 'Произошла ошибка при поиске по названию.');
+        }
+    }
+
+    public function suggestions(Request $request): JsonResponse
+    {
+        try {
+            $query = trim($request->input('q', ''));
+            if ($query === '') {
+                return response()->json(['suggestions' => []]);
+            }
+
+            $cityId = session('city_id');
+
+            if (!$cityId) {
+                return response()->json(['suggestions' => []]);
+            }
+
+            $builder = Obj::query()
+                ->where('name_obj', 'LIKE', "%{$query}%")
+                ->select('id', 'name_obj')
+                ->whereIn('id', function ($q) use ($cityId) {
+                    $q->select('obj_id')
+                        ->from('group_address_objs')
+                        ->where('city_id', $cityId);
+                })
+                // Только те объекты, у которых есть хотя бы одна опубликованная площадка
+                ->whereHas('subjs');
+
+            $suggestions = $builder
+                ->limit(10)
+                ->get()
+                ->map(fn ($o) => ['id' => $o->id, 'name' => $o->name_obj])
+                ->toArray();
+
+            return response()->json(['suggestions' => $suggestions]);
+
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'Database error in SearchController@suggestions',
+                [
+                    'message'  => $e->getMessage(),
+                    'trace'    => $e->getTraceAsString(),
+                    'query'    => $query ?? '',
+                    'city_id'  => $cityId ?? null,
+                    'sql'      => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                ]
+            );
+
+            return response()->json([
+                'suggestions' => [],
+                'error'       => 'Ошибка при загрузке подсказок.',
+            ], 500);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Unexpected error in SearchController@suggestions',
+                [
+                    'message' => $e->getMessage(),
+                    'trace'   => $e->getTraceAsString(),
+                    'query'   => $query ?? '',
+                    'city_id' => $cityId ?? null,
+                ]
+            );
+
+            return response()->json([
+                'suggestions' => [],
+                'error'       => 'Произошла непредвиденная ошибка.',
+            ], 500);
+        }
+    }
+
+
 
 
 }

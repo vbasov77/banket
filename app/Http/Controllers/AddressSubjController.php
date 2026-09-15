@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\CitySearchException;
 use App\Services\CityService;
-use App\Services\StreetSearchService;
+use App\Services\StreetSearchDaDataService;
+use App\Services\StreetSearchYaService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -45,7 +47,9 @@ class AddressSubjController extends Controller
 
         try {
             // Search cities in local database
-            $cities = $this->cityService->findCity($query);
+            $cities = Cache::remember('cities_' . md5($query), 86400, function () use ($query) {
+                return $this->cityService->findCity($query);
+            });
 
             if (empty($cities)) { // Проверка на пустой массив
                 return response()->json([], 404); // Возвращаем пустой массив при отсутствии результатов
@@ -122,7 +126,7 @@ class AddressSubjController extends Controller
             return response()->json(['error' => 'Город и запрос обязательны, минимум 2 символа'], 400);
         }
 
-        $streetSearchService = new StreetSearchService();
+        $streetSearchService = new StreetSearchDaDataService();
         return $streetSearchService->searchStreets($city, $query);
     }
 
@@ -133,9 +137,10 @@ class AddressSubjController extends Controller
      */
     public function searchDistricts(Request $request): JsonResponse
     {
+        Log::channel('info_file')->info([$request->all()]);
         $service = new \App\Services\DistrictSearchService();
         $result = $service->search($request->all());
-
+        Log::channel('info_file')->info([$result]);
         if (!$result['success']) {
             return response()->json(['error' => $result['error']], $result['code']);
         }

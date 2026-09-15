@@ -22,6 +22,7 @@ class AuthTokenController extends Controller
             'device_model' => ['nullable', 'string', 'max:64'],
         ]);
 
+        Log::channel('info_file')->info([$request->token]);
         $user = Auth::user();
 
         if (!$user) {

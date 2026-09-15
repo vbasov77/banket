@@ -3,7 +3,10 @@
 
 namespace App\Services;
 
+use App\Models\Subj;
+use App\Repositories\ObjRepository;
 use App\Repositories\SearchRepository;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,9 +16,12 @@ class SearchService extends Service
 {
     private SearchRepository $searchRepository;
 
-    public function __construct(SearchRepository $searchRepository)
+    protected ObjRepository $objRepository;
+
+    public function __construct(SearchRepository $searchRepository, ObjRepository $objRepository)
     {
         $this->searchRepository = $searchRepository;
+        $this->objRepository = $objRepository;
     }
 
     /**
@@ -62,6 +68,29 @@ class SearchService extends Service
 
         return $this->searchRepository->getReadableFilters($rawFilters);
     }
+
+    public function searchByName(Request $request): LengthAwarePaginator
+    {
+        try {
+            $query = trim($request->input('q', ''));
+
+            return $this->objRepository->findObjsWithDetails($request, $query !== '' ? $query : null);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Error in SearchService@searchByName',
+                [
+                    'message' => $e->getMessage(),
+                    'trace'   => $e->getTraceAsString(),
+                    'query'   => $query ?? '',
+                ]
+            );
+
+            // Возвращаем пустой пагинатор вместо падения приложения
+            return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 7);
+        }
+    }
+
+
 
 }
 
