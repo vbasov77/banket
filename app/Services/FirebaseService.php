@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\DeviceToken;
+use Illuminate\Support\Facades\DB;
+use Kreait\Firebase\Exception\Messaging\NotFound;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Illuminate\Support\Facades\Log;
@@ -46,7 +48,7 @@ class FirebaseService
                 'success' => true,
             ];
         } catch (\Exception $e) {
-            Log::channel('error_file')->error('FCM push failed', [
+            Log::channel('error_file')->error('FCM push failed файлед', [
                 'error_class' => get_class($e),
                 'error_message' => $e->getMessage(),
                 'token_prefix' => substr($token, 0, 10) . '...',
@@ -58,6 +60,7 @@ class FirebaseService
             ];
         }
     }
+
 
     public function sendPushWithCode(string $token, string $title, array $data): array
     {
@@ -77,12 +80,24 @@ class FirebaseService
                 ]);
             }
 
-            // Отправляем. Если тут ошибка — она уйдёт в catch
             $this->messaging->send($message);
 
+            return ['success' => true];
+
+        } catch (NotFound $e) {
+            DB::table('device_tokens')
+                ->where('token', $token)
+                ->delete();
+
+            Log::channel('error_file')->info('Удалён мёртвый FCM токен', [
+                'token_prefix' => substr($token, 0, 10) . '...',
+            ]);
+
             return [
-                'success' => true,
+                'success' => false,
+                'error_message' => 'Token not registered',
             ];
+
         } catch (\Exception $e) {
             Log::channel('error_file')->error('FCM push failed', [
                 'error_class' => get_class($e),
@@ -103,7 +118,7 @@ class FirebaseService
             ->where('is_active', true)
             ->where('type', 'fcm')
             ->pluck('token');
-
+        Log::channel('info_file')->info([$tokens]);
         foreach ($tokens as $fcmToken) {
             $this->sendPushWithCode($fcmToken, $title, $data);
         }

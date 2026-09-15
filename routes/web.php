@@ -33,6 +33,8 @@ use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\AccountController;
 use App\API\Controllers\Auth\AuthTokenController;
 use App\Http\Controllers\AppController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\AddressController;
 
 
 /*
@@ -74,7 +76,14 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('admin')->group(function () {
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports');
+    Route::get('/reports_clear', [ReportController::class, 'clearDb'])->name('reports.clear');
+
     Route::get('/show/admin_panel', [AdminController::class, 'showAdminPanel'])->name('show.admin_panel');
+
+    Route::get('/test/dadata', [TestController::class, 'dadataTest']);
+    Route::get('/test/dadata/suggest', [TestController::class, 'dadataSuggest'])->name("test.dadata.suggest");
+
 
     Route::get('/test_mail', [TestController::class, 'testMail'])->name('send.mail');
     Route::post('/test_upload', [TestController::class, 'uploadImg'])->name("upload.image");
@@ -91,6 +100,9 @@ Route::middleware('admin')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/add-fcm-token', [AuthTokenController::class, 'saveFcmToken']);
+
+    Route::get('/address/suggest', [AddressController::class, 'suggest'])->name('address.suggest');
+    Route::post('/address/store', [AddressController::class, 'store'])->name('address.store');
 
     Route::post('/update_message', [MessageController::class, 'update'])->name('update.msg');
     Route::get('/messages/load-older', [MessageController::class, 'loadOlderMessages']);
@@ -145,10 +157,6 @@ require __DIR__ . '/auth.php';
 
 Route::get('/show_subj/id{id}', [SubjController::class, 'show'])->name("show.subj");
 
-Route::get('/api/cities', [AddressSubjController::class, 'search'])->name('api.cities.search');
-Route::get('/api/streets', [AddressSubjController::class, 'searchStreets']);
-Route::get('/api/districts', [AddressSubjController::class, 'searchDistricts']);
-
 Route::get('/api/metros/by-city', [MetroController::class, 'byCity'])->name('api.metros.by.city');
 Route::get('/api/zags/by-city', [ZagsController::class, 'byCity'])->name('api.zags.by.city');
 
@@ -182,6 +190,9 @@ Route::get('/favorites_subjs', [FavoriteController::class, 'index'])->name('favo
 Route::get('/auth/vk', [UserVkController::class, 'redirectToVk'])->name('vk.auth');
 Route::post('/auth/vk/save', [UserVkController::class, 'saveVkUserData']);
 
+Route::get('/search/by-name', [SearchController::class, 'searchByName'])->name('search.by_name');
+Route::get('/api/search/suggestions', [SearchController::class, 'suggestions'])->name('search.suggestions');
+
 
 Route::any('/vk-auth', function () {
     return view('auth.vk-auth');
@@ -207,4 +218,7 @@ Route::get('/link', function () {
     return "Ссылка создана.";
 });
 
-
+Route::get('/optimize', function () {
+    Artisan::call('optimize:clear');
+    return "optimize:clear DONE.";
+});

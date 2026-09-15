@@ -177,7 +177,7 @@ class ObjRepository extends Repository
      * @param Request $request
      * @return LengthAwarePaginator
      */
-    public function findObjsWithDetails(Request $request): LengthAwarePaginator
+    public function findObjsWithDetails(Request $request, ?string $searchQuery = null): LengthAwarePaginator
     {
         $userCityService = new UserCityService(new UserCityRepository());
         $cityId = (int) session('city_id');
@@ -191,7 +191,7 @@ class ObjRepository extends Repository
             }
         }
 
-        $paginated = Obj::with([
+        $builder = Obj::with([
             'detailsObj' => fn($q) => $q->select(
                 'id', 'obj_id', 'for_events', 'kitchen', 'service',
                 'alcohol', 'more', 'payment_methods', 'description', 'text_obj'
@@ -201,7 +201,7 @@ class ObjRepository extends Repository
                 ->whereHas('addressSubj', fn($q) => $q->where('city_id', $cityId))
                 ->with([
                     'addressSubj' => fn($q) => $q
-                        ->select('id', 'subj_id', 'district_id')
+                        ->select('id', 'subj_id', 'district_id', 'address')
                         ->where('city_id', $cityId)
                         ->with(['district' => fn($d) => $d->select('id', 'name')]),
                     'subjNearMetro' => fn($q) => $q
@@ -212,8 +212,14 @@ class ObjRepository extends Repository
             'groupAddressObjs' => fn($v) => $v->select('id', 'district_id', 'obj_id'),
         ])
             ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj')
-            ->whereHas('subjs.addressSubj', fn($q) => $q->where('city_id', $cityId))
-            ->paginate(7);
+            ->whereHas('subjs.addressSubj', fn($q) => $q->where('city_id', $cityId));
+
+        // 🔍 Поиск по названию объекта
+        if ($searchQuery && trim($searchQuery) !== '') {
+            $builder->where('name_obj', 'LIKE', '%' . trim($searchQuery) . '%');
+        }
+
+        $paginated = $builder->paginate(7);
 
         if ($paginated->isEmpty()) {
             return $paginated;
@@ -247,6 +253,7 @@ class ObjRepository extends Repository
                         'site_type'      => $subj->site_type,
                         'features'       => $subj->features,
                         'text_subj'      => $subj->text_subj,
+                        'address'      => $subj->addressSubj->address,
                         'image_paths'    => $subj->imgSubjs
                             ? $subj->imgSubjs->take(5)->pluck('small_img')->toArray()
                             : [],
@@ -287,7 +294,6 @@ class ObjRepository extends Repository
             ['path' => Paginator::resolveCurrentPath(), 'pageName' => 'page']
         );
     }
-
 
     /**
      * Найти объект по ID из базы данных

@@ -53,6 +53,7 @@ class MapPointController extends Controller
             // Выносим логику получения карты в репозиторий
             $map = $this->addressSubjRepository->findBySubjId($subjId);
 
+
             if (!$map) {
                 Log::channel('error_file')->error(
                     'Address not found for subject ID: ' . $subjId
@@ -102,7 +103,6 @@ class MapPointController extends Controller
     public function create(Request $request)
     {
         $subjId = (int)$request->id;
-
         try {
             $user = auth()->user();
             if (!$user) {
@@ -135,7 +135,7 @@ class MapPointController extends Controller
             if (!empty($request->error)) {
                 $error = $request->error;
             }
-            return view('map.create', ['subj' => $subj, 'error' => $error]);
+            return view('map.create_ex', ['subj' => $subj, 'error' => $error]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Error in create method', [
                 'exception' => $e->getMessage(),
@@ -155,7 +155,6 @@ class MapPointController extends Controller
     public function edit(Request $request): Application|Factory|View|JsonResponse|RedirectResponse
     {
         try {
-            $user = auth()->user();
             $subjId = $request->id;
 
             // Загружаем Subj с связанным Obj для проверки прав
@@ -180,7 +179,9 @@ class MapPointController extends Controller
                 ]);
             }
 
-            $map = AddressSubj::where('subj_id', $subjId)->first();
+            $map = AddressSubj::with('city', 'district')
+                ->where('subj_id', $subjId)
+                ->first();
 
             if ($map) {
                 return view('map.edit', ['map' => $map]);

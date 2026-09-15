@@ -3,226 +3,143 @@
 namespace App\Services;
 
 use GuzzleHttp\Exception\TransferException;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\Client\Response;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
-class StreetSearchService extends Service
+
+class StreetSearchService
 {
-    /**
-     * Основной метод поиска улиц
-     */
+    private function makeApiRequest(string $city, string $query)
+    {
+        $fullQuery = $query . ', ' . $city;
+
+        return Http::timeout(8)
+            ->withHeaders(['User-Agent' => 'FeastBoom/1.0'])
+            ->retry(3, 1000, function ($exception) {
+                return $exception instanceof ConnectionException ||
+                    ($exception->response && $exception->response->status() >= 500);
+            })
+            ->get('https://nominatim.openstreetmap.org/search', [
+                'q'               => $fullQuery,
+                'format'          => 'json',
+                'addressdetails'  => 1,
+                'limit'           => 10,
+                'accept-language' => 'ru',
+                'countrycodes'     => 'RU',
+            ]);
+    }
+
     public function searchStreets(string $city, string $query): JsonResponse
     {
-        try {
-            Log::info('Starting street search', [
-                'city' => $city,
-                'query' => $query
-            ]);
+        $cacheKey = 'streets_' . md5($city . '_' . $query);
 
-            $response = $this->makeApiRequest($city, $query);
-            $data = $response->json();
+        $result = Cache::remember($cacheKey, 86400, function () use ($city, $query) {
+            try {
 
-            if (!$response->successful()) {
-                return $this->handleApiError($response->status(), $data);
+                $response = $this->makeApiRequest($city, $query);
+                $data = $response->json();
+
+                if (!$response->successful()) {
+                    Log::channel('error_file')->error('Nominatim API error in street search', [
+                        'city'   => $city,
+                        'query'  => $query,
+                        'status' => $response->status(),
+                        'data'   => $data
+                    ]);
+                    return ['error' => true, 'status' => $response->status(), 'message' => 'Ошибка при запросе к сервису геоданных.'];
+                }
+
+                Log::channel('info_file')->info('Street search completed successfully', [
+                    'city'  => $city,
+                    'query' => $query
+                ]);
+
+                return ['error' => false, 'data' => $data];
+
+            } catch (ConnectionException $e) {
+                Log::channel('error_file')->error('Connection error to Nominatim for street search', [
+                    'city'     => $city,
+                    'query'    => $query,
+                    'exception'=> $e::class,
+                    'message'  => $e->getMessage()
+                ]);
+                return ['error' => true, 'status' => 503, 'message' => 'Проблема с подключением к сервису геоданных.'];
+            } catch (RequestException $e) {
+                Log::channel('error_file')->error('HTTP request error for street search', [
+                    'city'      => $city,
+                    'query'     => $query,
+                    'exception' => $e::class,
+                    'message'   => $e->getMessage()
+                ]);
+                return ['error' => true, 'status' => $e->response->status() ?? 500, 'message' => 'Ошибка при запросе к сервису геоданных.'];
+            } catch (TransferException $e) {
+                Log::channel('error_file')->error('Transfer error for street search', [
+                    'city'      => $city,
+                    'query'     => $query,
+                    'exception' => $e::class,
+                    'message'   => $e->getMessage()
+                ]);
+                return ['error' => true, 'status' => 504, 'message' => 'Ошибка передачи данных. Попробуйте позже.'];
+            } catch (\Exception $e) {
+                $correlationId = (string) Str::uuid();
+                Log::channel('error_file')->error('Unexpected error in street search service', [
+                    'city'           => $city,
+                    'query'          => $query,
+                    'exception'      => $e::class,
+                    'message'        => $e->getMessage(),
+                    'file'           => $e->getFile(),
+                    'line'           => $e->getLine(),
+                    'trace'          => $e->getTraceAsString(),
+                    'correlation_id' => $correlationId
+                ]);
+                return ['error' => true, 'status' => 500, 'message' => 'Произошла внутренняя ошибка.', 'correlation_id' => $correlationId];
             }
+        });
 
-            $formattedResponse = $this->formatStreetsResponse($data, $query);
-
-            Log::info('Street search completed successfully', [
-                'city' => $city,
-                'query' => $query,
-                'result_count' => count($formattedResponse->getData(true)['streets'] ?? [])
-            ]);
-
-            return $formattedResponse;
-
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('Connection error to Nominatim for street search', [
-                'city' => $city,
-                'query' => $query,
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
-            ]);
+        if (isset($result['error']) && $result['error'] === true) {
             return response()->json([
-                'error' => 'connection_error',
-                'message' => 'Проблема с подключением к сервису геоданных. Проверьте интернет-соединение.',
-                'details' => [
-                    'service' => 'Nominatim',
-                    'city' => $city,
-                    'query' => $query
-                ]
-            ], 503);
-
-        } catch (\Illuminate\Http\Client\RequestException $e) {
-            Log::warning('HTTP request error for street search', [
-                'city' => $city,
-                'query' => $query,
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-                'response_body' => $e->response->body() ?? 'no response',
-                'status_code' => $e->response->status() ?? 'unknown'
-            ]);
-            return response()->json([
-                'error' => 'http_request_error',
-                'message' => 'Ошибка при запросе к сервису геоданных.',
-                'details' => [
-                    'status_code' => $e->response->status() ?? 'unknown',
-                    'response' => $e->response->body()
-                ]
-            ], $e->response->status() ?? 500);
-
-        } catch (TransferException $e) {
-            Log::error('Transfer error for street search', [
-                'city' => $city,
-                'query' => $query,
-                'exception' => $e::class,
-                'message' => $e->getMessage()
-            ]);
-            return response()->json([
-                'error' => 'transfer_error',
-                'message' => 'Ошибка передачи данных. Попробуйте позже.',
-                'details' => [
-                    'city' => $city,
-                    'query' => $query
-                ]
-            ], 504);
-
-        } catch (\JsonException $e) {
-            Log::error('JSON parsing error in street search', [
-                'city' => $city,
-                'query' => $query,
-                'exception' => $e::class,
-                'message' => $e->getMessage()
-            ]);
-            return response()->json([
-                'error' => 'json_parse_error',
-                'message' => 'Ошибка обработки данных от сервиса.',
-                'details' => [
-                    'city' => $city,
-                    'query' => $query
-                ]
-            ], 502);
-
-        } catch (\Exception $e) {
-            Log::critical('Unexpected error in street search service', [
-                'city' => $city,
-                'query' => $query,
-                'exception' => $e::class,
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
-                'correlation_id' => $correlationId = (string) Str::uuid()
-            ]);
-            return response()->json([
-                'error' => 'internal_error',
-                'message' => 'Произошла внутренняя ошибка. Попробуйте позже или обратитесь к администратору.',
-                'correlation_id' => $correlationId,
-                'details' => [
-                    'city' => $city,
-                    'query' => $query
-                ]
-            ], 500);
-        }
-    }
-
-    /**
-     * Выполняет запрос к Nominatim API
-     */
-    private function makeApiRequest(string $city, string $query): Response
-    {
-        $url = 'https://nominatim.openstreetmap.org/search';
-        $params = [
-            'q' => "{$query}, {$city}",
-            'countrycodes' => 'RU',
-            'format' => 'json',
-            'addressdetails' => '1',
-            'limit' => 5,
-            'featuretype' => 'street'
-        ];
-
-        $client = Http::timeout(15)
-            ->withHeaders([
-                'User-Agent' => 'MyCitySearchApp/1.0 (0120912@mail.ru)',
-                'Accept' => 'application/json'
-            ]);
-
-        // Отключаем проверку SSL только в тестовой среде
-        if (app()->environment('testing')) {
-            $client->withOptions(['verify' => false]);
+                'error' => 'search_error',
+                'message' => $result['message'] ?? 'Ошибка поиска улиц',
+                'correlation_id' => $result['correlation_id'] ?? null
+            ], $result['status'] ?? 500);
         }
 
-        return $client->get($url, $params);
+        return $this->formatStreetsResponse($result['data'] ?? [], $query);
     }
 
-    /**
-     * Обрабатывает ошибки API
-     */
-    private function handleApiError(int $statusCode): JsonResponse
-    {
-        Log::error('Nominatim API error: ' . $statusCode);
-
-        switch ($statusCode) {
-            case 429:
-                return response()->json(['error' => 'Превышен лимит запросов к API'], 429);
-            case $statusCode >= 500:
-                return response()->json(['error' => 'API временно недоступно'], 503);
-            default:
-                return response()->json(['error' => 'Ошибка API'], $statusCode);
-        }
-    }
-
-    /**
-     * Форматирует данные улиц для ответа
-     */
     private function formatStreetsResponse($data, string $query): JsonResponse
     {
-        if (!is_array($data)) {
-            Log::warning('API returned non‑array data, returning empty array', [
-                'data_type' => gettype($data),
-                'data' => $data
-            ]);
-            return response()->json([]);
-        }
-
-        if (empty($data)) {
-            Log::info('API returned empty array, returning empty JSON response');
+        if (!is_array($data) || empty($data)) {
             return response()->json([]);
         }
 
         $streets = [];
-        $streetNames = []; // Треккер уже добавленных названий улиц
-        $queryLower = mb_strtolower($query, 'UTF-8'); // Сохраняем нижний регистр запроса
+        $streetNames = [];
+        $queryLower = mb_strtolower($query, 'UTF-8');
 
         foreach ($data as $place) {
             if (!is_array($place)) {
-                continue; // Пропускаем некорректные записи
+                continue;
             }
 
             $streetName = $this->extractStreetName($place);
             if (!$streetName) {
-                continue; // Пропускаем, если название улицы не найдено
+                continue;
             }
 
-            $streetNameLower = mb_strtolower($streetName, 'UTF-8');
-
-            // Фильтруем по точному совпадению с учётом суффиксов
-            if ($this->isRelevantStreet($streetNameLower, $queryLower)) {
-                // Проверяем, не добавлен ли уже такой адрес в список
+            if ($this->isRelevantStreet($streetName, $queryLower)) {
                 if (!in_array($streetName, $streetNames)) {
                     $streets[] = [
                         'name' => $streetName,
-                        'lat' => $place['lat'] ?? null,
-                        'lon' => $place['lon'] ?? null
+                        'lat'  => $place['lat'] ?? null,
+                        'lon'  => $place['lon'] ?? null
                     ];
-                    $streetNames[] = $streetName; // Добавляем название в треккер
+                    $streetNames[] = $streetName;
                 }
             }
         }
@@ -230,41 +147,20 @@ class StreetSearchService extends Service
         return response()->json($streets);
     }
 
-    /**
-     * Извлекает название улицы из данных API
-     */
     private function extractStreetName(array $place): ?string
     {
         if (isset($place['address']['road'])) {
             return $place['address']['road'];
         }
         if (isset($place['display_name'])) {
-            // Удаляем лишние детали из display_name (город, район и т. п.)
             return preg_replace('/,.*$/', '', $place['display_name']);
         }
         return null;
     }
 
-    private function isRelevantStreet(string $streetName, string $query): bool
+    private function isRelevantStreet(string $streetName, string $queryLower): bool
     {
-        // Список возможных суффиксов для улиц
-        $suffixes = ['улица', 'ул.', 'проезд', 'пр.', 'переулок', 'пер.', 'набережная', 'наб.'];
-
-        foreach ($suffixes as $suffix) {
-            $pattern = '/^\s*' . preg_quote($query, '/') . '\s+' . preg_quote($suffix, '/') . '\s*$/';
-            if (preg_match($pattern, $streetName)) {
-                return true;
-            }
-
-            // Также проверяем вариант без суффикса (например, просто «Боровая»)
-            $pattern = '/^\s*' . preg_quote($query, '/') . '\s*$/';
-            if (preg_match($pattern, $streetName)) {
-                return true;
-            }
-        }
-
-        return false;
+        $streetNameLower = mb_strtolower($streetName, 'UTF-8');
+        return mb_strpos($streetNameLower, $queryLower, 0, 'UTF-8') !== false;
     }
-
-
 }

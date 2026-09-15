@@ -66,11 +66,7 @@ class CreateSubjRequest extends FormRequest
             'site_type.*' => [
                 'required',
                 'string',
-                'in:База отдыха,Банкетный зал,Кафе,Коттедж,Ресторан,Клуб,Загородный дом,Шатёр,Лофт,Терраса,Яхта,Теплоход',
-            ],
-            'for_events.*' => [
-                'string',
-
+                'in:База отдыха,Банкетный зал,Кафе,Коттедж,Ресторан,Клуб,Загородный дом,Гостиница/Отель,Шатёр,Лофт,Терраса,Яхта,Теплоход',
             ],
             'features' => [
                 'required',
@@ -149,6 +145,7 @@ class CreateSubjRequest extends FormRequest
             'features' => 'Особенности',
             'site_type' => 'Тип площадки',
             'text_subj' => 'Описание',
+            'loud_music_until.in' => 'Громкая музыка'
         ];
     }
 

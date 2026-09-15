@@ -20,7 +20,7 @@ return new class extends Migration
                 ->onDelete('cascade');
             $table->integer('city_id');
             $table->integer('district_id');
-            $table->json('address');
+            $table->json('address')->nullable();
             $table->decimal('latitude', 10, 8);
             $table->decimal('longitude', 11, 8);
             $table->timestamp('created_at')->useCurrent();

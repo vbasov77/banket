@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 
+use App\Services\IpService;
 use App\Services\ObjService;
 use App\Services\UserCityService;
 use Illuminate\Contracts\View\View;
@@ -20,15 +21,19 @@ class FrontController extends Controller
 {
     private ObjService $objService;
     protected UserCityService $userCityService;
+    protected IpService $ipService;
 
     /**
      * @param ObjService $objService
      * @param UserCityService $userCityService
      */
-    public function __construct(ObjService $objService, UserCityService $userCityService)
+    public function __construct(ObjService $objService,
+                                UserCityService $userCityService,
+                                IpService $ipService)
     {
         $this->objService = $objService;
         $this->userCityService = $userCityService;
+        $this->ipService = $ipService;
     }
 
     /**
@@ -36,13 +41,13 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
-        $plain = '71|oIelpCRlRjK7PLrgbnmBcHpa5TvGbOdOrLy5q26m6c15e188';
-        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($plain);
-
-        Log::channel('info_file')->info(['token' => $token]);
-        Log::channel('info_file')->info(['user token' => $token?->tokenable]);
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
+
+        $ip = $request->ip();
+        if (!$this->ipService->checkIp($ip)) {
+            $this->ipService->store($ip);
+        }
 
         try {
             // 1. Параметры из URL (пагинация, явные фильтры)

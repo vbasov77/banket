@@ -22,7 +22,7 @@ class ImgBanRepository extends Repository
         try {
             $imagebanConfig = config('services.imageban');
 
-            if (empty($imagebanConfig['client_id'])) {
+            if (empty($imagebanConfig['client_secret'])) {
                 throw new \Exception('CLIENT_ID не найден в конфигурации (services.php)');
             }
 
@@ -31,8 +31,10 @@ class ImgBanRepository extends Repository
                 throw new \Exception('Файл не доступен для чтения: ' . $imageFile->getRealPath());
             }
 
+            Log::channel('info_file')->info([$imagebanConfig['client_id']]);
+
             $response = Http::withHeaders([
-                'Authorization' => 'TOKEN ' . $imagebanConfig['client_id'],
+                'Authorization' => 'TOKEN ' . $imagebanConfig['client_secret'],
             ])->attach(
                 'image',
                 file_get_contents($imageFile->getRealPath()),

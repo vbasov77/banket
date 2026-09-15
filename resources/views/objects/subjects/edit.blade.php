@@ -134,6 +134,12 @@
                                         </label>
                                         <label class="checkbox-container">
                                             <input name="site_type[]" class="site_type" type="checkbox"
+                                                   value="Гостиница/Отель">
+                                            <span class="checkmark"></span>
+                                            Гостиница/Отель
+                                        </label>
+                                        <label class="checkbox-container">
+                                            <input name="site_type[]" class="site_type" type="checkbox"
                                                    value="Загородный дом">
                                             <span class="checkmark"></span>
                                             Загородный дом
@@ -277,7 +283,6 @@
 
     <script>
         let checkboxFeatures = document.getElementsByClassName('features');
-        var checkboxForEvents = document.getElementsByClassName('for_events');
         let checkboxSiteType = document.getElementsByClassName('site_type');
 
         document.getElementById('office').addEventListener('click', function (e) {
@@ -315,8 +320,6 @@
                     checkboxFeatures[i].checked = true;
                 }
             }
-
-
         }
     </script>
 

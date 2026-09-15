@@ -701,26 +701,32 @@ async function geocodeAddress() {
         return;
     }
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
     try {
-        // Используем Nominatim для геокодирования
-        console.log(address);
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
-        const data = await response.json();
+        const response = await fetch(`/api/geocode?q=${encodeURIComponent(address)}`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
 
-        if (data.length > 0) {
-            const lat = parseFloat(data[0].lat);
-            const lng = parseFloat(data[0].lon);
+        const res = await response.json();
 
-            // Центрируем карту на найденном адресе
-            map.setView([lat, lng], 15);
-
-            // Показываем форму добавления точки
-            showAddressForm(L.latLng(lat, lng), address);
-        } else {
-            alert('Адрес не найден. Уточните запрос.');
+        if (!res.success) {
+            alert(res.message || 'Адрес не найден');
+            return;
         }
+
+        map.setView([res.lat, res.lon], 15);
+        showAddressForm(L.latLng(res.lat, res.lon), address);
     } catch (error) {
-        console.error('Ошибка при поиске адреса:', error);
-        alert('Произошла ошибка при поиске адреса.');
+        clearTimeout(timeoutId);
+        console.error(error);
+
+        if (error.name === 'AbortError') {
+            showErrorAlert('Поиск адреса занял слишком много времени.');
+        } else {
+            showErrorAlert('Ошибка поиска адреса. Попробуйте позже.');
+        }
     }
 }

@@ -211,7 +211,7 @@
                     @endif
                     <center>
                         <a style="width: auto"
-                           href="{{route('show.subj', ['id' => $restaurant['obj_id']])}}"
+                           href="{{route('show.subj', ['id' => $restaurant['id']])}}"
                            class="btn-festive-gradient btn-festive-gradient-green front-btn m-3">
                             Подробнее
                         </a>

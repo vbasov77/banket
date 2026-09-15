@@ -281,11 +281,6 @@ class ObjController extends Controller
                     );
                     $error = 'Не удалось загрузить данные по субъектам';
                 }
-            } else {
-                Log::channel('error_file')->error(
-                    'User has no associated object',
-                    ['user_id' => $userId]
-                );
             }
 
             return view('objects.subjects.my_subjs', [

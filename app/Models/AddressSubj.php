@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AddressSubj extends Model
 {
@@ -39,6 +40,11 @@ class AddressSubj extends Model
     public function subj()
     {
         return $this->belongsTo(Subj::class, 'subj_id');
+    }
+
+    public function city(): BelongsTo
+    {
+        return $this->belongsTo(City::class, 'city_id');
     }
 
     public function district()

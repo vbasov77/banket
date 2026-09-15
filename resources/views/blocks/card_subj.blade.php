@@ -31,7 +31,7 @@
     <div class="row">
         @foreach($nearestObjects as $value)
 
-            <div class="col-sm-12 col-md-6 col-lg-3">
+            <div class="col-sm-12 col-md-6 col-lg-4">
                 <div class="restaurant-card nearestObjects m-3"
                      data-id="{{ $value['obj_id'] }}">
                     <!-- Изображение -->

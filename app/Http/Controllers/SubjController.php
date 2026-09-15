@@ -161,7 +161,7 @@ class SubjController extends Controller
     public function show(Request $request): View
     {
         try {
-            $id = $request->id;
+            $id = (int)$request->id;
 
             $subjModel = Subj::with('obj')->find($id);
 
@@ -189,7 +189,6 @@ class SubjController extends Controller
             }
 
             $isAuthorOrAdmin = $this->subjService->canEdit();
-
             return view('objects.subjects.show', [
                 'isAuthorOrAdmin' => $isAuthorOrAdmin,
                 'subj' => $subj,

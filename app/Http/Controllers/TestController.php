@@ -13,6 +13,7 @@ use App\Services\ImgObjService;
 use App\Services\ImgSubjService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -162,6 +163,59 @@ class TestController extends Controller
 
         $message = 'На почту 0120912@mail.ru отправлено письмо';
         return redirect()->back()->with('message', $message);
+    }
+
+    // Показ тестовой страницы
+    public function dadataTest()
+    {
+        return view('tests.dadata');
+    }
+
+    // AJAX-поиск через DaData
+    public function dadataSuggest(Request $request)
+    {
+        $query = $request->input('q', '');
+
+        if (mb_strlen($query, 'UTF-8') < 3) {
+            return response()->json([]);
+        }
+
+        $apiKey = config('services.dadata.api_key');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Token ' . $apiKey,
+            'Content-Type'  => 'application/json',
+            'Accept'        => 'application/json',
+        ])->post('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', [
+            'query' => $query,
+            'count' => 10,
+        ]);
+
+        if (!$response->successful()) {
+            Log::channel('error_file')->error('DaData API error', [
+                'status' => $response->status(),
+                'body'   => $response->body()
+            ]);
+            return response()->json([]);
+        }
+
+        $suggestions = $response->json()['suggestions'] ?? [];
+
+        $result = [];
+        foreach ($suggestions as $item) {
+            $d = $item['data'] ?? [];
+            $result[] = [
+                'value' => $item['value'] ?? '',
+                'city'  => $d['city'] ?? '',
+                'area'  => $d['city_district'] ?? '',  // ← район города, не область
+                'street'=> $d['street'] ?? '',
+                'house' => $d['house'] ?? '',
+                'lat'   => $d['geo_lat'] ?? null,
+                'lon'   => $d['geo_lon'] ?? null,
+            ];
+        }
+
+        return response()->json($result);
     }
 
 
