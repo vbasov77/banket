@@ -25,9 +25,11 @@ class Subjs extends Migration
             $table->integer('capacity_to')->nullable(); // Вместимость
             $table->integer('furshet')->nullable(); // Вместимость
             $table->json('site_type')->nullable();// Тип площадки: База отдыха, Банкетный зал
-            $table->json('features')->nullable(); // Особенности - Можно свои б/а напитки, Выездная регистрация, Музыкальное оборудование
+            $table->text('rent')->nullable();
+            $table->string('working_hours')->nullable();
             $table->string('loud_music_until')->nullable();  // 22:00, 23:00, 00:00, 01:00 или 'morning'
-            $table->text('text_subj')->nullable();
+            $table->text('features')->nullable();  // 22:00, 23:00, 00:00, 01:00 или 'morning'
+            $table->string('slug')->nullable();
             $table->integer('published')->default(0);
             $table->timestamp('created_at')->useCurrent();
         });

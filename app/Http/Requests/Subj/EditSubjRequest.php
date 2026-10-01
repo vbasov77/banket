@@ -33,56 +33,37 @@ class EditSubjRequest extends FormRequest
                 'regex:/^[\pL\s\d\pP]+$/u' // только буквы, цифры, пробелы и знаки препинания
             ],
             'minimum_cost' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0'
             ],
             'per_person' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0'
             ],
             'capacity_to' => [
-                'required',
+                'nullable',
                 'integer',
                 'min:0',
             ],
             'furshet' => [
-                'required',
+                'nullable',
                 'integer',
             ],
             'site_type' => [
-                'required',
+                'nullable',
                 'array',
                 'min:1',
                 'max:5'
             ],
-            'site_type.*' => [
-                'required',
-                'string',
-                'in:База отдыха,Банкетный зал,Кафе,Коттедж,Ресторан,Клуб,Гостиница/Отель,Загородный дом,Шатёр,Лофт,Терраса,Яхта,Теплоход',
-            ],
-            'features' => [
-                'required',
-                'array',
-                'min:1',
-                'max:10'
-            ],
-            'features.*' => [
-                'required',
-                'string',
-                'max:100',
-            ],
+            'site_type.*' => ['string', 'max:1000'],
             'loud_music_until' => [
                 'nullable',
                 'string',
                 Rule::in(['22:00', '23:00', '00:00', '01:00', 'morning']),
             ],
-            'text_subj' => [
-                'required',
-                'string',
-                'max:2000',
-            ],
+            'features' => ['nullable', 'string', 'max:10000'],
         ];
     }
 
@@ -111,9 +92,6 @@ class EditSubjRequest extends FormRequest
             'site_type.min' => 'Необходимо выбрать хотя бы один тип площадки',
             'site_type.max' => 'Можно выбрать не более 5 типов площадки',
             'site_type.*.in' => 'Выбранный тип площадки недопустим',
-
-            'features.min' => 'Необходимо указать хотя бы одну особенность',
-            'features.max' => 'Можно указать не более 10 особенностей',
             'loud_music_until.in' => 'Выберите допустимое время, когда разрешена громкая музыка',
         ];
     }
@@ -131,10 +109,9 @@ class EditSubjRequest extends FormRequest
             'per_person' => 'Стоимость за человека',
             'capacity_to' => 'Вместимость до',
             'furshet' => 'Вместимость на фуршет',
-            'features' => 'Особенности',
             'site_type' => 'Тип площадки',
-            'text_subj' => 'Описание',
-            'loud_music_until.in' => 'Громкая музыка'
+            'loud_music_until.in' => 'Громкая музыка',
+            'features' => 'Особенности'
         ];
     }
 }

@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" type="image/x-icon" href="{{asset('images/fb.png')}}"/>
@@ -13,6 +13,9 @@
         @endisset
         {{ config('app.name') }}
     </title>
+    @if(!empty($metaDescription))
+        <meta name="description" content="{{ $metaDescription }}">
+    @endif
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
@@ -20,7 +23,7 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+{{--    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">--}}
 </head>
 <body class="font-sans antialiased">
 <div class="min-h-screen dark:bg-gray-900">

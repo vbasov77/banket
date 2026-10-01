@@ -68,4 +68,51 @@ class GroupAddressObjService
             throw $e;
         }
     }
+
+    public function findMetaDescription(array $result): string
+    {
+        $groupDetails = $result['group_details'] ?? null;
+        $subjs = $result['subjs'] ?? [];
+
+        if (!$groupDetails || empty($groupDetails['obj']['name_obj'])) {
+            return '';
+        }
+
+        $metaDescription = $groupDetails['obj']['name_obj'] . ". ";
+
+        if (!empty($groupDetails['details_obj']['text_obj'])) {
+            $text = strip_tags($groupDetails['details_obj']['text_obj']);
+            $text = mb_substr($text, 0, 100);
+            $metaDescription .= $text . ". ";
+        }
+
+        if (!empty($subjs)) {
+            $subjNames = [];
+            foreach ($subjs as $subj) {
+                $subjNames[] = "«" . $subj['name_subj'] . "» на " . $subj['capacity_to'] . " гостей";
+            }
+            $metaDescription .= "Залы: " . implode(", ", $subjNames) . ". ";
+
+            $firstSubj = $subjs[0];
+            if (!empty($firstSubj['per_person'])) {
+                $metaDescription .= "Цена от: " . $firstSubj['per_person'] . " руб. за человека. ";
+            }
+        }
+
+        if (!empty($groupDetails['district_name'])) {
+            $metaDescription .= "Район " . $groupDetails['district_name'] . ". ";
+        }
+
+        if (!empty($firstSubj['nearest_metros'])) {
+            $metros = array_map(function ($m) {
+                return $m['station_name'] . " (" . $m['distance_km'] . " км)";
+            }, $firstSubj['nearest_metros']);
+            $metaDescription .= "Ближайшие станции метро: " . implode(", ", $metros) . ".";
+        }
+
+        return trim($metaDescription);
+    }
+
+
+
 }

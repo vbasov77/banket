@@ -11,8 +11,6 @@ class MapPoint extends Model
 
     protected $fillable = ['address', 'latitude', 'longitude', 'subj_id'];
 
-    protected $casts = [
-        'address' => 'array',
-    ];
+
 }
 

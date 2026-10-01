@@ -36,6 +36,100 @@ class SubjController extends Controller
     }
 
     /**
+     * @param Request $request
+     * @return View
+     */
+    public function show(Request $request): View
+    {
+        try {
+            $id = (int)$request->id;
+
+            $subjModel = Subj::with('obj')->find($id);
+
+            $subj = $this->subjService->findById($id);
+
+            // Проверка прав доступа через метод модели isAuthor()
+            if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
+                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+                    'subj_id' => $subjModel->id,
+                    'user_id' => auth()->id(),
+                    'model_user_id' => 'null', // Всегда null для Subj
+                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
+                ]);
+
+                return \view('objects.subjects.error');
+            }
+
+            $nearestObjects = null;
+            if (!empty($subj['longitude'])) {
+                $nearestObjects = $this->subjService->findNearestObjects(
+                    $subj['latitude'],
+                    $subj['longitude'],
+                    $subj['obj']['obj_id']
+                );
+            }
+
+            $isAuthorOrAdmin = $this->subjService->canEdit();
+            $metaDescription = $this->subjService->findMetaDescription($subj);
+
+            return view('objects.subjects.show', [
+                'isAuthorOrAdmin' => $isAuthorOrAdmin,
+                'subj' => $subj,
+                'metaDescription' => $metaDescription,
+                'nearestObjects' => $nearestObjects
+            ]);
+        } catch (\InvalidArgumentException $e) {
+            Log::channel('error_file')->error(
+                'Ошибка координат в SubjController@show: ' . $e->getMessage(),
+                [
+                    'latitude' => $subj['latitude'] ?? null,
+                    'longitude' => $subj['longitude'] ?? null,
+                    'obj_id' => $subj['obj']['obj_id'] ?? null,
+                    'user_id' => auth()->id()
+                ]
+            );
+
+            return view('objects.subjects.show', [
+                'subj' => $subj,
+                'nearestObjects' => null,
+                'error' => 'Некорректные координаты объекта'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в SubjController@show: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings' => $e->getBindings(),
+                    'input_data' => $request->all(),
+                    'user_id' => auth()->id()
+                ]
+            );
+
+            return view('objects.subjects.show', [
+                'subj' => $subj,
+                'nearestObjects' => null,
+                'error' => 'Ошибка при получении ближайших объектов'
+            ]);
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Неожиданная ошибка в SubjController@show: ' . $e->getMessage(),
+                [
+                    'input_data' => $request->all(),
+                    'user_id' => auth()->id(),
+                    'exception_class' => get_class($e),
+                    'trace' => $e->getTraceAsString()
+                ]
+            );
+
+            return view('objects.subjects.show', [
+                'subj' => $subj,
+                'nearestObjects' => null,
+                'error' => 'Произошла внутренняя ошибка сервера'
+            ]);
+        }
+    }
+
+    /**
      * @return View
      */
     public function create(): View
@@ -155,105 +249,12 @@ class SubjController extends Controller
 
 
     /**
-     * @param Request $request
-     * @return View
-     */
-    public function show(Request $request): View
-    {
-        try {
-            $id = (int)$request->id;
-
-            $subjModel = Subj::with('obj')->find($id);
-
-            $subj = $this->subjService->findById($id);
-
-            // Проверка прав доступа через метод модели isAuthor()
-            if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
-                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
-                    'subj_id' => $subjModel->id,
-                    'user_id' => auth()->id(),
-                    'model_user_id' => 'null', // Всегда null для Subj
-                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
-                ]);
-
-                return \view('objects.subjects.error');
-            }
-
-            $nearestObjects = null;
-            if (!empty($subj['longitude'])) {
-                $nearestObjects = $this->subjService->findNearestObjects(
-                    $subj['latitude'],
-                    $subj['longitude'],
-                    $subj['obj']['obj_id']
-                );
-            }
-
-            $isAuthorOrAdmin = $this->subjService->canEdit();
-            return view('objects.subjects.show', [
-                'isAuthorOrAdmin' => $isAuthorOrAdmin,
-                'subj' => $subj,
-                'nearestObjects' => $nearestObjects
-            ]);
-        } catch (\InvalidArgumentException $e) {
-            Log::channel('error_file')->error(
-                'Ошибка координат в SubjController@show: ' . $e->getMessage(),
-                [
-                    'latitude' => $subj['latitude'] ?? null,
-                    'longitude' => $subj['longitude'] ?? null,
-                    'obj_id' => $subj['obj']['obj_id'] ?? null,
-                    'user_id' => auth()->id()
-                ]
-            );
-
-            return view('objects.subjects.show', [
-                'subj' => $subj,
-                'nearestObjects' => null,
-                'error' => 'Некорректные координаты объекта'
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
-            Log::channel('error_file')->error(
-                'SQL ошибка в SubjController@show: ' . $e->getMessage(),
-                [
-                    'sql_query' => $e->getSql(),
-                    'bindings' => $e->getBindings(),
-                    'input_data' => $request->all(),
-                    'user_id' => auth()->id()
-                ]
-            );
-
-            return view('objects.subjects.show', [
-                'subj' => $subj,
-                'nearestObjects' => null,
-                'error' => 'Ошибка при получении ближайших объектов'
-            ]);
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Неожиданная ошибка в SubjController@show: ' . $e->getMessage(),
-                [
-                    'input_data' => $request->all(),
-                    'user_id' => auth()->id(),
-                    'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
-                ]
-            );
-
-            return view('objects.subjects.show', [
-                'subj' => $subj,
-                'nearestObjects' => null,
-                'error' => 'Произошла внутренняя ошибка сервера'
-            ]);
-        }
-    }
-
-
-    /**
      * Редактирование субъекта
      * @param Request $request
      * @return Application|Factory|View|RedirectResponse
      */
     public function edit(Request $request): Application|Factory|View|RedirectResponse
     {
-
         try {
             $id = $request->id;
             // Получаем субъект с загруженной связью obj
@@ -322,7 +323,6 @@ class SubjController extends Controller
                 return back()->withErrors(['error' => 'Указанный субъект не найден'])->withInput();
             }
 
-            // Проверка прав доступа через метод модели isAuthor()
             if (!$subj->isAuthor()) {
                 Log::channel('error_file')->error('Unauthorized subj edit attempt', [
                     'subj_id' => $subj->id,

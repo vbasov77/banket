@@ -471,22 +471,6 @@
             }
         }
 
-        // Функция обновления кнопки features (количество выбранных)
-        function updateFeaturesButton() {
-            const checked = document.querySelectorAll('input[name="features[]"]:checked');
-            const button = document.querySelector('.dropdown-toggle[data-original-text*="Особенности"]');
-
-            if (!button) return;
-
-            const originalText = button.getAttribute('data-original-text');
-
-            if (checked.length > 0) {
-                button.textContent = `${originalText} (${checked.length})`;
-            } else {
-                button.textContent = originalText;
-            }
-        }
-
         // Функция обновления кнопок с числовыми значениями
         function updateNumericButton(inputName, prefix, suffix) {
             const input = document.querySelector(`input[name="${inputName}"]`);
@@ -515,11 +499,6 @@
             checkbox.addEventListener('change', updateDistrictButton);
         });
 
-        // Для чекбоксов features
-        document.querySelectorAll('input[name="features[]"]').forEach(checkbox => {
-            checkbox.addEventListener('change', updateFeaturesButton);
-        });
-
         // Для полей capacity_to и per_person
         const capacityInput = document.querySelector('input[name="capacity_to"]');
         if (capacityInput) {
@@ -538,7 +517,6 @@
         // Первоначальное обновление кнопок (на случай, если есть значения по умолчанию)
         updateForEventsButton();
         updateDistrictButton();
-        updateFeaturesButton();
         updateNumericButton('capacity_to', '👥👥', 'чел.');
         updateNumericButton('per_person', '💵', '₽');
 

@@ -22,10 +22,6 @@ class AddressSubj extends Model
         'latitude',
     ];
 
-    protected $casts = [
-        'address' => 'array',
-    ];
-
     public function obj()
     {
         return $this->belongsTo(Obj::class, 'obj_id');

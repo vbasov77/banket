@@ -22,6 +22,7 @@ class DetailsObj extends Model
         'payment_methods',
         'service_fee',
         'description',
+        'bring_with_you',
         'text_obj',
     ];
 
@@ -30,6 +31,7 @@ class DetailsObj extends Model
         'kitchen' => 'array',
         'service' => 'array',
         'payment_methods' => 'array',
+        'bring_with_you' => 'array',
     ];
 
     public function obj()

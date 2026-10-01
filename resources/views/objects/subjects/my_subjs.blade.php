@@ -38,7 +38,6 @@
                                             <div class="position-relative">
                                                 <div class="restaurant-image">
                                                     @if($value['primaryImg'] && $value['primaryImg']->small_img)
-
                                                         <img src="{{ $value['primaryImg']->small_img }}"
                                                              class="card-img-top" alt="Фото субъекта"
                                                              style="height: 200px; object-fit: cover;">
@@ -57,20 +56,20 @@
                                                 <!-- Характеристики -->
                                                 <div class="details-info">
                                                     <!-- Вместимость -->
-                                                    <div class="detail">
-                                                        <img src="{{ asset('icons/user.svg') }}"
-                                                             class="detail-label" style="width: 16px; height: 16px;"
-                                                             alt="Вместимость">
-                                                        <span class="detail-value">{{ $value['capacity_to'] }} мест</span>
+                                                    <div class="detail" title="Вместимость человек">
+                                                        👥<span class="detail-value">{{ $value['capacity_to'] }} мест</span>
                                                     </div>
+                                                    <!-- Стоимость -->
+                                                    @if(!empty($value['per_person']))
+                                                        <div class="detail" title="Цена на человека">
+                                                            💰<span class="detail-value price">От {{ number_format($value['per_person'], 0, ' ', ' ') }} ₽</span>
+                                                        </div>
+                                                    @endif
 
                                                     <!-- Стоимость -->
                                                     @if(!empty($value['minimum_cost']))
-                                                        <div class="detail">
-                                                            <img src="{{ asset('icons/ruble.svg') }}"
-                                                                 class="detail-label" style="width: 16px; height: 16px;"
-                                                                 alt="Рубль">
-                                                            <span class="detail-value price">От {{ number_format($value['minimum_cost'], 0, ' ', ' ') }} ₽</span>
+                                                        <div class="detail" title="Минимальная сумма">
+                                                            💵 <span class="detail-value price">От {{ number_format($value['minimum_cost'], 0, ' ', ' ') }} ₽</span>
                                                         </div>
                                                     @endif
                                                 </div>
@@ -130,6 +129,22 @@
                                     </div>
                                 @endforeach
                             @endif
+                            @if(!isset($data['features']) && !empty($data['id']))
+                                <div class="row mt-5">
+                                    <div class="col-12 text-center">
+                                        <a class="btn-festive-gradient btn-festive-gradient-green"
+                                           href="{{ route('create.obj_features', ['id' => $data['id']]) }}">
+                                            <i class="bi bi-pencil-square me-2"></i>
+                                            Добавьте особенности объекта
+                                        </a>
+                                        <br>
+                                        <br>
+                                        <span>
+                                            Особенности объекта — это более подробная информация об особенностях вашего объекта.
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="col-12">
                                 <div class="row mt-5">
                                     <div class="col-12 text-center">
@@ -146,7 +161,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Особенности и услуги -->
                             @if(!empty($data['details_obj']))
                                 <div class="row g-4">
                                     <div class="col-12">
@@ -162,6 +176,7 @@
                                                 ];
                                             @endphp
 
+
                                             @foreach($sections as $section)
                                                 <div class="col">
                                                     <div class="p-3 bg-light rounded h-100">
@@ -170,16 +185,13 @@
                                                             {{ $section['title'] }}
                                                         </h5>
                                                         <div class="d-flex flex-wrap gap-2">
-                                                            @foreach($section['data'] as $item)
-                                                                <span class="feature-badge bg-white border rounded px-2 py-1">
-{{ $item }}
-</span>
+                                                            @foreach($section['data'] ?? [] as $item)
+                                                                <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
                                                             @endforeach
                                                         </div>
                                                     </div>
                                                 </div>
                                             @endforeach
-
                                             <!-- Алкоголь -->
                                             <div class="col">
                                                 <div class="p-3 bg-light rounded h-100">
@@ -201,21 +213,6 @@
                                             <!-- Своё -->
 
                                             <div class="col">
-                                                <div class="p-3 bg-light rounded h-100">
-                                                    <h5 class="fw-semibold mb-3">
-                                                        <i class="bi bi-wine text-danger me-2"></i>
-                                                        Свои фрукты, другое:
-                                                    </h5>
-                                                    @if($data['details_obj']['more'] == 0)
-                                                        <span class="badge bg-success bg-gradient">Разрешён</span>
-                                                    @elseif($data['details_obj']['more'] == 1)
-                                                        <span class="badge bg-danger bg-gradient">Не разрешён</span>
-                                                    @elseif(!empty(explode(':', $data['details_obj']['more'])[0]) == 2)
-                                                        <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
-                                                        <br>
-                                                        <span>{!! explode(':', $data['details_obj']['more'])[1] !!} руб.</span>
-                                                    @endif
-                                                </div>
                                             </div>
                                         </div>
                                         <div style="margin-top: 40px" class="col-md-12 mb-12">
@@ -273,6 +270,186 @@
                             </div>
                         </div>
                     @endif
+                    @php
+                        $features = $data['features'] ?? null;
+                    @endphp
+                    @if(!empty($features))
+                        <div class="row g-4 mt-2">
+                            <div class="col-12">
+                                <h3 class="section-title fs-4 mb-4">Особенности объекта</h3>
+                                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+
+                                    <!-- Текстильный пакет -->
+                                    @if(!empty($features['textile_package']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-layers-fill text-primary me-2"></i>Текстильный
+                                                    пакет:</h5>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach($features['textile_package'] ?? [] as $item)
+                                                        <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                    @endforeach
+                                                </div>
+                                                @if(!empty($features['textile_colors']))
+                                                    <p class="mt-2 mb-0 text-muted small">
+                                                        <b>Цвета:</b> {{ $features['textile_colors'] }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Столы -->
+                                    @if(!empty($features['tables']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-table me-2 text-warning"></i>Столы:</h5>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach($features['tables'] ?? [] as $item)
+                                                        <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Оборудование -->
+                                    @if(!empty($features['equipment']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-speaker me-2 text-danger"></i>Оборудование:
+                                                </h5>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach($features['equipment'] ?? [] as $item)
+                                                        <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Для детей -->
+                                    @if(!empty($features['kids']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-balloon-fill me-2 text-info"></i>Для детей:
+                                                </h5>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach($features['kids'] ?? [] as $item)
+                                                        <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Расположение -->
+                                    @if(!empty($features['location']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-geo-alt-fill me-2 text-success"></i>Расположение:
+                                                </h5>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    @foreach($features['location'] ?? [] as $item)
+                                                        <span class="feature-badge bg-white border rounded px-2 py-1">{{ $item }}</span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+
+
+                                    <!-- Парковка -->
+                                    @if(!empty($features['parking']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-p-square me-2 text-primary"></i>Парковка:</h5>
+                                                <p class="mb-0">{{ $features['parking'] }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Пирс / Причал -->
+                                    @if(!empty($features['pier']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i class="bi bi-water me-2 text-info"></i>Пирс
+                                                    / Причал:</h5>
+                                                <p class="mb-0">{{ $features['pier'] }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    <!-- Предоплата -->
+                                    @if(!empty($features['prepayment']))
+                                        <div class="col">
+                                            <div class="p-3 bg-light rounded h-100">
+                                                <h5 class="fw-semibold mb-3"><i
+                                                            class="bi bi-cash-coin me-2 text-success"></i>Предоплата:
+                                                </h5>
+                                                <p class="mb-0">{{ $features['prepayment'] }}</p>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                </div>
+
+                                <!-- Примечание к банкету -->
+                                @if(!empty($features['banquet_note']))
+                                    <div class="mt-4">
+                                        <h5 class="fw-semibold mb-3"><i class="bi bi-card-text me-2 text-danger"></i>Примечание
+                                            к банкету:</h5>
+                                        <div class="bg-light p-4 rounded shadow-sm">
+                                            <p class="lead text-muted mb-0">{!! nl2br(e($features['banquet_note'])) !!}</p>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Интерьер -->
+                                @if(!empty($features['interior']))
+                                    <div class="mt-4">
+                                        <h5 class="fw-semibold mb-3"><i class="bi bi-building me-2 text-secondary"></i>Интерьер:
+                                        </h5>
+                                        <div class="bg-light p-4 rounded shadow-sm">
+                                            <p class="lead text-muted mb-0">{!! nl2br(e($features['interior'])) !!}</p>
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <!-- Кнопка редактирования -->
+                                <div class="row mt-5">
+                                    <div class="col-12 text-center">
+                                        <a class="btn-festive-gradient btn-festive-gradient-green"
+                                           href="{{ route('edit.obj_features', ['id' => $features['id']]) }}">
+                                            <i class="bi bi-pencil-square me-2"></i>
+                                            Редактировать особенности
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @else
+                        @if(!isset($data['features']) && !empty($data['id']))
+                            <div class="row mt-5">
+                                <div class="col-12 text-center">
+                                    <a class="btn-festive-gradient btn-festive-gradient-green"
+                                       href="{{ route('create.obj_features', ['id' => $data['id']]) }}">
+                                        <i class="bi bi-pencil-square me-2"></i>
+                                        Добавьте особенности объекта
+                                    </a>
+                                    <br><br>
+                                    <span>Особенности объекта — это более подробная информация об особенностях вашего объекта.</span>
+                                </div>
+                            </div>
+                        @endif
+                    @endif
+
                 </div>
             </div>
         </div>

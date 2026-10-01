@@ -82,6 +82,10 @@ class Obj extends Model
             ->where('published', '=', 1);
     }
 
+    public function allSubjs(): HasMany
+    {
+        return $this->hasMany(Subj::class, 'obj_id', 'id');
+    }
     /**
      * @return HasOne
      */
@@ -122,6 +126,19 @@ class Obj extends Model
     {
         return $this->belongsToMany(District::class, 'group_address_objs', 'obj_id', 'district_id')
             ->withPivot(['city_id', 'address', 'latitude', 'longitude']);
+    }
+
+    /**
+     * @return HasOne
+     */
+    public function features(): HasOne
+    {
+        return $this->hasOne(ObjFeature::class, 'obj_id', 'id');
+    }
+
+    public function actions(): HasOne
+    {
+        return $this->hasOne(Action::class, 'obj_id', 'id');
     }
 
 }

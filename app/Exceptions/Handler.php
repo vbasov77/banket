@@ -76,7 +76,7 @@ class Handler extends ExceptionHandler
                     'correlation_id' => (string) \Illuminate\Support\Str::uuid()
                 ], 404);
             }
-            return response()->view('errors.500', [], 404);
+//            return response()->view('errors.500', [], 404);
         });
 
         // 4. Бизнес‑исключения — используем их статус

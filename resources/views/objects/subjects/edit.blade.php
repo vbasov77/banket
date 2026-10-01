@@ -40,7 +40,7 @@
                                         <input style="width: 50%" name="minimum_cost" type="number"
                                                value="{{old('minimum_cost') ?? $subj->minimum_cost }}"
                                                class="form-control"
-                                               placeholder="Минимальная сумма" autocomplete="off" required>
+                                               placeholder="Минимальная сумма" autocomplete="off">
                                         <br>
                                     </div>
                                 </td>
@@ -77,7 +77,7 @@
                                                value="{{old('furshet') ?? $subj->furshet }}"
                                                class="form-control"
                                                onkeypress="return (event.charCode >= 48 && event.charCode <= 57 && /^\d{0,3}$/.test(this.value));"
-                                               placeholder="Вместимость на фуршет до" autocomplete="off" required>
+                                               placeholder="Вместимость на фуршет до" autocomplete="off">
                                         <br>
                                     </div>
                                 </td>
@@ -183,53 +183,7 @@
                         <table class="styled-table">
                             <tr>
                                 <td style="width: 49%">
-                                    <div>
-                                        <label for="features"><b>Особенности:</b></label>
-                                        <div class="checkbox-group">
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="У воды">
-                                                <span class="checkmark"></span>
-                                                У воды
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="За городом">
-                                                <span class="checkmark"></span>
-                                                За городом
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Подарки за бронирование">
-                                                <span class="checkmark"></span>
-                                                Подарки за бронирование
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Можно свои б/а напитки">
-                                                <span class="checkmark"></span>
-                                                Можно свои б/а напитки
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Без пробкового сбора">
-                                                <span class="checkmark"></span>
-                                                Без "пробкового" сбора
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Выездная регистрация">
-                                                <span class="checkmark"></span>
-                                                Выездная регистрация
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Музыкальное оборудование">
-                                                <span class="checkmark"></span>
-                                                Музыкальное оборудование
-                                            </label>
-                                        </div>
-                                    </div>
+
                                 </td>
                                 <td style="width: 49%">
                                     <div>
@@ -246,26 +200,20 @@
                                 </td>
                             </tr>
                         </table>
-
-
                         <br>
+
                         <div>
-                            <label for="text_subj"><b>Описание:</b></label><br>
-                            <textarea class="form-control  @error('text_subj') is-invalid @enderror"
-                                      placeholder="Введите текст..." name="text_subj"
-                                      id="text_subj"
-                                      rows="5"
-                                      cols="85"> {{$subj->text_subj ?? old('text_subj')}}</textarea><br>
+                            <label for="features"><b>Особенности:</b></label><br>
+                            <textarea class="form-control" name="features" id="features"
+                                      rows="5" cols="85"
+                                      placeholder="Введите текст...">{{ old('features', $subj->features ?? '') }}</textarea>
                         </div>
+                        <br>
+                        <br>
                         <a href="{{ route('edit.img_subj', ['id' => $subj->id]) }}"
                            class="btn-festive-gradient btn-festive-gradient-green">
-                            @if($images)
-                                Редактировать альбом
-                            @else
-                                Создайте альбом
-                            @endif
+                            Редактировать альбом
                         </a>
-
                         <br>
                         <br>
                         <input style="margin-bottom: 50px" class="btn-festive-gradient btn-festive-gradient-blue"
@@ -282,7 +230,6 @@
     </section>
 
     <script>
-        let checkboxFeatures = document.getElementsByClassName('features');
         let checkboxSiteType = document.getElementsByClassName('site_type');
 
         document.getElementById('office').addEventListener('click', function (e) {
@@ -300,24 +247,11 @@
                 }
             }
 
-            const oldFeatures = @json(old('features'));
-            for (var i = 0; i < checkboxFeatures.length; i++) {
-                if (oldFeatures.includes(checkboxFeatures[i].value)) {
-                    checkboxFeatures[i].checked = true;
-                }
-            }
         } else {
             const siteTypeArray = @json($subj->site_type);
             for (var i = 0; i < checkboxSiteType.length; i++) {
                 if (siteTypeArray.includes(checkboxSiteType[i].value)) {
                     checkboxSiteType[i].checked = true;
-                }
-            }
-
-            const featuresArray = @json($subj->features);
-            for (var i = 0; i < checkboxFeatures.length; i++) {
-                if (featuresArray.includes(checkboxFeatures[i].value)) {
-                    checkboxFeatures[i].checked = true;
                 }
             }
         }

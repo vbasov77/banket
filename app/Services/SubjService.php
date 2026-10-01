@@ -172,6 +172,29 @@ class SubjService extends Service
         return $isOwner || ($user && $user->isAdmin());
     }
 
+    /**
+     * @param array $subj
+     * @return string
+     */
+    public function findMetaDescription(array $subj): string
+    {
+        $metaDescription = $subj['obj']['name_obj'] . ". «" . $subj['name_subj'] . "» на " . $subj['capacity_to']
+            . " гостей. Район " . $subj['district_name'] .
+            " Цена от: " . $subj['per_person'] . " руб. за человека.";
+        if (!empty($subj['nearest_metros'])) {
+
+            $metaDescription = $metaDescription . " Ближайшие станции метро: " .
+                $this->findMetro($subj['nearest_metros']);
+        }
+
+        return $metaDescription;
+    }
+
+    private function findMetro(array $metros): string
+    {
+        $names = array_column($metros, 'station_name'); // берём только названия
+        return implode(', ', $names);
+    }
 
     /**
      * Поиск 5 ближайших объектов по координатам, исключая объект с указанным subj_id
@@ -247,7 +270,6 @@ class SubjService extends Service
             throw $e; // Перебрасываем исключение дальше
         }
     }
-
 
 
 }

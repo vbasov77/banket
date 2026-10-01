@@ -52,8 +52,6 @@ class DetailsObjStoreTest extends TestCase
             'kitchen' => ['Европейская', 'Русская'],
             'alcohol' => 2,
             'alcohol_price' => 500,
-            'more' => 1,
-            'more_price' => 300,
             'payment_methods' => ['Наличные', 'Карта'],
             'text_obj' => 'Подробное описание объекта длиной более 10 символов',
         ];
@@ -135,8 +133,6 @@ class DetailsObjStoreTest extends TestCase
             'kitchen' => ['Европейская'],
             'alcohol' => 2,
             'alcohol_price' => null, // Ошибка: цена не указана
-            'more' => 1,
-            'more_price' => 300,
             'payment_methods' => ['Наличные'],
             'text_obj' => 'Описание длиной более 10 символов',
         ];
@@ -161,8 +157,6 @@ class DetailsObjStoreTest extends TestCase
             'kitchen' => ['Европейская'],
             'alcohol' => 2,
             'alcohol_price' => 500,
-            'more' => 1,
-            'more_price' => 300,
             'payment_methods' => ['Наличные'],
             'text_obj' => 'Описание длиной более 10 символов',
         ];

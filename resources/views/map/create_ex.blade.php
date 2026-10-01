@@ -203,20 +203,50 @@
 
                             const city = item.city || '';
                             const district = item.area || '';
-                            const street = item.street || '';
+
+                            // --- УНИВЕРСАЛЬНАЯ СБОРКА УЛИЦЫ ---
+                            let streetDisplay = '';
+
+                            // Приоритет 1: есть полное название (часто бывает street_full)
+                            if (item.street_full) {
+                                streetDisplay = item.street_full.trim();
+                            }
+                            // Приоритет 2: есть тип + название
+                            else if (item.street_type && item.street) {
+                                // Чтобы не было дублей, если street_type уже внутри street (редко, но бывает)
+                                const type = item.street_type.trim();
+                                const name = item.street.trim();
+
+                                // Простая эвристика: если name уже содержит тип — не дублируем
+                                if (name.toLowerCase().includes(type.toLowerCase())) {
+                                    streetDisplay = name;
+                                } else {
+                                    // Стандартная сборка: "шоссе Приморское"
+                                    streetDisplay = `${type} ${name}`.trim();
+                                }
+                            }
+                            // Приоритет 3: fallback — просто street
+                            else if (item.street) {
+                                streetDisplay = item.street.trim();
+                            }
+                            // Приоритет 4: fallback — value (то, что пользователь видит в списке)
+                            else {
+                                streetDisplay = item.value ? item.value.trim() : '';
+                            }
+
                             const house = item.house || '';
                             const lat = item.lat || '';
                             const lon = item.lon || '';
 
                             document.getElementById('dadata-city').value = city;
                             document.getElementById('dadata-district').value = district;
-                            document.getElementById('dadata-street').value = street;
+                            document.getElementById('dadata-street').value = streetDisplay;
                             document.getElementById('dadata-house').value = house;
                             document.getElementById('dadata-lat').value = lat;
                             document.getElementById('dadata-lon').value = lon;
 
                             document.getElementById('info-city').textContent = city || '';
-                            document.getElementById('info-street').textContent = street || '';
+                            document.getElementById('info-street').textContent = streetDisplay || '';
                             document.getElementById('info-house').textContent = house || '';
                             document.getElementById('info-coords').textContent =
                                 (lat && lon) ? `${lat}, ${lon}` : '';
@@ -224,17 +254,16 @@
                             toggleManualDistrict(!!district);
 
                             if (!district) {
-                                // Района нет — кнопка заблокирована, ждём ручного ввода
                                 findBtn.disabled = true;
                                 document.getElementById('manual-district').value = '';
                                 const inputEl = document.getElementById('manual-district');
                                 if (inputEl) inputEl.focus();
                             } else {
-                                // Район есть из DaData — кнопка активна
                                 findBtn.disabled = false;
                                 document.getElementById('info-district-text').textContent = district;
                             }
                         });
+
 
                         suggestionsList.appendChild(li);
                     });

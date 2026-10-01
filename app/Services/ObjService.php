@@ -322,5 +322,42 @@ class ObjService extends Service
         }
     }
 
+    public function findMetaDescription(array $objData): string
+    {
+        $metaDescription = $objData['name_obj'] . ". ";
+
+        // Описание объекта
+        if (!empty($objData['details']['text_obj'])) {
+            $text = strip_tags($objData['details']['text_obj']);
+            $text = mb_substr($text, 0, 100);
+            $metaDescription .= $text . ". ";
+        }
+
+        // Информация о залах
+        if (!empty($objData['subjs_data'])) {
+            $subjNames = [];
+            foreach ($objData['subjs_data'] as $subj) {
+                $subjNames[] = "«" . $subj['name_subj'] . "» на " . $subj['capacity_to'] . " гостей";
+            }
+            $metaDescription .= "Залы: " . implode(", ", $subjNames) . ". ";
+
+            $firstSubj = $objData['subjs_data'][0];
+            if (!empty($firstSubj['per_person'])) {
+                $metaDescription .= "Цена от: " . $firstSubj['per_person'] . " руб. за человека. ";
+            }
+            if (!empty($firstSubj['district_name'])) {
+                $metaDescription .= "Район " . $firstSubj['district_name'] . ". ";
+            }
+            if (!empty($firstSubj['nearest_metros'])) {
+                $metros = array_map(function ($m) {
+                    return $m['station_name'] . " (" . $m['distance_km'] . " км)";
+                }, $firstSubj['nearest_metros']);
+                $metaDescription .= "Ближайшие станции метро: " . implode(", ", $metros) . ".";
+            }
+        }
+
+        return trim($metaDescription);
+    }
+
 }
 

@@ -45,7 +45,6 @@ class DetailsObjSeeder extends Seeder
                 'kitchen' => $selectedKitchens,
                 'service' => $selectedServices,
                 'alcohol' => '2:5',
-                'more' => '2:5',
                 'payment_methods' => $selectedPayments,
                 'text_obj' => 'Прекрасный банкетный зал с панорамными окнами и профессиональным обслуживанием. Идеально подходит для ' .
                     implode(', ', $selectedEvents) . '.',

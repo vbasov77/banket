@@ -23,14 +23,6 @@ class SubjFactory extends Factory
     public function definition(): array
     {
         $siteTypes = ['База отдыха', 'Банкетный зал', 'Ресторан', 'Лофт', 'Шатер', 'Терраса'];
-        $features = [
-            'Можно свои б/а напитки',
-            'Выездная регистрация',
-            'Музыкальное оборудование',
-            'Фотозона',
-            'Аниматоры',
-            'Ведущий/Тамада'
-        ];
 
         $loudMusicOptions = ['22:00', '23:00', '00:00', '01:00', 'morning'];
 
@@ -43,9 +35,7 @@ class SubjFactory extends Factory
             'capacity_to'    => $this->faker->numberBetween(20, 200),
             'furshet'        => $this->faker->numberBetween(30, 250),
             'site_type'      => $this->getRandomSubset($siteTypes, 1, 3),
-            'features'       => $this->getRandomSubset($features, 1, 4),
             'loud_music_until' => $this->faker->optional()->randomElement($loudMusicOptions),
-            'text_subj'      => $this->faker->realText(150),
             'published'      => $this->faker->randomElement([0, 1]),
         ];
     }

@@ -52,7 +52,7 @@ class DetailsObjRepository extends Repository
     public function update(array $data): void
     {
         try {
-            $updated = DetailsObj::where('id', $data['id'])->update($data);
+            $updated = DetailsObj::where('id', $data['obj_id'])->update($data);
 
             if (!$updated) {
                 throw new ModelNotFoundException(

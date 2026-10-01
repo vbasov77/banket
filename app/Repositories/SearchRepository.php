@@ -23,7 +23,6 @@ class SearchRepository extends Repository
         $forEventsFilter = $selectedFilters['for_events'] ?? null;
         $capacityToFilter = $selectedFilters['capacity_to'] ?? null;
         $perPersonFilter = $selectedFilters['per_person'] ?? null;
-        $featuresFilter = $selectedFilters['features'] ?? null;
         $districtFilter = $selectedFilters['district'] ?? null;
         $nearMetroId = (int)($selectedFilters['near_metro_id'] ?? null);
         $nearZagsId = (int)($selectedFilters['near_zags_id'] ?? null);
@@ -68,10 +67,7 @@ class SearchRepository extends Repository
             $perPersonFilter = $request->input('per_person');
             session(['selected_filters.per_person' => $perPersonFilter]);
         }
-        if ($request->has('features')) {
-            $featuresFilter = $request->input('features');
-            session(['selected_filters.features' => $featuresFilter]);
-        }
+
         if ($request->has('district')) {
             // Сохраняем именно тот массив, который прошёл валидацию выше
             session(['selected_filters.district' => $districtIds]);
@@ -93,7 +89,7 @@ class SearchRepository extends Repository
         $query = Obj::with([
             'detailsObj' => fn($q) => $q->select(
                 'id', 'obj_id', 'for_events', 'kitchen', 'service',
-                'alcohol', 'more', 'payment_methods', 'description', 'text_obj'
+                'alcohol', 'payment_methods', 'description', 'text_obj'
             ),
             // Добавляем группы адресов — они нужны для карты и новой логики сортировки
             'groupAddressObjs' => fn($q) => $q
@@ -102,8 +98,7 @@ class SearchRepository extends Repository
             'subjs' => function ($query) use ($districtIds, $districtIdsForCase, $placeholders) {
                 $query->select(
                     'subjs.id', 'subjs.obj_id', 'subjs.name_subj', 'subjs.minimum_cost',
-                    'subjs.per_person', 'subjs.capacity_to', 'subjs.site_type',
-                    'subjs.features', 'subjs.text_subj'
+                    'subjs.per_person', 'subjs.capacity_to', 'subjs.site_type'
                 )
                     ->leftJoin('address_subjs', 'subjs.id', '=', 'address_subjs.subj_id')
                     ->selectRaw(
@@ -111,7 +106,7 @@ class SearchRepository extends Repository
                         $districtIdsForCase
                     )
                     ->with([
-                        'addressSubj' => fn($q) => $q->select('id', 'subj_id', 'district_id')
+                        'addressSubj' => fn($q) => $q->select('id', 'subj_id', 'district_id', 'address')
                             ->with(['district' => fn($d) => $d->select('id', 'name')]),
                         // subjNearMetro больше не нужен для логики, но можно оставить, если используется в UI
                         'subjNearMetro' => fn($q) => $q
@@ -138,16 +133,6 @@ class SearchRepository extends Repository
 
         if (!is_null($perPersonFilter) && is_numeric($perPersonFilter)) {
             $query->whereHas('subjs', fn($q) => $q->where('per_person', '<=', $perPersonFilter));
-        }
-
-        if (!is_null($featuresFilter) && is_array($featuresFilter) && !empty($featuresFilter)) {
-            $query->whereHas('subjs', function ($q) use ($featuresFilter) {
-                $q->where(function ($sub) use ($featuresFilter) {
-                    foreach ($featuresFilter as $f) {
-                        $sub->orWhereJsonContains('features', $f);
-                    }
-                });
-            });
         }
 
         // --- ГЛАВНОЕ: фильтр по районам ---
@@ -268,8 +253,7 @@ class SearchRepository extends Repository
                         'per_person' => $subj->per_person,
                         'capacity_to' => $subj->capacity_to,
                         'site_type' => $subj->site_type,
-                        'features' => $subj->features,
-                        'text_subj' => $subj->text_subj,
+                        'address' => $subj->addressSubj->address,
                         'path' => $subj->primaryImg?->small_img,
                         'image_paths' => $subj->imgSubjs
                             ? $subj->imgSubjs->take(5)->pluck('small_img')->toArray()
@@ -411,15 +395,6 @@ class SearchRepository extends Repository
         if (!empty($rawFilters['per_person'])) {
             $formatted = number_format((int)$rawFilters['per_person'], 0, '', ' ');
             $result['price'] = "💰 На человека до: {$formatted} ₽";
-        }
-
-        // 5. Особенности (features)
-        if (!empty($rawFilters['features'])) {
-            $features = (array)$rawFilters['features'];
-            // Показываем первые 3, остальное через многоточие
-            $shown = array_slice($features, 0, 3);
-            $suffix = count($features) > 3 ? '...' : '';
-            $result['features'] = "✨ Особенности: " . implode(', ', $shown) . $suffix;
         }
 
         // 6. Тип события (for_events)
