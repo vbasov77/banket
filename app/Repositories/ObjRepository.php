@@ -22,41 +22,119 @@ class ObjRepository extends Repository
      * @param int $id
      * @return mixed
      */
-    public function findById(int $id)
+    public function findById(int $id): ?array
     {
-        return Obj::with([
-            'detailsObj', // если нужны поля — дополните select
-            'subjs' => function ($query) {
+        $obj = Obj::with([
+            'detailsObj' => function ($query) {
+                $query->select(
+                    'obj_id', 'for_events', 'kitchen', 'service', 'alcohol',
+                    'payment_methods', 'service_fee', 'bring_with_you', 'text_obj'
+                );
+            },
+            'features' => function ($query) {
+                $query->select(
+                    'obj_id', 'banquet_note', 'prepayment', 'textile_package',
+                    'textile_colors', 'tables', 'loud_music', 'parking', 'pier',
+                    'equipment', 'kids', 'interior', 'location'
+                );
+            },
+            'actions' => function ($query) {
+                $query->select('id', 'obj_id', 'actions');
+            },
+            'allSubjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_to', 'site_type', 'text_subj', 'published', 'id')
-                    ->with(['primaryImg:subj_id,small_img']); // загружаем первое img_subj для каждого subj
-            }
-        ])->where('subjs.id', $id)
-            ->select('objs.id', 'objs.user_id', 'objs.name_obj', 'objs.phone_obj') // ограничиваем поля основной таблицы
-            ->get()
-            ->map(function ($obj) {
+                    'capacity_to', 'furshet', 'site_type', 'published')
+                    ->with([
+                        'imgSubjs' => function ($q) {
+                            $q->select('id', 'subj_id', 'small_img', 'big_img')
+                                ->orderBy('position', 'asc')
+                                ->orderBy('id', 'asc');
+                        },
+                        'addressSubj' => function ($q) {
+                            $q->select('subj_id', 'address', 'city_id', 'district_id')
+                                ->with('district:id,name');
+                        },
+                        'subjNearMetro' => function ($q) {
+                            $q->select('subj_id', 'metro_station_id', 'distance_km', 'rank')
+                                ->with(['metroStation:id,name'])
+                                ->orderBy('rank', 'asc');
+                        },
+                        'favorites' => function ($q) {
+                            $q->select('subj_id', 'user_id')
+                                ->where('user_id', Auth::id());
+                        },
+                    ]);
+            },
+        ])
+            ->select('id', 'user_id', 'name_obj', 'phone_obj')
+            ->where('id', $id)
+            ->first();
+
+        if (!$obj) {
+            return null;
+        }
+
+        return [
+            'obj_id' => $obj->id,
+            'user_id' => $obj->user_id,
+            'name_obj' => $obj->name_obj,
+            'phone_obj' => $obj->phone_obj,
+
+            'details' => $obj->detailsObj ? $obj->detailsObj->toArray() : [],
+            'features' => $obj->features ? $obj->features->toArray() : [],
+            'actions' => $obj->actions
+                ? ($obj->actions instanceof \Illuminate\Support\Collection
+                    ? $obj->actions->toArray()
+                    : [$obj->actions->toArray()])
+                : [],
+
+
+            'subjs_data' => $obj->allSubjs->map(function ($subj) use ($obj) {
+                $images = $subj->imgSubjs;
+                $address = $subj->addressSubj;
+
                 return [
-                    'obj_id' => $obj->id,
-                    'user_id' => $obj->user_id,
-                    'name_obj' => $obj->name_obj,
-                    'phone_obj' => $obj->phone_obj,
-                    'subjs_data' => $obj->subjs->map(function ($subj) {
+                    'subj_id' => $subj->id,
+                    'name_subj' => $subj->name_subj,
+                    'minimum_cost' => $subj->minimum_cost,
+                    'per_person' => $subj->per_person,
+                    'capacity_to' => $subj->capacity_to,
+                    'furshet' => $subj->furshet,
+                    'site_type' => $subj->site_type,
+                    'published' => (bool)$subj->published,
+                    'is_favorite' => $subj->favorites->isNotEmpty(),
+                    'image_paths' => $images->pluck('small_img')->toArray(),
+                    'big_image_paths' => $images->pluck('big_img')->toArray(),
+
+                    'address' => $address?->address,
+                    'city_id' => $address?->city_id,
+                    'district_id' => $address?->district_id,
+                    'district_name' => $address?->district?->name,
+
+                    'nearest_metros' => $subj->subjNearMetro->map(function ($metro) {
                         return [
-                            'id' => $subj->id,
-                            'name_subj' => $subj->name_subj,
-                            'minimum_cost' => $subj->minimum_cost,
-                            'per_person' => $subj->per_person,
-                            'capacity_to' => $subj->capacity_to,
-                            'site_type' => $subj->site_type,
-                            'text_subj' => $subj->text_subj,
-                            'published' => $subj->published,
-//                            'path' => $subj->imgSubjFirst ? $subj->imgSubjFirst->path : null,
-                            'image_paths' => $subj->imgSubjs->pluck('path')->toArray()
+                            'metro_station_id' => $metro->metro_station_id,
+                            'distance_km' => $metro->distance_km,
+                            'rank' => $metro->rank,
+                            'station_name' => $metro->metroStation?->name,
                         ];
                     })->toArray(),
 
+                    'related_subjs' => $obj->allSubjs
+                        ->where('id', '!=', $subj->id)
+                        ->where('published', 1)
+                        ->map(function ($related) {
+                            return [
+                                'subj_id' => $related->id,
+                                'name_subj' => $related->name_subj,
+                                'image_path' => $related->imgSubjs->first()?->small_img,
+                                'capacity_to' => $related->capacity_to,
+                                'minimum_cost' => $related->minimum_cost,
+                            ];
+                        })->values()->toArray(),
                 ];
-            });
+            })->toArray(),
+        ];
     }
 
     /**
@@ -141,7 +219,7 @@ class ObjRepository extends Repository
             'detailsObj', // если нужны поля — дополните select
             'subjs' => function ($query) {
                 $query->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person',
-                    'capacity_to', 'site_type', 'text_subj', 'published', 'id')
+                    'capacity_to', 'site_type', 'published', 'id')
                     ->with(['primaryImg:subj_id,small_img']); // загружаем первое img_subj для каждого subj
             }
         ])->where('objs.user_id', $userId)
@@ -161,7 +239,6 @@ class ObjRepository extends Repository
                             'per_person' => $subj->per_person,
                             'capacity_to' => $subj->capacity_to,
                             'site_type' => $subj->site_type,
-                            'text_subj' => $subj->text_subj,
                             'published' => $subj->published,
                             'path' => $subj->primaryImg ? $subj->primaryImg->small_img : null,
                             'image_paths' => $subj->imgSubjs->pluck('path')->toArray()
@@ -180,11 +257,11 @@ class ObjRepository extends Repository
     public function findObjsWithDetails(Request $request, ?string $searchQuery = null): LengthAwarePaginator
     {
         $userCityService = new UserCityService(new UserCityRepository());
-        $cityId = (int) session('city_id');
+        $cityId = (int)session('city_id');
 
         if (!$cityId) {
             $userCityService->checkSessionUserCity($request);
-            $cityId = (int) session('city_id');
+            $cityId = (int)session('city_id');
             if (!$cityId) {
                 // fallback: пустой пагинатор
                 return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 7);
@@ -194,10 +271,10 @@ class ObjRepository extends Repository
         $builder = Obj::with([
             'detailsObj' => fn($q) => $q->select(
                 'id', 'obj_id', 'for_events', 'kitchen', 'service',
-                'alcohol', 'more', 'payment_methods', 'description', 'text_obj'
+                'alcohol', 'payment_methods', 'description', 'text_obj'
             ),
             'subjs' => fn($query) => $query
-                ->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'features', 'text_subj')
+                ->select('id', 'obj_id', 'name_subj', 'minimum_cost', 'per_person', 'capacity_to', 'site_type')
                 ->whereHas('addressSubj', fn($q) => $q->where('city_id', $cityId))
                 ->with([
                     'addressSubj' => fn($q) => $q
@@ -238,26 +315,24 @@ class ObjRepository extends Repository
                             if ($metro->metroStation) {
                                 $metroStations[] = [
                                     'station_name' => $metro->metroStation->name,
-                                    'distance_km'  => $metro->distance_km,
+                                    'distance_km' => $metro->distance_km,
                                 ];
                             }
                         }
                     }
 
                     return [
-                        'id'             => $subj->id,
-                        'name_subj'      => $subj->name_subj,
-                        'minimum_cost'   => $subj->minimum_cost,
-                        'per_person'     => $subj->per_person,
-                        'capacity_to'    => $subj->capacity_to,
-                        'site_type'      => $subj->site_type,
-                        'features'       => $subj->features,
-                        'text_subj'      => $subj->text_subj,
-                        'address'      => $subj->addressSubj->address,
-                        'image_paths'    => $subj->imgSubjs
+                        'id' => $subj->id,
+                        'name_subj' => $subj->name_subj,
+                        'minimum_cost' => $subj->minimum_cost,
+                        'per_person' => $subj->per_person,
+                        'capacity_to' => $subj->capacity_to,
+                        'site_type' => $subj->site_type,
+                        'address' => $subj->addressSubj->address,
+                        'image_paths' => $subj->imgSubjs
                             ? $subj->imgSubjs->take(5)->pluck('small_img')->toArray()
                             : [],
-                        'district_name'  => $districtName,
+                        'district_name' => $districtName,
                         'metro_stations' => $metroStations,
                     ];
                 });
@@ -268,21 +343,21 @@ class ObjRepository extends Repository
             if ($obj->groupAddressObjs) {
                 $districtsData = $obj->groupAddressObjs->map(function ($group) {
                     return [
-                        'id'   => $group->district?->id,
+                        'id' => $group->district?->id,
                         'name' => $group->district?->name,
                     ];
                 });
             }
 
             return [
-                'obj_id'         => $obj->id,
-                'user_id'        => $obj->user_id,
-                'name_obj'       => $obj->name_obj,
-                'phone_obj'      => $obj->phone_obj,
-                'subjs_data'     => $subjsData->toArray(),
-                'details_obj'    => $obj->detailsObj?->toArray(),
-                'districts'      => $districtsData->toArray(),
-                'districts_names'=> $districtsData->pluck('name')->toArray(),
+                'obj_id' => $obj->id,
+                'user_id' => $obj->user_id,
+                'name_obj' => $obj->name_obj,
+                'phone_obj' => $obj->phone_obj,
+                'subjs_data' => $subjsData->toArray(),
+                'details_obj' => $obj->detailsObj?->toArray(),
+                'districts' => $districtsData->toArray(),
+                'districts_names' => $districtsData->pluck('name')->toArray(),
             ];
         });
 
@@ -331,10 +406,11 @@ class ObjRepository extends Repository
             // 1. Получаем obj и subjs БЕЗ фото
             $obj = Obj::with([
                 'detailsObj:*',
+                'features:*',
                 'subjects' => function ($query) {
                     $query->select([
                         'id', 'obj_id', 'name_subj',
-                        'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'text_subj', 'published', 'features'
+                        'minimum_cost', 'per_person', 'capacity_to', 'site_type', 'published'
                     ]);
                 },
                 'user:*',

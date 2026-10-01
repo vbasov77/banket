@@ -46,6 +46,18 @@
                                             </label>
                                             <label class="checkbox-container">
                                                 <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Китайская">
+                                                <span class="checkmark"></span>
+                                                Китайская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Японская">
+                                                <span class="checkmark"></span>
+                                                Японская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
                                                        value="Азиатская">
                                                 <span class="checkmark"></span>
                                                 Азиатская
@@ -56,9 +68,20 @@
                                                 <span class="checkmark"></span>
                                                 Европейская
                                             </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Паназиатская">
+                                                <span class="checkmark"></span>
+                                                Паназиатская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Смешенная">
+                                                <span class="checkmark"></span>
+                                                Смешенная
+                                            </label>
                                         </div>
                                     </div>
-
                                 </td>
                                 <td style="width: 49%">
                                     <div>
@@ -84,6 +107,12 @@
                                             </label>
                                             <label class="checkbox-container">
                                                 <input name="for_events[]" class="for_events" type="checkbox"
+                                                       value="Корпоратив">
+                                                <span class="checkmark"></span>
+                                                Корпоратив на Новый Год
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="for_events[]" class="for_events" type="checkbox"
                                                        value="Выпускной">
                                                 <span class="checkmark"></span>
                                                 Выпускной
@@ -106,6 +135,12 @@
                                                 <span class="checkmark"></span>
                                                 Мальчишник/Девичник
                                             </label>
+                                            <label class="checkbox-container">
+                                                <input name="for_events[]" class="for_events" type="checkbox"
+                                                       value="Мальчишник/Девичник">
+                                                <span class="checkmark"></span>
+                                                Презентация
+                                            </label>
                                         </div>
                                     </div>
                                 </td>
@@ -120,16 +155,23 @@
                                             <label class="checkbox-container">
                                                 <input name="payment_methods[]"
                                                        class="payment_methods" type="checkbox"
-                                                       value="Наличные">
+                                                       value="Наличный">
                                                 <span class="checkmark"></span>
-                                                Наличные
+                                                Наличный
                                             </label>
                                             <label class="checkbox-container">
                                                 <input name="payment_methods[]"
                                                        class="payment_methods" type="checkbox"
-                                                       value="Карта">
+                                                       value="Безналичный">
                                                 <span class="checkmark"></span>
-                                                Карта
+                                                Безналичный
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="payment_methods[]"
+                                                       class="payment_methods" type="checkbox"
+                                                       value="Банковская карта">
+                                                <span class="checkmark"></span>
+                                                Банковская карта
                                             </label>
                                             <label class="checkbox-container">
                                                 <input name="payment_methods[]"
@@ -346,101 +388,6 @@
                                 </td>
                                 <td style="width: 49%">
                                     <div>
-                                        <label><b>Свои фрукты, другое:</b></label>
-                                        <div class="radio-group">
-
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="more"
-                                                       id="more-allowed"
-                                                       value="0"
-                                                       {{ old('more') == '0' ? 'checked' : '' }}
-                                                       required>
-                                                <label class="form-check-label" for="more-allowed">
-                                                    Разрешено бесплатно
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="more"
-                                                       id="more-forbidden"
-                                                       value="1"
-                                                       {{ old('more') == '1' ? 'checked' : '' }}
-                                                       required>
-                                                <label class="form-check-label" for="more-forbidden">
-                                                    Запрещено
-                                                </label>
-                                            </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="more"
-                                                       id="more-paid"
-                                                       value="2"
-                                                       {{ old('more') == '2' ? 'checked' : '' }}
-                                                       required>
-                                                <label class="form-check-label" for="more-paid">
-                                                    За отдельную плату
-                                                </label>
-                                            </div>
-
-                                            <!-- Поле для цены — показывается только если выбран вариант «За отдельную плату» -->
-                                            <div id="morePriceContainer" class="mt-2"
-                                                 style="display: {{ old('more') == '2' ? 'block' : 'none' }};">
-                                                <label for="more_price">Цена доплаты за свои фрукты/другое:</label>
-                                                <input id="more_price"
-                                                       name="more_price"
-                                                       type="number"
-                                                       oninput="
-         if (this.value.length > 7) {
-           this.value = this.value.slice(0, 7);
-           this.style.borderColor = 'red';
-           setTimeout(() => this.style.borderColor = '', 1000);
-         } else {
-           this.style.borderColor = '';
-         }"
-                                                       step="0.01"
-                                                       value="{{ old('more_price') }}"
-                                                       data-saved-price="{{ old('more_price') }}"
-                                                       class="form-control"
-                                                       placeholder="Введите цену"
-                                                       autocomplete="off">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <script>
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            const moreRadios = document.querySelectorAll('input[name="more"][type="radio"]');
-                                            const morePriceContainer = document.getElementById('morePriceContainer');
-                                            const morePriceInput = document.getElementById('more_price');
-
-                                            function toggleMorePriceField() {
-                                                const selectedValue = document.querySelector('input[name="more"]:checked')?.value;
-
-                                                if (selectedValue === '2') {
-                                                    morePriceContainer.style.display = 'block';
-                                                    // Если есть сохранённая цена — показываем её
-                                                    const savedPrice = morePriceInput.getAttribute('data-saved-price');
-                                                    if (savedPrice && savedPrice !== '0') {
-                                                        morePriceInput.value = savedPrice;
-                                                    }
-                                                } else {
-                                                    morePriceContainer.style.display = 'none';
-                                                    morePriceInput.value = '';
-                                                }
-                                            }
-
-                                            moreRadios.forEach(radio => {
-                                                radio.addEventListener('change', toggleMorePriceField);
-                                            });
-
-                                            // Инициализация при загрузке — учитываем старые значения
-                                            toggleMorePriceField();
-                                        });
-                                    </script>
-                                </td>
-                            </tr>
-                        </table>
-                        <table class="styled-table">
-                            <tr>
-                                <td style="width: 49%">
-                                    <div>
                                         <label for="service_fee"><b>Сервисный сбор:</b></label><br>
                                         <span> Процент за обслуживание. Оставьте пустым, если платы нет </span>
                                         <input name="service_fee" type="number"
@@ -456,6 +403,47 @@
                                                class="form-control"
                                                placeholder="Сервисный сбор" autocomplete="off">
                                         <br>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        <table class="styled-table">
+                            <tr>
+                                <td style="width: 49%">
+                                    <div>
+                                        <label for="bring_with_you"><b>Можно принести с собой:</b></label>
+                                        <div class="checkbox-group">
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Безалкогольные напитки">
+                                                <span class="checkmark"></span>
+                                                Безалкогольные напитки
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Фрукты">
+                                                <span class="checkmark"></span>
+                                                Фрукты
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Икра">
+                                                <span class="checkmark"></span>
+                                                Икра
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Торт">
+                                                <span class="checkmark"></span>
+                                                Торт
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Каравай">
+                                                <span class="checkmark"></span>
+                                                Каравай
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="bring_with_you[]" class="bring_with_you" type="checkbox" value="Другое">
+                                                <span class="checkmark"></span>
+                                                Другое
+                                            </label>
+                                        </div>
                                     </div>
                                 </td>
                                 <td style="width: 49%">
@@ -515,6 +503,17 @@
         let checkboxKitchen = document.getElementsByClassName('kitchen');
         let checkboxPaymentMethods = document.getElementsByClassName('payment_methods');
         let checkboxServices = document.getElementsByClassName('service');
+        let checkboxBringWithYou = document.getElementsByClassName('bring_with_you');
+
+        if (@json(old('bring_with_you'))) {
+            const oldBringWithYou = @json(old('bring_with_you'));
+            for (var index = 0; index < checkboxBringWithYou.length; index++) {
+                if (oldBringWithYou.includes(checkboxBringWithYou[index].value)) {
+                    checkboxBringWithYou[index].checked = true;
+                }
+            }
+        }
+
 
         if (@json(old('for_events'))) {
             //----------------- Для мероприятий:

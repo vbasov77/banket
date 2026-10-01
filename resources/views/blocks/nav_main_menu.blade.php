@@ -95,7 +95,6 @@
     }
 
 
-
     /* Адаптивные стили для мобильных устройств */
     @media (max-width: 768px) {
         /* Уменьшаем ширину навигации на мобильных */
@@ -185,7 +184,6 @@
         }
 
 
-
         /* Дополнительные отступы для контента на маленьких экранах */
         .content {
             padding: 10px;
@@ -253,6 +251,9 @@
 
     <ul class="nav-list">
         @if(!empty($data['details_obj']['id']))
+            @if(empty($data['obj_features']))
+                <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить особенности</a></li>
+            @endif
             <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить субъект</a></li>
         @endif
         @if(!empty($data['id']))

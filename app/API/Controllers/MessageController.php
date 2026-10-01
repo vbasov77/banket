@@ -2,7 +2,6 @@
 
 namespace App\API\Controllers;
 
-
 use App\Http\Controllers\Controller;
 use App\Models\Message;
 use App\Models\User;

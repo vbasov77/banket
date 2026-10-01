@@ -19,15 +19,13 @@ class Subj extends Model
         'capacity_to',
         'furshet',
         'site_type',
-        'features',
         'loud_music_until',
-        'text_subj',
+        'features',
         'published',
     ];
 
     protected $casts = [
         'site_type' => 'array',
-        'features' => 'array',
     ];
 
 
@@ -104,7 +102,6 @@ class Subj extends Model
             ->orderBy('id', 'asc')->take(1);      // страховка: если position одинаковые
     }
 
-
     public function groupAddressObj()
     {
         return $this->hasOneThrough(
@@ -155,7 +152,10 @@ class Subj extends Model
         return $this->hasMany(SubjNearMetro::class, 'subj_id');
     }
 
-
+    public function favorites(): HasMany
+    {
+        return $this->hasMany(FavoriteSubj::class, 'subj_id', 'id');
+    }
 
 }
 

@@ -59,8 +59,6 @@ class ImgBanSubjService extends Service
     {
         $path = 'resized/';
         $quality = 97;
-        $watermarkText = "FeastBoom.ru";
-        $fontPath = public_path('fonts/FredokaOneCyrillic-Regular.ttf');
 
         try {
             if (!$file->isValid()) {
@@ -77,42 +75,10 @@ class ImgBanSubjService extends Service
                 $image->resize($newWidth, $newHeight);
             }
 
-            $hasFont = file_exists($fontPath);
-
-            if ($hasFont && $const >= 900) {
-                // Для JPG используем контрастный контур:
-                // Вариант: чёрная обводка + белая заливка — читается почти на любом фоне.
-                // Если хочешь наоборот (белый контур на тёмном фоне) — поменяй цвета ниже.
-
-                $image->text(
-                    $watermarkText,
-                    $image->width() - 90,
-                    $image->height() - 30,
-                    function ($font) use ($fontPath) {
-                        $font->file($fontPath);
-                        $font->size(15);
-
-                        // Основной цвет текста (заливка) — белый
-                        $font->color('#ffffff');
-
-                        // Обводка (контур) — чёрная, толщина 2px
-                        $font->stroke('#000000', 1);
-
-                        $font->align('right');
-                        $font->valign('bottom');
-                    }
-                );
-
-                // Принудительно JPG — прозрачность не нужна, контур реализован цветом
+            $format = strtolower($file->extension());
+            if (!in_array($format, ['jpg', 'jpeg', 'png', 'webp'])) {
                 $format = 'jpg';
-            } else {
-
-                $format = strtolower($file->extension());
-                if (!in_array($format, ['jpg', 'jpeg', 'png', 'webp'])) {
-                    $format = 'jpg';
-                }
             }
-
 
             // Кодирование
             if (in_array($format, ['jpg', 'jpeg'])) {

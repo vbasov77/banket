@@ -31,8 +31,6 @@ class ImgBanRepository extends Repository
                 throw new \Exception('Файл не доступен для чтения: ' . $imageFile->getRealPath());
             }
 
-            Log::channel('info_file')->info([$imagebanConfig['client_id']]);
-
             $response = Http::withHeaders([
                 'Authorization' => 'TOKEN ' . $imagebanConfig['client_secret'],
             ])->attach(

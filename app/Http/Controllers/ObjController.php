@@ -151,6 +151,7 @@ class ObjController extends Controller
             }
 
             $obj = $this->objService->findById($objId);
+            $metaDescription = $this->objService->findMetaDescription($obj);
 
             // Проверяем, найден ли объект
             if (!$obj) {
@@ -160,14 +161,7 @@ class ObjController extends Controller
                 abort(404, 'Object not found');
             }
 
-            $images = $this->imgService->findImgByObjId($objId);
-
-            // Обрабатываем случай, когда изображений нет (это не ошибка)
-            if ($images === null) {
-                $images = collect(); // Возвращаем пустую коллекцию вместо null
-            }
-
-            return view('objects.show', ['obj' => $obj, 'images' => $images]);
+            return view('objects.show', ['obj' => $obj, 'metaDescription' => $metaDescription]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in MapController@show: ' . $e->getMessage(),

@@ -28,6 +28,7 @@ class GroupAddressObjController extends Controller
         try {
             $id = $request->id;
             $result = $this->groupAddressObjService->findSubjectsByGroupId($id);
+            $metaDescription = $this->groupAddressObjService->findMetaDescription($result);
 
             if (!$result['group_details']) {
                 return view('objects.groups.show', [
@@ -52,6 +53,7 @@ class GroupAddressObjController extends Controller
                 'group' => $result['group_details'],
                 'subjs' => $result['subjs'],
                 'nearestObjects' => $nearestObjects,
+                'metaDescription' => $metaDescription,
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::channel('error_file')->error(
@@ -67,7 +69,8 @@ class GroupAddressObjController extends Controller
             return view('objects.groups.show', [
                 'group' => null,
                 'subjs' => [],
-                'error' => 'Ошибка при получении субъектов группы'
+                'error' => 'Ошибка при получении субъектов группы',
+                'metaDescription' => ''
             ]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
@@ -83,7 +86,8 @@ class GroupAddressObjController extends Controller
             return view('objects.groups.show', [
                 'group' => null,
                 'subjs' => [],
-                'error' => 'Произошла внутренняя ошибка сервера'
+                'error' => 'Произошла внутренняя ошибка сервера',
+                'metaDescription' => ''
             ]);
         }
     }

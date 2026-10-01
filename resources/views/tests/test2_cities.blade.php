@@ -327,21 +327,6 @@
                                             <!-- Своё -->
 
                                             <div class="col">
-                                                <div class="p-3 bg-light rounded h-100">
-                                                    <h5 class="fw-semibold mb-3">
-                                                        <i class="bi bi-wine text-danger me-2"></i>
-                                                        Свои фрукты, другое:
-                                                    </h5>
-                                                    @if($data['details_obj']['more'] == 0)
-                                                        <span class="badge bg-success bg-gradient">Разрешён</span>
-                                                    @elseif($data['details_obj']['more'] == 1)
-                                                        <span class="badge bg-danger bg-gradient">Не разрешён</span>
-                                                    @elseif(!empty(explode(':', $data['details_obj']['more'])[0]) == 2)
-                                                        <span class="badge bg-success bg-gradient">Разрешёно за определённую плату</span>
-                                                        <br>
-                                                        <span>{!! explode(':', $data['details_obj']['more'])[1] !!} руб.</span>
-                                                    @endif
-                                                </div>
                                             </div>
                                         </div>
                                         <div style="margin-top: 40px" class="col-md-12 mb-12">

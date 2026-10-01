@@ -27,7 +27,7 @@
             <!-- ЛЕВАЯ ЧАСТЬ: Лого + Город -->
             <div class="flex items-center">
                 <a href="{{ route('front') }}" class="shrink-0 flex items-center">
-                    <img src="{{ asset('icons/restaurant.svg') }}" alt="feast boom" class="h-8 w-auto">
+                    <img src="{{ asset('icons/restaurant.svg') }}" alt="feast boom" class="w-auto">
                 </a>
                 <div class="city-selector ml-4">
                     <button type="button" id="openCityModal" class="city-btn text-sm font-medium text-gray-700 hover:text-red-600">
@@ -55,6 +55,9 @@
                             <x-slot name="content">
                                 <x-dropdown-link :href="route('show.admin_panel')">
                                     Админ панель
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('parser.form')">
+                                    Парсер
                                 </x-dropdown-link>
                             </x-slot>
                         </x-dropdown>

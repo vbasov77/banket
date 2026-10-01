@@ -23,7 +23,7 @@ class DetailsObj extends Migration
             $table->json('kitchen')->nullable(); // Кухня
             $table->json('service')->nullable();
             $table->string('alcohol')->nullable(); // Пробковый сбор: 0=запрещено, 1=разрешено, -X=цена
-            $table->string('more')->nullable(); // Дополнительно: 0=запрещено, 1=разрешено, -X=цена
+            $table->json('bring_with_you')->nullable(); // Можно принести с собой
             $table->json('payment_methods')->nullable(); // Способы оплаты
             $table->integer('service_fee')->nullable(); // Сервисный сбор
             $table->string('description')->nullable();

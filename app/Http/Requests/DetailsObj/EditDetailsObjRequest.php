@@ -21,29 +21,22 @@ class EditDetailsObjRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id' => ['required', 'integer'],
             'obj_id' => ['required', 'integer', 'exists:objs,id'],
-            'service' => ['required', 'array', 'min:1'],
-            'service.*' => [
-                'string',
-                'in:Ведущий/Тамада,Диджей,Живая музыка,Фотограф/Видеооператор,Аниматоры,Украшение зала,Оформление фотозоны,Воздушные шары,Звуковое оборудование,Световое оборудование,Проекционное оборудование,Трансфер для гостей,Выездная регистрация,Фейерверк/Салют'
-            ],
+            'service' => ['nullable', 'array', 'min:1'],
+            'service.*' => ['string', 'max:1000'],
             'for_events' => ['required', 'array', 'min:1'],
-            'for_events.*' => [
-                'string',
-                'in:Свадьба,День рождения,Корпоратив,Выпускной,Детский праздник,Фуршет,Мальчишник/Девичник'
-            ],
-            'kitchen' => ['required', 'array'],
+            'for_events.*' => ['string', 'max:1000'],
+            'kitchen' => ['nullable', 'array'],
             'kitchen.*' => ['string', 'max:50'],
-            'alcohol' => 'required|in:0,1,2',
+            'alcohol' => 'nullable|in:0,1,2',
             'alcohol_price' => 'nullable|numeric|min:0|max:100000',
-            'more' => 'required|in:0,1,2',
-            'more_price' => 'nullable|numeric|min:0|max:100000',
-            'payment_methods' => ['required', 'array', 'min:1'],
-            'payment_methods.*' => ['string', 'in:Наличные,Карта,Перевод'],
+            'payment_methods' => ['nullable', 'array', 'min:1'],
+            'payment_methods.*' => ['string', 'max:1000'],
             'service_fee' => 'nullable|numeric|min:0',
-            'description' => ['required', 'string', 'min:10', 'max:150'],
-            'text_obj' => ['required', 'string', 'min:10', 'max:10000'],
+            'description' => ['nullable', 'string', 'min:10', 'max:1500'],
+            'text_obj' => ['nullable', 'string', 'min:10', 'max:10000'],
+            'bring_with_you' => ['nullable', 'array'],
+            'bring_with_you.*' => ['string', 'max:1000'],
         ];
     }
 
@@ -56,11 +49,10 @@ class EditDetailsObjRequest extends FormRequest
             'service' => 'Сервис',
             'alcohol_status' => 'Пробковый сбор (статус)',
             'alcohol_price' => 'Цена пробкового сбора',
-            'more_status' => 'Дополнительно (статус)',
-            'more_price' => 'Цена дополнительных услуг',
             'payment_methods' => 'Способ оплаты',
             'service_fee' => 'Сервисный сбор',
             'text_obj' => 'Описание',
+            'bring_with_you' => 'Можно принести с собой',
         ];
     }
 

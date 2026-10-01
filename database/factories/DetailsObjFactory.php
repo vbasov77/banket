@@ -24,7 +24,6 @@ class DetailsObjFactory extends Factory
             'kitchen' => $this->getRandomSubset($kitchenTypes, 1, 3),
             'service' => $this->getRandomSubset($serviceTypes, 1, 3),
             'alcohol' => '2:5',
-            'more' => '2:5',
             'payment_methods' => $this->getRandomSubset($paymentMethods, 1, 2),
             'text_obj' => $this->faker->realText(200),
         ];

@@ -46,7 +46,6 @@ class SearchController extends Controller
                     'for_events' => session('for_events'),
                     'district' => session('district'),
                     'per_person' => session('per_person'),
-                    'features' => session('features'),
                 ]
             ]);
         } catch (\Exception $e) {
@@ -60,7 +59,6 @@ class SearchController extends Controller
                         'for_events' => session('for_events'),
                         'district' => session('district'),
                         'per_person' => session('per_person'),
-                        'features' => session('features'),
                     ]
                 ]
             );
@@ -79,7 +77,6 @@ class SearchController extends Controller
                         'for_events' => session('for_events'),
                         'district' => session('district'),
                         'per_person' => session('per_person'),
-                        'features' => session('features'),
                     ]
                 ]
             ], 500);
@@ -183,7 +180,6 @@ class SearchController extends Controller
                 'district' => [],
                 'per_person' => null,
                 'capacity_to' => null,
-                'features' => [],
             ]);
 
             // 3. Явно регенерируем ID сессии (опционально, для полной очистки)
@@ -192,12 +188,10 @@ class SearchController extends Controller
             // 4. Проверяем, что данные действительно удалены
             $isSelectedFiltersEmpty = empty(session('selected_filters'));
             $isForEventsEmpty = empty(session('for_events'));
-            $isFeaturesEmpty = empty(session('features'));
             $isDistrictEmpty = empty(session('district'));
 
             $allCleared = $isSelectedFiltersEmpty &&
                 $isForEventsEmpty &&
-                $isFeaturesEmpty &&
                 $isDistrictEmpty;
 
             // Если какие‑то данные не удалились, логируем это
@@ -211,7 +205,6 @@ class SearchController extends Controller
                             'district' => session('district'),
                             'per_person' => session('per_person'),
                             'capacity_to' => session('capacity_to'),
-                            'features' => session('features'),
                         ]
                     ]
                 );
@@ -230,7 +223,6 @@ class SearchController extends Controller
                         'district' => session('district'),
                         'per_person' => session('per_person'),
                         'capacity_to' => session('capacity_to'),
-                        'features' => session('features'),
                     ]
                 ]
             );

@@ -1,9 +1,19 @@
 <?php
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\AddressSubjController;
+use App\API\Controllers\Auth\AuthTokenController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AddressController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\ParserABController;
+use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\AppController;
+use App\Http\Controllers\Auth\RoleSelectionController;
 use App\Http\Controllers\CityController;
 use App\Http\Controllers\CityDistrictController;
+use App\Http\Controllers\CookieController;
+use App\Http\Controllers\CookiePolicyController;
+use App\Http\Controllers\DataObjController;
 use App\Http\Controllers\DetailsObjController;
 use App\Http\Controllers\ErrorController;
 use App\Http\Controllers\FavoriteController;
@@ -11,44 +21,28 @@ use App\Http\Controllers\FrontController;
 use App\Http\Controllers\GroupAddressObjController;
 use App\Http\Controllers\ImgObjController;
 use App\Http\Controllers\ImgSubjController;
+use App\Http\Controllers\MailController;
 use App\Http\Controllers\MapPointController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\MetroController;
 use App\Http\Controllers\ObjController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SubjController;
 use App\Http\Controllers\TestController;
 use App\Http\Controllers\UserVkController;
+use App\Http\Controllers\ZagsController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\RoleSelectionController;
-use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\ZagsController;
-use App\Http\Controllers\MessageController;
-use App\Http\Controllers\MetroController;
-use App\Http\Controllers\CookiePolicyController;
-use App\Http\Controllers\CookieController;
-use App\Http\Controllers\MailController;
-use App\Http\Controllers\Admin\AdminUserController;
-use App\Http\Controllers\AccountController;
-use App\API\Controllers\Auth\AuthTokenController;
-use App\Http\Controllers\AppController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\AddressController;
+use App\Http\Controllers\ObjFeaturesController;
+use App\Http\Controllers\Admin\AdminObjController;
+use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\ActionController;
 
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
+Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Auth::routes(['verify' => true]);
-
 
 Route::get('/', [FrontController::class, 'show'])->name("front");
 
@@ -76,6 +70,17 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('admin')->group(function () {
+
+    Route::get('/sitemap/regenerate', [SitemapController::class, 'regenerate'])->name('sitemap.regenerate');
+
+    Route::get('/admin/show_obj', [AdminObjController::class, 'findById'])->name('admin.find_id');
+    Route::get('/admin/obj{id}', [AdminObjController::class, 'show'])->name('admin.show_obj');
+    Route::get('/admin/obj', [AdminObjController::class, 'show'])->name('admin.show_obj');
+
+    Route::get('/parser_ab', [ParserABController::class, 'form'])->name('parser.form');
+    Route::post('/parser', [ParserABController::class, 'parse'])->name('parser.parse');
+    Route::post('/parser/save', [ParserABController::class, 'store'])->name('parser.save');
+
     Route::get('/reports', [ReportController::class, 'index'])->name('reports');
     Route::get('/reports_clear', [ReportController::class, 'clearDb'])->name('reports.clear');
 
@@ -99,6 +104,32 @@ Route::middleware('admin')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::get('/action/create', [ActionController::class, 'create'])->name('action.create');
+    Route::post('/action', [ActionController::class, 'store'])->name('action.store');
+    Route::get('/action/edit', [ActionController::class, 'edit'])->name('action.edit');
+    Route::put('/action', [ActionController::class, 'update'])->name('action.update');
+    Route::delete('/action', [ActionController::class, 'destroy'])->name('action.destroy');
+
+    Route::get('/obj_features/create/{id}', [ObjFeaturesController::class, 'createObjFeatures'])
+        ->name('create.obj_features');
+    Route::post('/obj_features/store', [ObjFeaturesController::class, 'storeObjFeatures'])
+        ->name('store.obj_features');
+    Route::get('/obj_features/edit/{id}', [ObjFeaturesController::class, 'editObjFeatures'])
+        ->name('edit.obj_features');
+    Route::put('/obj_features/update/{id}', [ObjFeaturesController::class, 'updateObjFeatures'])
+        ->name('update.obj_features');
+
+    Route::get('/create_data_obj', [DataObjController::class, 'create'])->name('create.data_obj');
+    Route::post('/store_data_obj', [DataObjController::class, 'store'])->name('store.data_obj');
+    Route::get('/{restaurant}/edit', [DataObjController::class, 'edit'])->name('edit.data_obj');
+    Route::patch('/update_data_obj{restaurant}', [DataObjController::class, 'update'])->name('update.data_obj');
+    Route::delete('/destroy_data_obj{restaurant}', [DataObjController::class, 'destroy'])->name('destroy.data_obj');
+
+    // Залы
+    Route::get('/{restaurant}/halls', [DataObjController::class, 'halls'])->name('halls');
+    Route::post('/{restaurant}/halls', [DataObjController::class, 'hallsStore'])->name('halls.store');
+
+
     Route::post('/add-fcm-token', [AuthTokenController::class, 'saveFcmToken']);
 
     Route::get('/address/suggest', [AddressController::class, 'suggest'])->name('address.suggest');

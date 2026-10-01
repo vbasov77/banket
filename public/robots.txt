@@ -1,2 +1,5 @@
 User-agent: *
 Disallow:
+
+Sitemap: https://feast-boom.ru/sitemap.xml
+

@@ -227,34 +227,6 @@
                                     </select>
                                 </div>
                             </div>
-                            <!-- Особенности: select multiple с прокруткой (как районы) -->
-                            <div class="filter-group">
-                                <h4>Особенности</h4>
-
-                                @php
-                                    $featuresList = [
-                                        'У воды'                  => 'У воды',
-                                        'За городом'              => 'За городом',
-                                        'Подарки за бронирование' => 'Подарки за бронирование',
-                                        'Можно свои б/а напитки'  => 'Можно свои б/а напитки',
-                                        'Без пробкового сбора'    => 'Без "пробкового" сбора',
-                                        'Выездная регистрация'    => 'Выездная регистрация',
-                                        'Музыкальное оборудование' => 'Музыкальное оборудование',
-                                    ];
-                                @endphp
-
-                                <select name="features[]" multiple class="form-select" size="{{ min(count($featuresList), 7) }}">
-                                    <option value="">Любые особенности</option>
-                                    @foreach ($featuresList as $value => $label)
-                                        <option value="{{ $value }}"
-                                                @if(in_array($value, (array)old('features', session('selected_filters.features', [])))) selected @endif>
-                                            {{ $label }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <small class="text-muted">Зажмите Ctrl/Cmd и кликайте, чтобы выбрать несколько особенностей.</small>
-                            </div>
-
                         </div>
 
 

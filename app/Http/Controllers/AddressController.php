@@ -61,14 +61,25 @@ class AddressController extends Controller
 
             $result = [];
             foreach ($suggestions as $item) {
+                $dataItem = $item['data'] ?? [];
+
+                // ВАЖНО: добавляем street_type, который нужен фронтенду
+                $streetType = $dataItem['street_type'] ?? '';
+                $streetName = $dataItem['street'] ?? '';
+
+                // Опционально: можно сразу склеить на бэкенде, если не хочешь делать это на JS
+                // $streetFull = $streetType ? "{$streetType} {$streetName}" : $streetName;
+
                 $result[] = [
-                    'value' => $item['value'] ?? '',
-                    'city' => $item['data']['city'] ?? $item['data']['settlement'] ?? '',
-                    'area' => $item['data']['city_district'] ?? $item['data']['area'] ?? '',
-                    'street' => $item['data']['street'] ?? '',
-                    'house' => $item['data']['house'] ?? '',
-                    'lat' => $item['data']['geo_lat'] ?? null,
-                    'lon' => $item['data']['geo_lon'] ?? null,
+                    'value'          => $item['value'] ?? '',
+                    'city'           => $dataItem['city'] ?? $dataItem['settlement'] ?? '',
+                    'area'           => $dataItem['city_district'] ?? $dataItem['area'] ?? '',
+                    'street'         => $streetName,
+                    'street_type'    => $streetType, // <-- ЭТОГО НЕ ХВАТАЛО
+                    // 'street_full'  => $streetFull,  // можно добавить, если хочешь
+                    'house'          => $dataItem['house'] ?? '',
+                    'lat'            => $dataItem['geo_lat'] ?? null,
+                    'lon'            => $dataItem['geo_lon'] ?? null,
                 ];
             }
 

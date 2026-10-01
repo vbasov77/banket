@@ -58,7 +58,7 @@
          }"
                                                value="{{old('minimum_cost') }}"
                                                class="form-control"
-                                               placeholder="Минимальная сумма" autocomplete="off" required>
+                                               placeholder="Минимальная сумма" autocomplete="off">
                                         <br>
                                     </div>
                                 </td>
@@ -116,7 +116,7 @@
            setTimeout(() => this.style.borderColor = '', 1000);
          } else {
            this.style.borderColor = '';
-         }"                                               placeholder="Вместимость на фуршет до" autocomplete="off" required>
+         }"                                               placeholder="Вместимость на фуршет до" autocomplete="off">
                                         <br>
                                     </div>
                                 </td>
@@ -222,53 +222,7 @@
                         <table class="styled-table">
                             <tr>
                                 <td style="width: 49%">
-                                    <div>
-                                        <label for="features"><b>Особенности:</b></label>
-                                        <div class="checkbox-group">
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="У воды">
-                                                <span class="checkmark"></span>
-                                                У воды
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="За городом">
-                                                <span class="checkmark"></span>
-                                                За городом
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Подарки за бронирование">
-                                                <span class="checkmark"></span>
-                                                Подарки за бронирование
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Можно свои б/а напитки">
-                                                <span class="checkmark"></span>
-                                                Можно свои б/а напитки
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Без пробкового сбора">
-                                                <span class="checkmark"></span>
-                                                Без "пробкового" сбора
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Выездная регистрация">
-                                                <span class="checkmark"></span>
-                                                Выездная регистрация
-                                            </label>
-                                            <label class="checkbox-container">
-                                                <input name="features[]" class="features" type="checkbox"
-                                                       value="Музыкальное оборудование">
-                                                <span class="checkmark"></span>
-                                                Музыкальное оборудование
-                                            </label>
-                                        </div>
-                                    </div>
+
                                 </td>
                                 <td style="width: 49%">
                                     <div>
@@ -287,11 +241,9 @@
                         </table>
                         <br>
                         <div>
-                            <label for="text_subj"><b>Описание:</b></label><br>
-                            <textarea class="form-control  @error('text_subj') is-invalid @enderror"
-                                      placeholder="Введите текст..." name="text_subj"
-                                      id="text_subj"
-                                      rows="5" cols="85"> {{old('text_subj')}}</textarea><br>
+                            <label for="features"><b>Особенности:</b></label><br>
+                            <textarea class="form-control" placeholder="Введите текст..." name="features" id="features"
+                                      rows="5" cols="85"> {{old('features')}}</textarea><br>
                         </div>
                         <br>
                         <br>
@@ -311,15 +263,6 @@
             for (var i = 0; i < checkboxSiteType.length; i++) {
                 if (oldSiteTypeArray.includes(checkboxSiteType[i].value)) {
                     checkboxSiteType[i].checked = true;
-                }
-            }
-
-            var checkboxFeatures = document.getElementsByClassName('features');
-            const oldFeatures = @json(old('features'));
-
-            for (var i = 0; i < checkboxFeatures.length; i++) {
-                if (oldFeatures.includes(checkboxFeatures[i].value)) {
-                    checkboxFeatures[i].checked = true;
                 }
             }
         }

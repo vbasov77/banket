@@ -102,22 +102,16 @@ class DetailsObjController extends Controller
             $obj = $this->detailsObjService->findById($request->id);
 
             $alcoholData = null;
-            $moreData = null;
 
             if ($obj && isset($obj->alcohol)) {
                 $alcoholData = $this->parseJsonValue($obj->alcohol);
             }
 
-            if ($obj && isset($obj->more)) {
-                $moreData = $this->parseJsonValue($obj->more);
-            }
 
             return view('details_obj.edit', [
                 'obj' => $obj,
                 'alcoholValue' => $alcoholData['value'] ?? null,
                 'alcoholPrice' => $alcoholData['price'] ?? null,
-                'moreValue' => $moreData['value'] ?? null,
-                'morePrice' => $moreData['price'] ?? null
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::channel('error_file')->error(
@@ -134,7 +128,6 @@ class DetailsObjController extends Controller
                 [
                     'input_data' => [
                         'alcohol' => $obj->alcohol ?? null,
-                        'more' => $obj->more ?? null
                     ],
                     'obj_id' => $obj?->id ?? null,
                     'user_id' => auth()->id()
@@ -145,8 +138,6 @@ class DetailsObjController extends Controller
                 'obj' => $obj ?? null,
                 'alcoholValue' => null,
                 'alcoholPrice' => null,
-                'moreValue' => null,
-                'morePrice' => null,
                 'error' => 'Ошибка при обработке данных объекта'
             ]);
         } catch (\Exception $e) {
@@ -164,8 +155,6 @@ class DetailsObjController extends Controller
                 'obj' => $obj ?? null,
                 'alcoholValue' => null,
                 'alcoholPrice' => null,
-                'moreValue' => null,
-                'morePrice' => null,
                 'error' => 'Произошла внутренняя ошибка сервера'
             ]);
         }
@@ -216,6 +205,7 @@ class DetailsObjController extends Controller
         try {
             $data = $request->validated();
             $this->detailsObjService->update($data);
+
             return redirect()->route('my.obj');
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::channel('error_file')->error(

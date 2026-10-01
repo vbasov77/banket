@@ -94,12 +94,9 @@ class DetailsObjService extends Service
 
             $alcoholValue = $data['alcohol'] ?? null;
             $alcoholPrice = $data['alcohol_price'] ?? 0;
-            $moreValue = $data['more'] ?? null;
-            $morePrice = $data['more_price'] ?? 0;
 
             // Валидация типов данных
-            if (!is_numeric($alcoholValue) || !is_numeric($alcoholPrice) ||
-                !is_numeric($moreValue) || !is_numeric($morePrice)) {
+            if (!is_numeric($alcoholValue) || !is_numeric($alcoholPrice)) {
                 throw new InvalidArgumentException('Некорректный тип данных для полей alcohol/more или цен');
             }
 
@@ -110,13 +107,7 @@ class DetailsObjService extends Service
             }
             $data['alcohol'] = $alcoholJson;
 
-            $moreJson = (string)$moreValue;
-            if ((int)$moreValue === 2 && (float)$morePrice > 0) {
-                $moreJson .= ':' . (float)$morePrice;
-            }
-            $data['more'] = $moreJson;
-
-            unset($data['more_price'], $data['alcohol_price']);
+            unset($data['alcohol_price']);
 
             return $data;
         } catch (\Exception $e) {
