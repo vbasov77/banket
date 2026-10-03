@@ -645,14 +645,26 @@
         <script>
             window.favStore = '{{ route("favorites_subj.store", ["id" => $subj["subj_id"]]) }}';
             window.favDestroy = '{{ route("favorites_subj.destroy", ["id" => $subj["subj_id"]]) }}';
+
         </script>
     @endauth
-
+    <script>
+        window.clickPhone = '{{ route('click_phone.store', ['id' => $subj['subj_id']]) }}';
+    </script>
     <script>
         document.getElementById('phone-display')?.addEventListener('click', function () {
             const phone = this.dataset.phone;
             this.textContent = phone || 'Телефон не указан';
             this.classList.remove('text-primary');
+            // отправляем клик в бэк
+            fetch(window.clickPhone, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                },
+                keepalive: true
+            }).catch(() => {});
         });
     </script>
 

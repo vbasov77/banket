@@ -5,20 +5,26 @@ namespace App\Services;
 
 
 use App\Models\Ip;
+use App\Repositories\ClickPhoneRepository;
 use App\Repositories\ReportRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Log;
 
 class ReportService extends Service
 {
-    private $reportRepository;
+    private ReportRepository $reportRepository;
+    private ClickPhoneRepository $clickPhoneRepository;
 
-
-
-    public function __construct()
+    /**
+     * @param ReportRepository $reportRepository
+     * @param ClickPhoneRepository $clickPhoneRepository
+     */
+    public function __construct(ReportRepository $reportRepository, ClickPhoneRepository $clickPhoneRepository)
     {
-        $this->reportRepository = new ReportRepository();
+        $this->reportRepository = $reportRepository;
+        $this->clickPhoneRepository = $clickPhoneRepository;
     }
+
 
     public function findArrayDaysWeek(): string
     {
@@ -35,6 +41,71 @@ class ReportService extends Service
 
         return implode(',', $days);
     }
+
+
+    public function findPhoneClicks14Days(): string
+    {
+        try {
+            $startDate = now()->subDays(13)->startOfDay(); // 14 дней: сегодня + 13 назад
+            $endDate   = now();
+
+            $rows = $this->clickPhoneRepository->findPhoneClicksByDay($startDate, $endDate);
+
+            $counts = array_fill(0, 14, 0);
+
+            foreach ($rows as $day => $cnt) {
+                $dayOffset = (int) now()->startOfDay()->diffInDays(
+                    \Carbon\Carbon::parse($day)->startOfDay()
+                );
+
+                if ($dayOffset >= 0 && $dayOffset <= 13) {
+                    $counts[$dayOffset] = (int) $cnt;
+                }
+            }
+
+            // реверс, как в findIps: слева — самый старый день
+            return implode(',', array_reverse($counts));
+
+        } catch (QueryException $e) {
+            Log::channel('error_file')->error(
+                'SQL ошибка в ReportService@findPhoneClicks14Days: ' . $e->getMessage(),
+                [
+                    'sql_query' => $e->getSql(),
+                    'bindings'  => $e->getBindings(),
+                ]
+            );
+            return '';
+        } catch (\Exception $e) {
+            Log::channel('error_file')->error(
+                'Ошибка в ReportService@findPhoneClicks14Days: ' . $e->getMessage(),
+                [
+                    'exception_class' => get_class($e),
+                    'trace'           => $e->getTraceAsString(),
+                ]
+            );
+            return '';
+        }
+    }
+
+    /**
+     * Подписи 14 дней в том же формате: 'd.m Пн'.
+     */
+    public function findArrayDays14(): string
+    {
+        $format  = 'd.m';
+        $daySec  = 86400;
+        $weekDays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+        $startTime = strtotime(date('d.m.Y', strtotime('-13 day')));
+
+        $days = [];
+        for ($i = 0; $i < 14; $i++) {
+            $ts = $startTime + ($i * $daySec);
+            $days[] = date($format, $ts) . ' ' . $weekDays[date('N', $ts) - 1];
+        }
+
+        return implode(',', $days);
+    }
+
 
     /**
      * @return string
@@ -87,24 +158,10 @@ class ReportService extends Service
         try {
             $startDate = now()->subDays(7);
 
-            // 1. Считаем, сколько планируем удалить (опционально, можно убрать, если не нужно логировать план)
-            $plannedCount = Ip::where('created_at', '<', $startDate)->count();
-
-            if ($plannedCount === 0) {
-                return 0;
-            }
-
             // 2. Массовое удаление ОДНИМ запросом (быстро и надежно)
             $deletedCount = Ip::where('created_at', '<', $startDate)->delete();
 
-            Log::channel('info_file')->info('Очистка IP-логов', [
-                'planned' => $plannedCount,
-                'actual_deleted' => $deletedCount,
-                'cutoff_date' => $startDate->toDateTimeString(),
-            ]);
-
             return $deletedCount;
-
         } catch (QueryException $e) {
             // Ошибка БД (нет прав, таблица заблокирована и т.д.)
             Log::channel('error_file')->error(

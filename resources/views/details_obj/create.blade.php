@@ -80,6 +80,36 @@
                                                 <span class="checkmark"></span>
                                                 Смешенная
                                             </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Средиземноморская">
+                                                <span class="checkmark"></span>
+                                                Средиземноморская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Французская">
+                                                <span class="checkmark"></span>
+                                                Французская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Греческая">
+                                                <span class="checkmark"></span>
+                                                Греческая
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Испанская">
+                                                <span class="checkmark"></span>
+                                                Испанская
+                                            </label>
+                                            <label class="checkbox-container">
+                                                <input name="kitchen[]" class="kitchen" type="checkbox"
+                                                       value="Турецкая">
+                                                <span class="checkmark"></span>
+                                                Турецкая
+                                            </label>
                                         </div>
                                     </div>
                                 </td>
@@ -453,7 +483,7 @@
                         </table>
                         <br>
                         <div class="mb-4">
-                            <label for="description" class="form-label fw-bold">Описание объекта (до 150 символов)</label>
+                            <label for="description" class="form-label fw-bold">Описание коротко (до 150 символов)</label>
                             <textarea
                                     name="description"
                                     id="description"

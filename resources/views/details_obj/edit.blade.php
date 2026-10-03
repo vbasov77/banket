@@ -46,7 +46,7 @@
                                     <div>
                                         <label><b>Кухня:</b></label>
                                         <div class="checkbox-group">
-                                            @foreach (['Русская','Кавказская', 'Китайская', 'Японская', 'Азиатская','Европейская', 'Паназиатская', 'Смешенная'] as $k)
+                                            @foreach (['Русская','Кавказская', 'Китайская', 'Японская', 'Азиатская','Европейская', 'Паназиатская', 'Смешенная', 'Средиземноморская', 'Французская', 'Греческая', 'Испанская', 'Турецкая'] as $k)
                                                 <label class="checkbox-container">
                                                     <input name="kitchen[]" class="kitchen" type="checkbox"
                                                            value="{{ $k }}"
@@ -190,7 +190,7 @@
 
                         <br>
                         <div class="mb-4">
-                            <label for="description" class="form-label fw-bold">Описание объекта (до 150 символов)</label>
+                            <label for="description" class="form-label fw-bold">Описание коротко (до 150 символов)</label>
                             <textarea name="description" id="description" class="form-control" rows="4"
                                       maxlength="150"
                                       placeholder="Например: банкетный зал на 120 гостей, панорамные окна, своя кухня"

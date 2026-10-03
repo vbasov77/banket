@@ -51,6 +51,7 @@ class EditDetailsObjRequest extends FormRequest
             'alcohol_price' => 'Цена пробкового сбора',
             'payment_methods' => 'Способ оплаты',
             'service_fee' => 'Сервисный сбор',
+            'description' => 'Описание коротко',
             'text_obj' => 'Описание',
             'bring_with_you' => 'Можно принести с собой',
         ];

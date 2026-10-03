@@ -218,7 +218,7 @@ class ObjService extends Service
      * @return int|null
      * @throws AuthenticationException
      */
-    public function findIdObjByUserId(): ?int
+    public function findIdsObjByUserId(): ?array
     {
         try {
             // Проверка авторизации пользователя
@@ -226,9 +226,9 @@ class ObjService extends Service
                 throw new AuthenticationException('Пользователь не авторизован');
             }
 
-            $objId = $this->objRepository->findIdObjByUserId();
+            $objIds = $this->objRepository->findIdsObjByUserId();
 
-            return $objId;
+            return $objIds;
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'SQL ошибка в ObjService@findIdObjByUserId: ' . $e->getMessage(),
@@ -250,6 +250,11 @@ class ObjService extends Service
             );
             throw $e;
         }
+    }
+
+    public function findObjsByIds(array $ids)
+    {
+        return $this->objRepository->findObjsByIds($ids);
     }
 
 
@@ -358,6 +363,7 @@ class ObjService extends Service
 
         return trim($metaDescription);
     }
+
 
 }
 

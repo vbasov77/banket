@@ -4,7 +4,7 @@
     margin: 20px 0 0 0;
     max-width: 100%;
     width: 100%;
-    overflow: hidden; /* Ограничиваем содержимое внутри wrapper */
+    overflow: hidden;
 }
 
 /* Контейнер с горизонтальной прокруткой */
@@ -12,15 +12,13 @@
     display: block;
     overflow-x: auto;
     scroll-behavior: smooth;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     width: 100%;
     padding: 5px;
-    white-space: nowrap; /* Запрещаем перенос элементов */
-    -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* Скрытие скроллбара во всех браузерах */
 .carousel::-webkit-scrollbar {
     height: 6px;
     background: #f1f1f1;
@@ -36,35 +34,67 @@
 .carousel-content {
     display: flex;
     flex-wrap: nowrap;
-    gap: 16px; /* Расстояние между слайдами (должно совпадать с this.gap в JS) */
-    padding: 0 80px; /* Отступы для кнопок навигации */
+    gap: 16px;
+    padding: 0 10px;
     margin: 0 auto;
+    width: max-content;
 }
 
-/* Стили для слайдов */
+/* === КАРТОЧКА В КАРУСЕЛИ (мульти-залы) === */
+/* Фиксированная ширина, не процент — процент от max-content не работает */
+.restaurant-card {
+    flex: 0 0 300px;
+    min-width: 0;
+    max-width: 85vw;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+/* Картинки внутри карточки */
+.restaurant-image img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px;
+}
+
+/* Текст не растягивает карточку */
+.district-text,
+.metro-station-item {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* === ОБОЧЁРТКА ДЛЯ ФОТО В ОДИНОЧНОЙ КАРУСЕЛИ === */
+.carousel-item-wrapper {
+    flex-shrink: 0;
+}
+
+/* === СЛАЙДЫ С ФОТО (одиночный зал) === */
 .item-carousel {
     display: block;
-    min-width: 350px; /* Минимальная ширина слайда */
+    min-width: 0;
+    width: 300px;
+    max-width: 85vw;
     height: 230px;
     object-fit: cover;
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    flex-shrink: 0; /* Запрещаем сжатие слайдов */
+    flex-shrink: 0;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     will-change: transform;
     cursor: pointer;
 }
 
 .item-carousel:hover {
-    /*transform: scale(1.05);*/
     box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
-    /*z-index: 1;*/
 }
 
-/* Кнопки навигации — изначально скрыты */
+/* Кнопки навигации */
 .carousel-prev,
 .carousel-next {
-    display: none; /* Скрыты по умолчанию */
+    display: none;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
@@ -81,48 +111,45 @@
     transition: all 0.3s ease;
 }
 
-/* Позиционирование кнопок */
-.carousel-prev {
-    left: 15px;
-}
+.carousel-prev { left: 15px; }
+.carousel-next { right: 15px; }
 
-.carousel-next {
-    right: 15px;
-}
-
-/* Эффекты при наведении на кнопки */
 .carousel-prev:hover,
 .carousel-next:hover {
     background: rgba(255, 255, 255, 1);
     transform: translateY(-50%) scale(1.1);
 }
 
-/* Показываем кнопки при наличии класса visible */
 .carousel-prev.visible,
 .carousel-next.visible {
-    display: flex; /* Показываем кнопку */
+    display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* Дополнительные стили для лучшей доступности */
 .carousel-prev:focus,
 .carousel-next:focus {
     outline: 2px solid #007bff;
     outline-offset: 2px;
 }
 
-/* Адаптивность для мобильных устройств */
+/* === АДАПТИВНОСТЬ === */
+
 @media (max-width: 768px) {
     .carousel-content {
         gap: 12px;
-        padding: 0 50px; /* Уменьшаем отступы для кнопок на мобильных */
+        padding: 0 10px;
     }
 
     .item-carousel {
-        min-width: 330px;
-        width: 330px;
+        width: 280px;
+        max-width: 80vw;
         height: 248px;
+    }
+
+    .restaurant-card {
+        flex: 0 0 280px;
+        max-width: 80vw;
     }
 
     .carousel-prev,
@@ -133,16 +160,20 @@
     }
 }
 
-/* Для очень маленьких экранов */
 @media (max-width: 480px) {
     .carousel-content {
         gap: 8px;
-        padding: 0 20px;
+        padding: 0 5px;
     }
 
     .item-carousel {
-        min-width: 280px;
-        width: 280px;
+        width: 260px;
+        max-width: 85vw;
         height: 210px;
+    }
+
+    .restaurant-card {
+        flex: 0 0 260px;
+        max-width: 85vw;
     }
 }

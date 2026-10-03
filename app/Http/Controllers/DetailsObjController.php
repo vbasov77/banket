@@ -30,24 +30,36 @@ class DetailsObjController extends Controller
     /**
      * @return View
      */
-    public function create(): View
+    public function create(Request $request): View|RedirectResponse
     {
-        $detailsId = DB::table('objs')->where('user_id', Auth::id())->leftJoin('details_obj', 'objs.id', '=', 'details_obj.obj_id')->value('details_obj.id');
+        $id = $request->id;
+        // Проверка прав — объект принадлежит пользователю
+        $obj = Obj::findOrFail($id);
+        if (!$obj->isAuthor()) {
+            return redirect()->route('unauthorized')->with([
+                'error' => 'У вас нет прав для добавления деталей',
+            ]);
+        }
+
+        // Проверяем, есть ли уже details_obj для этого объекта
+        $detailsId = DB::table('details_obj')
+            ->where('obj_id', $id)
+            ->value('id');
+
         if ($detailsId) {
             return view('details_obj.error', ['id' => $detailsId]);
         }
 
         try {
-            $obj = $this->objService->findObjByUserId();
             return view('details_obj.create', ['obj' => $obj]);
         } catch (\Illuminate\Database\QueryException $e) {
-            Log::channel('error_file')->error('Database error in ObjController@create', [
+            Log::channel('error_file')->error('Database error in DetailsObjController@create', [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode(),
             ]);
             abort(500, 'Произошла ошибка при загрузке данных. Пожалуйста, попробуйте позже.');
         } catch (\Exception $e) {
-            Log::channel('error_file')->critical('Unexpected error in ObjController@create', [
+            Log::channel('error_file')->critical('Unexpected error in DetailsObjController@create', [
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
@@ -62,16 +74,32 @@ class DetailsObjController extends Controller
      */
     public function store(CreateDetailsObjRequest $request): RedirectResponse|View
     {
-        $detailsId = DB::table('objs')->where('user_id', Auth::id())->leftJoin('details_obj', 'objs.id', '=', 'details_obj.obj_id')->value('details_obj.id');
+        $objId = $request->input('obj_id');
+
+        // Проверка прав
+        $obj = Obj::find($objId);
+        if (!$obj || !$obj->isAuthor()) {
+            return redirect()->route('unauthorized')->with([
+                'error' => 'У вас нет прав для выполнения этого действия',
+            ]);
+        }
+
+        // Проверяем, есть ли уже details_obj для этого объекта
+        $detailsId = DB::table('details_obj')
+            ->where('obj_id', $objId)
+            ->value('id');
+
         if ($detailsId) {
             return view('details_obj.error', ['id' => $detailsId]);
         }
 
         try {
             $data = $request->validated();
+            $data['obj_id'] = $objId;
+
             $this->detailsObjService->store($data);
 
-            return redirect()->route('create.subj');
+            return redirect()->route('my.obj');
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Ошибка в DetailsObjController@store: ' . $e->getMessage(),
@@ -84,7 +112,6 @@ class DetailsObjController extends Controller
                 ]
             );
 
-            // Возвращаем ответ с ошибкой
             return redirect()
                 ->back()
                 ->withErrors(['error' => 'Произошла ошибка при сохранении данных'])

@@ -114,6 +114,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Obj::class, 'user_id');
     }
 
+    public function objs()
+    {
+        return $this->hasMany(Obj::class, 'user_id');
+    }
+
+    public function myObjIds(): array
+    {
+        return Obj::where('user_id', $this->id)->pluck('id')->toArray();
+    }
+
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
@@ -122,6 +132,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasRole(string $roleName): bool
     {
         return $this->role?->name === $roleName;
+    }
+
+    public function getMaxObjects(): int
+    {
+        return 10;
     }
 
 }

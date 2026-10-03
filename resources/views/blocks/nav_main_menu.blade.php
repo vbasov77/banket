@@ -229,7 +229,6 @@
 <!-- Выдвигающаяся навигация слева -->
 <nav class="sidebar navi" id="sidebar">
     <div class="logo-container">
-
         <center>
             @if(!empty($data['id']))
                 <a title="Загрузить новое" href="{{ route('edit.img_obj', ['id' => $data['id']]) }}" class="logo-link">
@@ -243,18 +242,18 @@
                      class="circular-logo">
             @endif
         </center>
-
-
     </div>
     <!-- Кнопка закрытия (крестик) -->
     <button class="close-btn" id="closeBtn">×</button>
 
     <ul class="nav-list">
+        <li><a class="dropdown-item" href="{{ route('create.obj') }}">Добавить объект</a></li>
         @if(!empty($data['details_obj']['id']))
             @if(empty($data['obj_features']))
                 <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить особенности</a></li>
             @endif
             <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить субъект</a></li>
+
         @endif
         @if(!empty($data['id']))
             <li class="text-white">

@@ -13,14 +13,14 @@ use Illuminate\View\View;
 
 class ReportController extends Controller
 {
-    private $reportService;
+    private ReportService $reportService;
 
     /**
      * ReportController constructor.
      */
-    public function __construct()
+    public function __construct(ReportService $reportService)
     {
-        $this->reportService = new ReportService();
+        $this->reportService = $reportService;
     }
 
 
@@ -30,13 +30,17 @@ class ReportController extends Controller
             $dataWeek = $this->reportService->findIps();
             $week = $this->reportService->findArrayDaysWeek();
 
+            $dataPhone = $this->reportService->findPhoneClicks14Days();
+            $days14 = $this->reportService->findArrayDays14();
+
             return view('reports.index', [
-                'week' => $week,
-                'dataWeek' => $dataWeek,
+                'week'      => $week,
+                'dataWeek'  => $dataWeek,
+                'days14'    => $days14,
+                'dataPhone' => $dataPhone,
             ]);
 
         } catch (\Exception $e) {
-            // Логируем ошибку в твой канал
             Log::channel('error_file')->error(
                 'Ошибка в ReportController@index: ' . $e->getMessage(),
                 [
@@ -45,10 +49,11 @@ class ReportController extends Controller
                 ]
             );
 
-            // Возвращаем страницу с пустым набором данных и сообщением об ошибке
             return view('reports.index', [
-                'week' => [],
-                'dataWeek' => [],
+                'week'      => [],
+                'dataWeek'  => [],
+                'days14'    => [],
+                'dataPhone' => [],
                 'error_message' => 'Не удалось загрузить данные отчёта. Попробуйте позже.',
             ]);
         }

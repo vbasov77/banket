@@ -14,6 +14,8 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('messages:delete-old')->daily()->timezone('Europe/Moscow');
         $schedule->command('sitemap:generate')->daily();
+        $schedule->command('click-phone:prune')->dailyAt('04:00');
+        $schedule->command('reports:clear-ip')->dailyAt('04:10');
     }
 
     /**

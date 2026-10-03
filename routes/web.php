@@ -40,6 +40,8 @@ use App\Http\Controllers\ObjFeaturesController;
 use App\Http\Controllers\Admin\AdminObjController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ActionController;
+use App\Http\Controllers\ClickPhoneController;
+
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Auth::routes(['verify' => true]);
@@ -70,6 +72,8 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('admin')->group(function () {
+    Route::post('/subjects/{id}/phone-click', [ClickPhoneController::class, 'store'])
+        ->name('click_phone.store');
 
     Route::get('/sitemap/regenerate', [SitemapController::class, 'regenerate'])->name('sitemap.regenerate');
 
@@ -162,10 +166,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/edit_obj/id{id}', [ObjController::class, 'edit'])->name("obj.edit")->middleware('ensureRole:admin,restaurateur');
     Route::post('/store_obj', [ObjController::class, 'store'])->name("store.obj")->middleware('ensureRole:admin,restaurateur');
     Route::post('/update_obj', [ObjController::class, 'update'])->name("update.obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/my-objects', [ObjController::class, 'myObjects'])->name('my.objects')->middleware('ensureRole:admin,restaurateur');
+    Route::get('/my-obj/{id}', [ObjController::class, 'viewObj'])->name('obj.view')->middleware('ensureRole:admin,restaurateur');
+    Route::get('/my-objects/{id}/delete', [ObjController::class, 'deleteConfirm'])->name('obj.delete_confirm');
+    Route::delete('/my-objects/{id}/delete', [ObjController::class, 'destroy'])->name('obj.destroy');
 
     Route::post('/update_details_obj', [DetailsObjController::class, 'update'])->name("update.details_obj")->middleware('ensureRole:admin,restaurateur');
     Route::post('/store_details_obj', [DetailsObjController::class, 'store'])->name("store.details_obj")->middleware('ensureRole:admin,restaurateur');
-    Route::get('/create_details_obj', [DetailsObjController::class, 'create'])->name("create.details_obj")->middleware('ensureRole:admin,restaurateur');
+    Route::get('/create_details_obj/{id}', [DetailsObjController::class, 'create'])->name("create.details_obj")->middleware('ensureRole:admin,restaurateur');
     Route::get('/edit_details_obj/id{id}', [DetailsObjController::class, 'edit'])->name("edit.details_obj")->middleware('ensureRole:admin,restaurateur');
 
     Route::get('/create_subj', [SubjController::class, 'create'])->name("create.subj")->middleware('ensureRole:admin,restaurateur');
