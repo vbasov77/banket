@@ -30,13 +30,15 @@
         <div class="container-fluid">
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-lg-9 indexTable">
-                    <br>
                     <canvas id="weekday" width="600" height="300"></canvas>
-                    <br>
-                    <br>
+                    <br><br>
+                    <canvas id="phoneClicks" width="600" height="300"></canvas>
+
+                    <br><br>
                     <a href="{{route('reports.clear')}}" class="btn btn-outline-danger btn-sm">
                         Очистить базу
                     </a>
+                    <br><br>
 
                 </div>
             </div>
@@ -46,8 +48,12 @@
         <script>
             var week = @json($week);
             var dataWeek = @json($dataWeek);
+            var days14 = @json($days14);
+            var dataPhone = @json($dataPhone);
         </script>
         <script src="{{ asset('js/chart/chart.min.js') }}" defer></script>
         <script src="{{ asset('js/chart/weekday.js') }}" defer></script>
+        <script src="{{ asset('js/chart/phone_clicks.js') }}" defer></script>
+
     @endpush
 @endsection

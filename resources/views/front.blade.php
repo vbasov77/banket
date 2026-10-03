@@ -3,49 +3,69 @@
 @section('content')
 
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
-    <link href="{{ asset('css/details/details.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/front.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/parallax/parallax.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/carousel/carousel.css') }}" rel="stylesheet">
     <style>
+        /* ========== DETAILS ========== */
+        .details {
+            padding: 5px;
+            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
         .details-title {
-            white-space: nowrap; /* Запрещаем перенос строк */
-            overflow: hidden; /* Скрываем выходящий за границы текст */
-            text-overflow: ellipsis; /* Добавляем многоточие в конце обрезанного текста */
-            width: 100%; /* Занимаем всю доступную ширину родителя */
-        }
-
-        .dimmed-card {
-            opacity: 0.6;
-        }
-
-
-        .district-with-icon {
-            display: block;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: #555;
-            line-height: 1.4;
+            margin: 0 0 12px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
         }
 
         .details-info h3.details-title {
-            margin-bottom: 4px; /* чуть плотнее к району */
+            margin-bottom: 4px;
         }
 
-        .details-title {
-            margin: 0 0 0 0;
+        .details-info {
+            display: grid;
+            gap: 8px;
+            padding: 15px;
         }
 
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .detail-label {
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .price {
+            color: #e74c3c;
+            font-weight: 600;
+            letter-spacing: -0.2px;
+        }
+
+        /* ========== LOCATION FLOW ========== */
         .location-flow {
             font-size: 13px;
             color: #555;
-            line-height: 0.7;
+            line-height: 1.4;
             margin-bottom: 14px;
-
             white-space: normal;
             word-wrap: break-word;
             overflow-wrap: break-word;
-
             display: flex;
             flex-wrap: wrap;
             align-items: flex-start;
@@ -54,35 +74,172 @@
 
         .district-text {
             white-space: nowrap;
-            flex-shrink: 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         .metro-inline-icon {
-            /*display: inline-block;*/
             vertical-align: middle;
             flex-shrink: 0;
         }
 
         .metro-station-item {
             white-space: nowrap;
-            flex-shrink: 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
-        .metro-separator {
-            flex-shrink: 0;
+        /* ========== CAROUSEL ========== */
+        .carousel-wrapper {
+            position: relative;
+            margin: 20px 0 0 0;
+            max-width: 100%;
+            width: 100%;
+            overflow: hidden;
         }
 
-        .d-flex.flex-wrap {
-            line-height: 1.2;
-            font-size: 15px;
+        .carousel {
+            display: block;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .carousel::-webkit-scrollbar {
+            height: 6px;
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .carousel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        .carousel-content {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 16px;
+            padding: 0 10px;
+            margin: 0 auto;
+            width: max-content;
+        }
+
+        .carousel-prev,
+        .carousel-next {
+            display: none;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .carousel-prev { left: 15px; }
+        .carousel-next { right: 15px; }
+
+        .carousel-prev:hover,
+        .carousel-next:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .carousel-prev.visible,
+        .carousel-next.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .carousel-prev:focus,
+        .carousel-next:focus {
+            outline: 2px solid #007bff;
+            outline-offset: 2px;
+        }
+
+        /* ========== КАРТОЧКА В КАРУСЕЛИ ========== */
+        .restaurant-card {
+            flex: 0 0 380px;
+            min-width: 0;
+            max-width: 85vw;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+            overflow: hidden;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f0f0;
+        }
+
+        .restaurant-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        .restaurant-image {
+            overflow: hidden;
+            border-radius: 8px 8px 0 0;
+            background: #f8f9fa;
+        }
+
+        .restaurant-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .carousel-item-wrapper {
+            flex-shrink: 0;
+            width: 380px;
+            max-width: 85vw;
+        }
+
+        .item-carousel {
+            display: block;
+            width: 100%;
+            height: 230px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            transition: box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .item-carousel:hover {
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .one .carousel {
+            height: auto;
+        }
+
+        /* ========== PAGE STYLES ========== */
+        .dimmed-card {
+            opacity: 0.6;
         }
 
         .descriptionBoom {
             padding: 20px;
-        }
-
-        .bi-fork-knife {
-            font-size: 25px;
         }
 
         .festival {
@@ -90,17 +247,45 @@
         }
 
         .festival:hover {
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0); /* Чуть более тёмная тень при наведении */
-            /*transform: translateY(-1px);*/
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0);
             border-color: #4facf5;
         }
 
-        @media (max-width: 767px) {
+        .front-btn {
+            float: right;
+            position: relative;
+        }
+
+        /* ========== АДАПТИВ ========== */
+        @media (max-width: 768px) {
+            .carousel-content {
+                gap: 12px;
+                padding: 0 10px;
+            }
+
             .restaurant-card {
-                min-width: unset;
-                flex-shrink: 0;
-                flex-basis: 99%;
-                max-width: 99%;
+                flex: 0 0 290px;
+                max-width: 80vw;
+            }
+
+            .restaurant-image img {
+                height: 180px;
+            }
+
+            .carousel-item-wrapper {
+                width: 290px;
+                max-width: 80vw;
+            }
+
+            .item-carousel {
+                height: 248px;
+            }
+
+            .carousel-prev,
+            .carousel-next {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
             }
 
             .front-body {
@@ -109,6 +294,29 @@
         }
 
         @media (max-width: 480px) {
+            .carousel-content {
+                gap: 8px;
+                padding: 0 5px;
+            }
+
+            .restaurant-card {
+                flex: 0 0 270px;
+                max-width: 85vw;
+            }
+
+            .restaurant-image img {
+                height: 160px;
+            }
+
+            .carousel-item-wrapper {
+                width: 270px;
+                max-width: 85vw;
+            }
+
+            .item-carousel {
+                height: 210px;
+            }
+
             .front-body {
                 font-size: 14px;
             }
@@ -117,30 +325,19 @@
                 padding: 10px;
             }
 
-            .feature-badge {
-                font-size: 10px;
-            }
-
             .carousel-wrapper {
                 margin: 5px 0 0 0;
             }
-
         }
-
     </style>
 
 
     @include('blocks.search')
     @if(!empty($data) && count($data) > 0)
         <div class="relative w-full overflow-hidden flex items-center justify-center">
-            <!-- Фон: карта из public/map.jpg -->
             <div class="absolute inset-0 bg-cover bg-center"
                  style="background-image: url('{{ asset('map/img/map.jpg') }}')"></div>
-
-            <!-- Затемнение (опционально, чтобы текст/кнопка читались лучше) -->
             <div class="absolute inset-0 bg-black/50"></div>
-
-            <!-- Кнопка по центру -->
             <a href="{{ route('map.index') }}"
                class="btn-festive-gradient btn-festive-gradient-white m-3 z-10 px-6 py-3 rounded-lg font-bold text-white shadow-lg hover:scale-105 transition-transform"
                style="width: 70%">
@@ -152,7 +349,7 @@
     @include('blocks.nav')
     <section style="padding-bottom: 50px" class="section">
         <div class="container-fluid d-flex justify-content-center">
-            <div class="col-lg-11 col-sm-12">
+            <div class="col-lg-11 col-12">
                 <div class="row justify-content-center">
 
                     <div style="margin-top: 10px">
@@ -182,16 +379,14 @@
                                                             $subjData = $data[$i]['subjs_data'];
                                                         @endphp
                                                         @for ($j = 0; $j < $countSubj; $j++)
-                                                            <div class="col-12 col-sm-12 col-md-6 col-lg-5 restaurant-card
+                                                            <div class="restaurant-card
     @if(!empty($arrayDistricts) && !in_array($data[$i]['subjs_data'][$j]['district_name'] ?? '', $arrayDistricts))
         dimmed-card
-    @endif"
-                                                                 style="display: block; margin-bottom: 10px;">
+    @endif">
                                                                 <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">
                                                                     <div class="restaurant-image">
                                                                         <img src="{{$data[$i]['subjs_data'][$j]['image_paths'][0]}}"
                                                                              alt="{{ $data[$i]['subjs_data'][$j]['name_subj']}}">
-                                                                        <br>
                                                                     </div>
                                                                 </a>
                                                                 <section>
@@ -199,10 +394,10 @@
                                                                         <div class="details-info">
                                                                             <h3 class="details-title">{{ $data[$i]['subjs_data'][$j]['name_subj'] }}</h3>
 
-                                                                            {{-- Район + метро в одной строке (переносится по словам) --}}
                                                                             <div class="location-flow">
     <span class="district-text">
-        🚩 {{ $data[$i]['subjs_data'][$j]['address'] ?? 'Адрес не указан' }}<br></span>
+        🚩 {{ $data[$i]['subjs_data'][$j]['address'] ?? 'Адрес не указан' }}
+    </span>
                                                                                 <span class="district-text">
         📍 {{ $data[$i]['subjs_data'][$j]['district_name'] ?? 'Район не указан' }}
     </span>
@@ -255,12 +450,8 @@
                                                 </div>
 
                                             </div>
-                                            <button class="carousel-prev">
-                                                ❮
-                                            </button>
-                                            <button class="carousel-next">
-                                                ❯
-                                            </button>
+                                            <button class="carousel-prev">❮</button>
+                                            <button class="carousel-next">❯</button>
                                         </div>
                                         @if(!empty($data[$i]['details_obj']['description']))
                                             <div class="bg-light rounded-10 shadow-sm descriptionBoom">
@@ -283,25 +474,17 @@
                                                                 $countImg = count($dataImg);
                                                             @endphp
                                                             @for ($j = 0; $j < $countImg; $j++)
-                                                                <div
-                                                                        style="display: block; margin-bottom: 10px">
-                                                                    {{--                                                            <a href="{{route('show.subj', ['id' => $data[$i]['subjs_data'][$j]['id']])}}">--}}
-                                                                    <img src="{{$dataImg[$j] . '&cs=360x0'}}"
+                                                                <div class="carousel-item-wrapper">
+                                                                    <img src="{{$dataImg[$j]}}"
                                                                          class="item-carousel"
                                                                          alt="{{ $data[$i]['subjs_data'][0]['name_subj']}}">
-                                                                    {{--                                                            </a>--}}
-
                                                                 </div>
                                                             @endfor
                                                         @endif
                                                     </div>
                                                 </div>
-                                                <button class="carousel-prev">
-                                                    ❮
-                                                </button>
-                                                <button class="carousel-next">
-                                                    ❯
-                                                </button>
+                                                <button class="carousel-prev">❮</button>
+                                                <button class="carousel-next">❯</button>
                                             </div>
                                             <div class="row">
                                                 <div style="vertical-align: middle"
@@ -312,9 +495,11 @@
                                                                 <h3 class="details-title">{{ $data[$i]['subjs_data'][0]['name_subj']}}</h3>
                                                                 <div class="location-flow">
                                                                     <span class="district-text">
-                                                                        🚩 {{ $data[$i]['subjs_data'][0]['address'] ?? 'Адрес не указан' }}</span>
+                                                                        🚩 {{ $data[$i]['subjs_data'][0]['address'] ?? 'Адрес не указан' }}
+                                                                    </span>
                                                                     <span class="district-text">
-        📍 {{ $data[$i]['subjs_data'][0]['district_name'] ?? 'Район не указан' }}    </span>
+        📍 {{ $data[$i]['subjs_data'][0]['district_name'] ?? 'Район не указан' }}
+    </span>
 
                                                                     @if (!empty($data[$i]['subjs_data'][0]['metro_stations']))
                                                                         @php
@@ -328,11 +513,8 @@
   <text x="12" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="13"
         fill="#fff">M</text>
 </svg>
-
-
         </span>
 
-                                                                        {{-- Цикл по индексам --}}
                                                                         @for ($k = 0; $k < $count; $k++)
                                                                             @php
                                                                                 $s = $stations[$k];
@@ -342,16 +524,15 @@
                                                                             @endphp
 
                                                                             <span class="metro-station-item">
-                {{ $name }} ({{ $formattedDist }} км)</span>
+                {{ $name }} ({{ $formattedDist }} км)
+            </span>
                                                                         @endfor
                                                                     @endif
                                                                 </div>
-                                                                <!-- Вместимость -->
                                                                 <div class="detail">
                                                                     <span class="detail-label">Вместимость:</span>
                                                                     <span class="detail-value">до {{ $data[$i]['subjs_data'][0]['capacity_to'] }} чел.</span>
                                                                 </div>
-                                                                <!-- Цена -->
                                                                 <div class="detail">
                                                                     <span class="detail-label">Цена:</span>
                                                                     <span class="detail-value price">
@@ -408,5 +589,4 @@
     </section>
 
     <script src="{{ asset('js/carousels/carousel.js') }}" defer></script>
-    <script src="{{ asset('js/parallax/parallax.js') }}" defer></script>
 @endsection

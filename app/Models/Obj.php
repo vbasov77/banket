@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Obj extends Model
 {
@@ -89,10 +90,16 @@ class Obj extends Model
     /**
      * @return HasOne
      */
-    public function firstImgSubj(): HasOne
+    public function firstImgSubj(): HasOneThrough
     {
-        return $this->hasOne(ImgSubj::class, 'subj_id', 'id')
-            ->orderBy('position', 'asc');
+        return $this->hasOneThrough(
+            ImgBanSubj::class,   // целевая модель (картинка)
+            Subj::class,         // промежуточная модель (субъект)
+            'obj_id',            // FK на subj → obj.id
+            'subj_id',           // FK на img_ban_subj → subj.id
+            'id',                // PK на obj
+            'id'                 // PK на subj
+        )->orderBy('position', 'asc');
     }
 
     /**

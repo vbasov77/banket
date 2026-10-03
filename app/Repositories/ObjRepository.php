@@ -188,6 +188,26 @@ class ObjRepository extends Repository
         return Obj::where('user_id', Auth::user()->id)->value('id');
     }
 
+    public function findIdsObjByUserId(): array
+    {
+        return Obj::where('user_id', Auth::user()->id)
+            ->orderBy('created_at', 'asc')
+            ->pluck('id')
+            ->toArray();
+    }
+
+    public function findObjsByIds(array $ids)
+    {
+        if (empty($ids)) {
+            return collect();
+        }
+
+        return Obj::whereIn('id', $ids)
+            ->with(['firstImgSubj'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+    }
+
     /**
      * @return Obj|null
      */
@@ -296,7 +316,7 @@ class ObjRepository extends Repository
             $builder->where('name_obj', 'LIKE', '%' . trim($searchQuery) . '%');
         }
 
-        $paginated = $builder->paginate(7);
+        $paginated = $builder->paginate(10);
 
         if ($paginated->isEmpty()) {
             return $paginated;

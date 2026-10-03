@@ -289,5 +289,49 @@ class ImgBanSubjService extends Service
         }
     }
 
+    /**
+     * Удаление всех фото объекта и его субъектов через API imageban
+     */
+    public function destroyObjImages(int $objId): void
+    {
+        $ids = collect();
+
+        // photo_id из img_obj — фото самого объекта
+        $ids->push(
+            ImgObj::where('obj_id', $objId)
+                ->whereNotNull('photo_id')
+                ->pluck('photo_id')
+        );
+
+        // big_id из img_ban_subj — большие фото субъектов
+        $ids->push(
+            ImgBanSubj::whereHas('subject', fn($q) => $q->where('obj_id', $objId))
+                ->whereNotNull('big_id')
+                ->pluck('big_id')
+        );
+
+        // small_id из img_ban_subj — малые фото субъектов
+        $ids->push(
+            ImgBanSubj::whereHas('subject', fn($q) => $q->where('obj_id', $objId))
+                ->whereNotNull('small_id')
+                ->pluck('small_id')
+        );
+
+        $photoIds = $ids->flatten()->filter()->unique()->toArray();
+
+        $total = count($photoIds);
+
+        for ($i = 0; $i < $total; $i++) {
+            $id = $photoIds[$i];
+
+            if ($i > 0 && $i % 10 === 0) {
+                usleep(200000);
+            }
+
+            $this->imgBanRepository->delete($id);
+        }
+    }
+
+
 
 }
