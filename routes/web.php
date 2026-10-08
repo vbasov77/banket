@@ -189,6 +189,14 @@ Route::middleware('auth')->group(function () {
         ->name('profile.change-password');
 });
 
+
+
+
+Route::get('/regions', [CityController::class, 'index'])->name('get-regions');
+Route::get('/cities/by-region/{region}', [CityController::class, 'cities'])->name('cities-by-region');
+Route::post('/region/set', [CityController::class, 'setRegion'])->name('set-region');
+
+
 Route::get('/privacy/cookies', [CookiePolicyController::class, 'show'])->name('cookie.policy');
 Route::post('/cookie/accept', [CookieController::class, 'accept'])->name('cookie.accept');
 

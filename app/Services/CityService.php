@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\City;
+use App\Models\Region;
 use App\Models\UserCity;
 use Doctrine\DBAL\Query\QueryException;
 use Illuminate\Database\Eloquent\Collection;
@@ -14,8 +15,6 @@ use Illuminate\Validation\ValidationException;
 
 class CityService
 {
-    const DEFAULT_CITY_ID = 1; // ID Санкт‑Петербурга в базе
-
     /**
      * Получает список всех городов
      */
@@ -134,6 +133,9 @@ class CityService
             Session::forget('selected_filters');
             Session::put('user_city', $cityName);
             Session::put('city_id', $cityId);
+
+            $regionId = City::find($cityId)?->region_id;
+            Session::put('region_ids', $regionId ? [$regionId] : [1, 2]);
             $request->session()->save();
 
             // Если пользователь не авторизован
@@ -245,43 +247,6 @@ class CityService
         }
     }
 
-
-    /**
-     * @return City
-     */
-    public function getUserCity(): City
-    {
-        // Если пользователь авторизован
-        if (Auth::check()) {
-            // Сначала проверяем сессию
-            $cityId = Session::get('user_city');
-
-            if ($cityId) {
-                return City::findOrFail($cityId);
-            }
-
-            // Если в сессии нет — ищем в связующей таблице
-            $userCity = Auth::user()->city()->first();
-            if ($userCity) {
-                // Сохраняем в сессию для будущих запросов
-                Session::put('user_city_id', $userCity->id);
-                return $userCity;
-            }
-        }
-
-        // Для неавторизованных пользователей
-        $cityId = Session::get('guest_city_id');
-        if ($cityId) {
-            return City::findOrFail($cityId);
-        }
-
-        // Устанавливаем Санкт‑Петербург по умолчанию
-        $defaultCity = $this->getDefaultCity();
-        Session::put('guest_city_id', $defaultCity->id);
-        return $defaultCity;
-    }
-
-
     public function findCity(string $query, int $limit = 10): array
     {
         $cleanQuery = trim($query);
@@ -334,41 +299,6 @@ class CityService
         }
     }
 
-    /**
-     * @param int $cityId
-     * @return void
-     */
-    public function setUserCity(int $cityId): void
-    {
-        if (Auth::check()) {
-            $user = Auth::user();
-
-            // Очищаем предыдущие связи и добавляем новую
-            $user->city()->sync([$cityId]);
-
-            // Обновляем сессию
-            Session::put('user_city_id', $cityId);
-        } else {
-            Session::put('guest_city_id', $cityId);
-        }
-    }
-
-    /**
-     * @return City
-     */
-    private function getDefaultCity(): City
-    {
-        return City::findOrFail(self::DEFAULT_CITY_ID);
-    }
-
-    /**
-     * @return Collection
-     */
-    public function getAllCities(): Collection
-    {
-        return City::all();
-    }
-
     public function findUserCity(Request $request)
     {
         if (Auth::check()) {
@@ -380,4 +310,92 @@ class CityService
             }
         }
     }
+
+    public function getCitiesByRegion(Region $region): array
+    {
+        $cities = City::query()
+            ->join('address_subjs', 'address_subjs.city_id', '=', 'cities.id')
+            ->join('subjs', fn($join) => $join
+                ->on('subjs.id', '=', 'address_subjs.subj_id')
+                ->where('subjs.published', 1))
+            ->join('objs', 'objs.id', '=', 'subjs.obj_id')
+            ->where('cities.region_id', $region->id)
+            ->groupBy('cities.id', 'cities.name')
+            ->selectRaw('cities.id, cities.name, COUNT(DISTINCT objs.id) as subjs_count')
+            ->orderByDesc('subjs_count')
+            ->get();
+
+        $single = $cities->count() === 1 ? $cities->first() : null;
+
+        return [
+            'success' => true,
+            'data' => $cities,
+            'needs_city_choice' => $cities->count() > 1,
+            'city' => $single ? ['id' => $single->id, 'name' => $single->name] : null,
+            'http_status' => 200,
+        ];
+    }
+
+    public function getRegions(): array
+    {
+        $regions = Region::query()
+            ->join('cities', 'cities.region_id', '=', 'regions.id')
+            ->join('address_subjs', 'address_subjs.city_id', '=', 'cities.id')
+            ->join('subjs', fn($join) => $join
+                ->on('subjs.id', '=', 'address_subjs.subj_id')
+                ->where('subjs.published', 1))
+            ->join('objs', 'objs.id', '=', 'subjs.obj_id')
+            ->groupBy('regions.id', 'regions.name')
+            ->selectRaw('regions.id, regions.name, COUNT(DISTINCT objs.id) as subjs_count')
+            ->orderByDesc('subjs_count')
+            ->get();
+
+        return ['success' => true, 'data' => $regions, 'http_status' => 200];
+    }
+
+    public function setRegion(Request $request): array
+    {
+        try {
+            $validated = $request->validate([
+                'city_id' => ['required', 'integer', 'exists:cities,id'],
+            ]);
+
+            $city = City::with('region')->findOrFail($validated['city_id']);
+
+            Session::forget('selected_filters');
+            Session::forget('region_ids'); // ключ старой концепции — подчистить
+            Session::put('user_city', $city->name);
+            Session::put('city_id', $city->id);
+            $request->session()->save();
+
+            if (Auth::check()) {
+                UserCity::updateOrCreate(
+                    ['user_id' => Auth::id()],
+                    ['city_id' => $city->id]
+                );
+            }
+
+            return [
+                'success' => true,
+                'data' => [
+                    'city' => $city->name,
+                    'region_name' => $city->region->name,
+                    'user_type' => Auth::check() ? 'user' : 'guest',
+                ],
+                'http_status' => 200,
+            ];
+        } catch (ValidationException $e) {
+            return ['success' => false, 'message' => 'Ошибка валидации', 'errors' => $e->errors(), 'http_status' => 422];
+        } catch (\Throwable $e) {
+            Log::channel('error_file')->error('Ошибка в CityService::setRegion', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return ['success' => false, 'message' => 'Внутренняя ошибка сервера', 'http_status' => 500];
+        }
+    }
+
+
+
+
 }

@@ -48,26 +48,32 @@ class UserCityService extends Service
      */
     public function checkSessionUserCity(Request $request): void
     {
+        // чистим старые сессии: мусорные значения выбрасываем, дефолт выставится ниже
+        $city = session('user_city');
+        if (!is_string($city) || $city === '') {
+            Session::forget('user_city');
+        }
+
         $sessionUserCity = session('user_city');
         $sessionCityId = session('city_id');
+
         if (!$sessionUserCity || !$sessionCityId) {
             if (Auth::check()) {
                 $userCity = $this->findUserCity();
+
                 if ($userCity) {
-                    $idUserCity = $userCity->city_id;
-                    Session::put('user_city', $this->findNameUserCity($idUserCity));
-                    Session::put('city_id', $idUserCity);
-                    $request->session()->save();
+                    Session::put('user_city', $this->findNameUserCity($userCity->city_id));
+                    Session::put('city_id', $userCity->city_id);
                 } else {
                     Session::put('user_city', 'Санкт-Петербург');
                     Session::put('city_id', 1);
-                    $request->session()->save();
                 }
             } else {
                 Session::put('user_city', 'Санкт-Петербург');
                 Session::put('city_id', 1);
-                $request->session()->save();
             }
+            $request->session()->save();
+
         }
     }
 }

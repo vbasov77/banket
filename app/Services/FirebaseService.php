@@ -47,6 +47,14 @@ class FirebaseService
             return [
                 'success' => true,
             ];
+        } catch (NotFound $e) {
+            DB::table('device_tokens')->where('token', $token)->delete();
+
+            Log::channel('info_file')->info('Удалён мёртвый FCM токен', [
+                'token_prefix' => substr($token, 0, 10) . '...',
+            ]);
+
+            return ['success' => false, 'error_message' => 'Token not registered'];
         } catch (\Exception $e) {
             Log::channel('error_file')->error('FCM push failed файлед', [
                 'error_class' => get_class($e),
@@ -147,6 +155,14 @@ class FirebaseService
             $this->messaging->send($message);
 
             return ['success' => true];
+        } catch (NotFound $e) {
+            DB::table('device_tokens')->where('token', $token)->delete();
+
+            Log::channel('info_file')->info('Удалён мёртвый FCM токен', [
+                'token_prefix' => substr($token, 0, 10) . '...',
+            ]);
+
+            return ['success' => false, 'error_message' => 'Token not registered'];
         } catch (\Exception $e) {
             Log::channel('error_file')->error('FCM data-only push failed', [
                 'error_class' => get_class($e),

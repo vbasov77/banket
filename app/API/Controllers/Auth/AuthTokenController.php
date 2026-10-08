@@ -7,6 +7,7 @@ use App\Models\DeviceToken;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class AuthTokenController extends Controller
@@ -22,7 +23,6 @@ class AuthTokenController extends Controller
             'device_model' => ['nullable', 'string', 'max:64'],
         ]);
 
-        Log::channel('info_file')->info([$request->token]);
         $user = Auth::user();
 
         if (!$user) {
@@ -32,16 +32,22 @@ class AuthTokenController extends Controller
             ], 401);
         }
 
-        DeviceToken::updateOrCreate(
-            ['token' => $request->token],
-            [
-                'user_id' => $user->id,
-                'type' => 'fcm',
-                'device_model' => $request->device_model,
-                'is_active' => true,
-                'last_used_at' => now(),
-            ]
-        );
+        // Атомарно: пишем токен в device_tokens и одновременно обновляем users.fcm_token
+        DB::transaction(function () use ($request, $user) {
+            DeviceToken::updateOrCreate(
+                ['token' => $request->token],
+                [
+                    'user_id' => $user->id,
+                    'type' => 'fcm',
+                    'device_model' => $request->device_model,
+                    'is_active' => true,
+                    'last_used_at' => now(),
+                ]
+            );
+
+            $user->fcm_token = $request->token;
+            $user->save();
+        });
 
         return response()->json([
             'status' => 'ok',

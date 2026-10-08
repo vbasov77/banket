@@ -339,7 +339,7 @@
                             <div class="buttons-wrapper">
                                 <div class="button-left">
                                     <button type="reset" class="btn-reset">Сбросить фильтры</button>
-                                    <a href="{{route('show.filters')}}" type="submit" class="btn-reset ml-4">Все фильтры</a>
+                                    <a id="filterActionsBlock" href="{{route('show.filters')}}" type="submit" class="btn-reset ml-4">Все фильтры</a>
                                 </div>
 
                                 <div class="button-right">

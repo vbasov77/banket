@@ -23,7 +23,7 @@
     }
 </style>
 
-<div class="dropdown-container">
+<div class="dropdown-container" id="metroDropdownContainer">
     <button type="button"
             class="btn-festive-gradient btn-festive-gradient-white dropdown-toggle none-shadow"
             id="metroDropdown"
@@ -102,6 +102,13 @@
             }
 
             const metros = data.metros || [];
+
+            if (metros.length === 0) {
+                // прячем именно контейнер метро — ищем его от кнопки вверх
+                metroDropdownBtn.closest('.dropdown-container').style.display = 'none';
+                return;
+            }
+
             let html = '';
 
             if (metros.length === 0) {

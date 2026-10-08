@@ -8,20 +8,7 @@
         <div class="container px-4 px-lg-5">
             <div class="row justify-content-center text-center">
                 <div class="col-xl-8">
-
-                    @if(!empty(session('error')))
-                        <div class="alert alert-danger mt-3">
-                            {{ session('error') }}
-                        </div>
-                    @endif
-
                     {{-- Убрал дублирование с $message — оставь один блок --}}
-                    @if (!empty($message))
-                        <div id="mess" class="mess mb-4"
-                             style="background-color: #43b143; color:#ffffff; padding: 5px; margin: 15px;">
-                            <center>{{ $message }}</center>
-                        </div>
-                    @endif
 
                     <h1 class="mb-4" style="margin-top: 40px;">Мои сообщения</h1>
 

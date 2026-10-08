@@ -18,7 +18,6 @@
     </div>
 </div>
 
-
 <!-- Скрипт 2: Восстановление значений district (множественный выбор) -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -55,6 +54,16 @@
 
         // Отрисовка районов
         function renderDistricts(districts) {
+            if (districts.length <= 1) {
+                document
+                    .getElementById('districtDropdown')
+                    .closest('.dropdown-container')
+                    .style.display = 'none';
+
+                const filterActions = document.getElementById('filterActionsBlock');
+                if (filterActions) filterActions.style.display = 'none';
+                return;
+            }
             if (districts.length === 0) {
                 districtsContainer.innerHTML = '<p class="text-muted px-3">Районы не найдены</p>';
                 return;

@@ -40,6 +40,16 @@
     <!-- Page Content -->
 
     <main class="bg-gray-100">
+        @if(!empty(session('error')))
+            <div class="alert alert-danger mt-3">
+                {!! session('error') !!}
+            </div>
+        @endif
+            @if (!empty($message))
+                <div class="alert alert-success">
+                    {{$message}}
+                </div>
+            @endif
         @yield('content')
     </main>
     <x-cookie-banner />
