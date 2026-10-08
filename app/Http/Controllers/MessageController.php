@@ -38,44 +38,58 @@ class MessageController extends Controller
             return redirect()->back()->with('error', 'Нельзя писать самому себе');
         }
 
-        $paginator = $service->chat($userId, $toUserId, $limit, $page);
+        try {
+            $paginator = $service->chat($userId, $toUserId, $limit, $page);
 
-        $messages = $paginator->getCollection()
-            ->reverse()
-            ->map(function ($message) use ($userId) {
-                $isMine = $message->from_user_id === $userId;
-                return [
-                    'id'           => $message->id,
-                    'from_user_id' => $message->from_user_id,
-                    'to_user_id'   => $message->to_user_id,
-                    'body'         => $message->body,
-                    'status'       => $message->status,
-                    'created_at' => $message->created_at->format('Y-m-d\TH:i:s'),                    'is_mine'      => $isMine,
-                ];
-            })
-            ->values()
-            ->toArray();
+            $messages = $paginator->getCollection()
+                ->reverse()
+                ->map(function ($message) use ($userId) {
+                    $isMine = $message->from_user_id === $userId;
 
-        $name = User::where('id', $toUserId)->value('name');
+                    return [
+                        'id'           => $message->id,
+                        'from_user_id' => $message->from_user_id,
+                        'to_user_id'   => $message->to_user_id,
+                        'body'         => $message->body,
+                        'status'       => $message->status,
+                        'created_at'   => $message->created_at->format('Y-m-d\TH:i:s'),
+                        'is_mine'      => $isMine,
+                    ];
+                })
+                ->values()
+                ->toArray();
 
-        $arrayIds = $this->messageService->getUnreadMessageIdsForChat($userId, $toUserId);
-        if (!empty($arrayIds)) {
-            $this->messageService->changeStatus($arrayIds);
+            $name = User::where('id', $toUserId)->value('name');
 
-            $this->firebaseService->sendToUser($toUserId, 'Сообщение прочитано', [
-                'from_user_id' => (string)$userId,
-                'code'         => '222',
-                'message_ids'  => implode(',', $arrayIds),
+            $arrayIds = $this->messageService->getUnreadMessageIdsForChat($userId, $toUserId);
+            if (!empty($arrayIds)) {
+                $this->messageService->changeStatus($arrayIds);
+
+                $this->firebaseService->sendToUser($toUserId, 'Сообщение прочитано', [
+                    'from_user_id' => (string)$userId,
+                    'code'         => '222',
+                    'message_ids'  => implode(',', $arrayIds),
+                ]);
+            }
+
+            return view('messages.show', [
+                'messages'   => $messages,
+                'pagination' => $paginator,
+                'userId'     => $userId,
+                'toUser'     => $toUserId,
+                'name'       => $name,
             ]);
-        }
+        } catch (\Throwable $e) {
+            Log::channel('error_file')->error('Ошибка отображения чата', [
+                'message'    => $e->getMessage(),
+                'file'       => $e->getFile() . ':' . $e->getLine(),
+                'user_id'    => $userId,
+                'to_user_id' => $toUserId,
+                'trace'      => $e->getTraceAsString(),
+            ]);
 
-        return view('messages.show', [
-            'messages'   => $messages,
-            'pagination' => $paginator,
-            'userId'     => $userId,
-            'toUser'   => $toUserId,
-            'name'       => $name,
-        ]);
+            return redirect()->back()->with('error', 'Произошла ошибка. Попробуйте позже');
+        }
     }
 
 

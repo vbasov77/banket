@@ -14,6 +14,7 @@ use App\Services\SubjService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -41,24 +42,25 @@ class SubjController extends Controller
      */
     public function show(Request $request): View
     {
+        $subj = null;
+        $id = (int)($request->id ?? 0);
+
         try {
-            $id = (int)$request->id;
+            // findOrFail вместо find: нет записи — сразу 404, а не fatal error
+            $subjModel = Subj::with('obj')->findOrFail($id);
 
-            $subjModel = Subj::with('obj')->find($id);
-
-            $subj = $this->subjService->findById($id);
-
-            // Проверка прав доступа через метод модели isAuthor()
-            if (!$subjModel->isAuthor() && !empty($subj['published']) == 0) {
-                Log::channel('error_file')->error('Unauthorized subj edit attempt', [
+            // Неавторизованному не показываем неопубликованное
+            if (!$subjModel->isAuthor() && (int)$subjModel->published !== 1) {
+                Log::channel('error_file')->info('Unauthorized subj view attempt', [
                     'subj_id' => $subjModel->id,
                     'user_id' => auth()->id(),
-                    'model_user_id' => 'null', // Всегда null для Subj
-                    'related_obj_user_id' => $subj->obj->user_id ?? 'null'
+                    'obj_user_id' => $subjModel->obj?->user_id,
                 ]);
 
-                return \view('objects.subjects.error');
+                return view('objects.subjects.error');
             }
+
+            $subj = $this->subjService->findById($id);
 
             $nearestObjects = null;
             if (!empty($subj['longitude'])) {
@@ -69,30 +71,27 @@ class SubjController extends Controller
                 );
             }
 
-            $isAuthorOrAdmin = $this->subjService->canEdit();
-            $metaDescription = $this->subjService->findMetaDescription($subj);
-
             return view('objects.subjects.show', [
-                'isAuthorOrAdmin' => $isAuthorOrAdmin,
+                'isAuthorOrAdmin' => $this->subjService->canEdit(),
                 'subj' => $subj,
-                'metaDescription' => $metaDescription,
-                'nearestObjects' => $nearestObjects
+                'metaDescription' => $this->subjService->findMetaDescription($subj),
+                'nearestObjects' => $nearestObjects,
             ]);
+        } catch (ModelNotFoundException $e) {
+            abort(404); // субъект не найден — корректный ответ, а не ERROR в логе
         } catch (\InvalidArgumentException $e) {
             Log::channel('error_file')->error(
                 'Ошибка координат в SubjController@show: ' . $e->getMessage(),
                 [
-                    'latitude' => $subj['latitude'] ?? null,
-                    'longitude' => $subj['longitude'] ?? null,
-                    'obj_id' => $subj['obj']['obj_id'] ?? null,
-                    'user_id' => auth()->id()
+                    'subj' => $subj,
+                    'user_id' => auth()->id(),
                 ]
             );
 
             return view('objects.subjects.show', [
                 'subj' => $subj,
                 'nearestObjects' => null,
-                'error' => 'Некорректные координаты объекта'
+                'error' => 'Некорректные координаты объекта',
             ]);
         } catch (\Illuminate\Database\QueryException $e) {
             Log::channel('error_file')->error(
@@ -101,14 +100,14 @@ class SubjController extends Controller
                     'sql_query' => $e->getSql(),
                     'bindings' => $e->getBindings(),
                     'input_data' => $request->all(),
-                    'user_id' => auth()->id()
+                    'user_id' => auth()->id(),
                 ]
             );
 
             return view('objects.subjects.show', [
                 'subj' => $subj,
                 'nearestObjects' => null,
-                'error' => 'Ошибка при получении ближайших объектов'
+                'error' => 'Ошибка при получении ближайших объектов',
             ]);
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
@@ -117,14 +116,14 @@ class SubjController extends Controller
                     'input_data' => $request->all(),
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+                    'trace' => $e->getTraceAsString(),
                 ]
             );
 
             return view('objects.subjects.show', [
                 'subj' => $subj,
                 'nearestObjects' => null,
-                'error' => 'Произошла внутренняя ошибка сервера'
+                'error' => 'Произошла внутренняя ошибка сервера',
             ]);
         }
     }

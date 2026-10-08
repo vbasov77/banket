@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AddressSubj;
-use App\Models\GroupAddressObj;
-use App\Models\MapPoint;
 use App\Models\Subj;
 use App\Repositories\AddressSubjRepository;
 use App\Repositories\MapRepository;
@@ -14,12 +12,11 @@ use Illuminate\Foundation\Application;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\Factory;
 use Illuminate\View\View;
-use function Symfony\Component\Translation\t;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class MapPointController extends Controller
 {
@@ -71,6 +68,8 @@ class MapPointController extends Controller
             }
 
             return view('map.show', ['map' => $map]);
+        } catch (HttpException $e) {
+            throw $e; // 400/404 и прочие HTTP-ответы идут как есть
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in MapController@show: ' . $e->getMessage() .

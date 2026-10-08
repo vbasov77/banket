@@ -264,11 +264,7 @@
             <div class="row gx-4 gx-lg-5 justify-content-center">
                 <div class="col-lg-10 mb-5">
                     <br>
-                    @if (!empty($message))
-                        <div class="alert alert-success">
-                            {{$message}}
-                        </div>
-                    @endif
+
 
                     <div class="col-md-12">
                         @if(count($images) > 0)

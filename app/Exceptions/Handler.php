@@ -76,7 +76,7 @@ class Handler extends ExceptionHandler
                     'correlation_id' => (string) \Illuminate\Support\Str::uuid()
                 ], 404);
             }
-//            return response()->view('errors.500', [], 404);
+            return response()->view('errors.404', [], 404);
         });
 
         // 4. Бизнес‑исключения — используем их статус
@@ -126,7 +126,7 @@ class Handler extends ExceptionHandler
             $adminAlertService = new AdminAlertService();
             $adminAlertService->sendMsgToAdmin("Ошибка 500", "Ошибка 500 в логе");
 
-//            return response()->view('errors.500', [], 500);
+            return response()->view('errors.500', [], 500);
         });
     }
 }

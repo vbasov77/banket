@@ -42,6 +42,7 @@ class FrontController extends Controller
      */
     public function show(Request $request): Application|Factory|View|Response
     {
+
         $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 
@@ -68,12 +69,12 @@ class FrontController extends Controller
 
             // Вызываем сервис (он по-прежнему принимает только Request)
             $data = $this->objService->findObjsWithDetails($request);
-
+//            dd(session('user_city'), session('city_id'), session('region_ids'), $data);
             $metaDescription = $this->findMetaDescription($data);
+
 
             // Восстанавливаем исходный запрос (чтобы не ломать другую логику ниже)
             $request->replace($originalInput);
-
             return view('front', [
                 'data' => $data,
                 'message' => $message,
@@ -94,12 +95,15 @@ class FrontController extends Controller
                 'Ошибка в FrontController@show: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+                    'file'  => $e->getFile(),
+                    'line'  => $e->getLine(),
+                    'trace' => $e->getTraceAsString(),
                 ]
             );
             return response()->view('errors.500', [], 500);
         }
     }
+
     private function findMetaDescription(mixed $objData): string
     {
         // Исправленная логика: items() -> collect()
@@ -108,9 +112,16 @@ class FrontController extends Controller
         } else {
             $collection = collect($objData);
         }
+        $city = session('user_city');
+        if (is_array($city)) {
+            $city = implode(' и ', $city);
+        }
+        if (!$city) {
+            $city = 'Санкт-Петербург';
+        }
 
         if ($collection->isEmpty()) {
-            return 'Банкетные залы и рестораны для свадеб, корпоративов и дней рождений в СПб. Бронирование онлайн.';
+            return 'Банкетные залы и рестораны для свадеб, корпоративов и дней рождений в городе ' . $city . '. Бронирование онлайн.';
         }
 
         // Сбор цен и вместимости оставляем — это сильные триггеры
@@ -128,7 +139,7 @@ class FrontController extends Controller
         })->filter()->values();
 
         // Формируем части БЕЗ количества
-        $parts = ['Широкий выбор банкетных залов в Санкт‑Петербурге'];
+        $parts = ['Широкий выбор банкетных залов в городе' . $city];
 
         if ($prices->isNotEmpty()) {
             $min = $prices->min();

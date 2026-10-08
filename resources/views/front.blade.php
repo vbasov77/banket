@@ -1,6 +1,8 @@
+
 @extends('layouts.app', ['title' => "Банкетные залы, Кафе, Рестораны", 'metaDescription' => $metaDescription ?? null])
 
 @section('content')
+
 
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
     <style>
@@ -353,12 +355,6 @@
                 <div class="row justify-content-center">
 
                     <div style="margin-top: 10px">
-                        @if(!empty($message))
-                            <div class="alert alert-success mt-3">
-                                {{$message}}
-                            </div>
-                        @endif
-
                         @if(!empty($data) && count($data) > 0)
                             @php
                                 $counter = 0;

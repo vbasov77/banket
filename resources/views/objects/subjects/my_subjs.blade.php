@@ -242,7 +242,7 @@
                                 <div class="row mt-5">
                                     <div class="col-12 text-center">
                                         <a class="btn-festive-gradient btn-festive-gradient-green"
-                                           href="{{ route('create.details_obj') }}">
+                                           href="{{ route('create.details_obj', ['id' => $data['id']]) }}">
                                             <i class="bi bi-pencil-square me-2"></i>
                                             Добавьте детали объекта
                                         </a>

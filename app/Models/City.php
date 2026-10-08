@@ -30,4 +30,9 @@ class City extends Model
     {
         return $this->belongsToMany(User::class, 'user_city');
     }
+
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
 }

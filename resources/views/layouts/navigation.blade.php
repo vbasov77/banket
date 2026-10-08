@@ -16,6 +16,18 @@
         position: absolute; top: 15px; right: 15px; background: none;
         color: #ff5722; border: none; font-size: 28px; cursor: pointer; line-height: 1;
     }
+    .cities-list { min-width: 260px; }
+    .city-item {
+        padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 14px;
+    }
+    .city-item:hover { background: #f3f4f6; }
+    .city-item.selected { color: #ff5722; font-weight: 600; }
+    .city-item .count { color: #9ca3af; font-weight: 400; margin-left: 4px; }
+    .back-btn {
+        background: none; border: none; color: #ff5722; cursor: pointer;
+        padding: 4px 0 8px; font-size: 14px;
+    }
+    .loading { padding: 8px 12px; color: #9ca3af; font-size: 14px; }
     @media (max-width: 480px) {
         .close-btn { top: 8px; right: 8px; font-size: 20px; }
     }
@@ -31,7 +43,7 @@
                 </a>
                 <div class="city-selector ml-4">
                     <button type="button" id="openCityModal" class="city-btn text-sm font-medium text-gray-700 hover:text-red-600">
-                        {{ session('user_city', 'Санкт-Петербург') }}
+                        {{ session('user_city', '') }}
                     </button>
                 </div>
             </div>
@@ -138,17 +150,23 @@
     </div>
 </nav>
 
-<!-- Модальное окно выбора города -->
+<!-- Модальное окно выбора города: два уровня — регионы, затем города области -->
 <div id="cityModal" class="modal hidden">
     <div class="modal-overlay" onclick="closeCityModal()"></div>
     <div class="modal-content">
         <div class="modal-header">
-            <h3>Выберите город</h3>
+            <h3 id="cityModalTitle">Выберите регион</h3>
             <button type="button" class="close-btn" onclick="closeCityModal()">×</button>
         </div>
         <div class="modal-body">
-            <div class="cities-list" id="citiesList">
-                <div class="loading">Загрузка городов...</div>
+            <!-- Уровень 1: регионы -->
+            <div class="cities-list" id="regionsLevel">
+                <div class="loading">Загрузка регионов...</div>
+            </div>
+            <!-- Уровень 2: города выбранной области -->
+            <div class="cities-list" id="citiesLevel" hidden>
+                <button type="button" class="back-btn" onclick="backToRegions()">← Назад</button>
+                <div id="citiesLevelList"></div>
             </div>
         </div>
     </div>
@@ -156,16 +174,18 @@
 
 <script>
     const cityModalData = {
-        getCitiesUrl: '{{ route("get-cities") }}',
-        setCityUrl: '{{ route("set-city") }}',
-        csrfToken: document.querySelector('meta[name="csrf-token"]').content
+        getRegionsUrl: '{{ route("get-regions") }}',
+        getCitiesUrl: '{{ route("cities-by-region", ["region" => ":id"]) }}',
+        setCityUrl: '{{ route("set-region") }}',
+        csrfToken: document.querySelector('meta[name="csrf-token"]').content,
+        currentCity: '{{ session("user_city", "") }}'
     };
 
     function openCityModal() {
         const modal = document.getElementById('cityModal');
         if (modal) {
             modal.style.display = 'block';
-            loadCities();
+            loadRegions();
         }
     }
 
@@ -174,58 +194,119 @@
         if (modal) modal.style.display = 'none';
     }
 
-    function loadCities() {
-        const citiesList = document.getElementById('citiesList');
-        citiesList.innerHTML = '<div class="loading">Загрузка городов...</div>';
-        fetch(cityModalData.getCitiesUrl)
-            .then(r => r.json())
-            .then(data => renderCities(data.cities));
+    function backToRegions() {
+        document.getElementById('citiesLevel').hidden = true;
+        document.getElementById('regionsLevel').hidden = false;
+        document.getElementById('cityModalTitle').textContent = 'Выберите регион';
     }
 
-    function renderCities(cities) {
-        const currentCity = '{{ session("city", "Санкт-Петербург") }}';
-        const citiesList = document.getElementById('citiesList');
-        citiesList.innerHTML = cities.map(city => `
-            <div class="city-item ${city.name === currentCity ? 'selected' : ''}"
-                data-city-id="${city.id}"
-                data-city-name="${city.name}">
-                ${city.name}
+    function loadRegions() {
+        backToRegions();
+        const regionsList = document.getElementById('regionsLevel');
+        regionsList.innerHTML = '<div class="loading">Загрузка регионов...</div>';
+        fetch(cityModalData.getRegionsUrl)
+            .then(r => r.json())
+            .then(data => renderRegions(data.regions || []))
+            .catch(() => {
+                regionsList.innerHTML = '<div class="loading">Не удалось загрузить регионы</div>';
+            });
+    }
+
+    function renderRegions(regions) {
+        const regionsList = document.getElementById('regionsLevel');
+        if (!regions.length) {
+            regionsList.innerHTML = '<div class="loading">Регионы не найдены</div>';
+            return;
+        }
+        regionsList.innerHTML = regions.map(region => `
+            <div class="city-item ${region.name === cityModalData.currentCity ? 'selected' : ''}"
+                data-region="${region.id}"
+                data-region-name="${region.name}">
+                ${region.name}<span class="count">(${region.subjs_count})</span>
             </div>`
         ).join('');
-        citiesList.addEventListener('click', handleCityClick);
     }
 
-    function handleCityClick(event) {
-        const cityItem = event.target.closest('.city-item');
-        if (cityItem) {
-            selectCity(cityItem.dataset.cityId, cityItem.dataset.cityName);
+    async function handleRegionsClick(event) {
+        const regionItem = event.target.closest('.city-item');
+        if (!regionItem) return;
+
+        const res = await fetch(cityModalData.getCitiesUrl.replace(':id', regionItem.dataset.region));
+        const data = await res.json();
+
+        if (data.needs_city_choice) {
+            // Регион с городами — показываем второй уровень со счётчиками
+            renderCities(data.cities || []);
+        } else if (data.city) {
+            // Регион из одного города (СПб) — выбираем сразу
+            await selectCity(data.city.id, data.city.name);
         }
     }
 
-    function selectCity(cityId, cityName) {
-        fetch(cityModalData.setCityUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': cityModalData.csrfToken
-            },
-            body: JSON.stringify({ city: cityName, city_id: cityId })
-        })
-            .then(() => {
-                document.querySelector('.city-btn').textContent = cityName;
-                closeCityModal();
-                window.location.href = '/';
+    function renderCities(cities) {
+        document.getElementById('regionsLevel').hidden = true;
+        const citiesLevel = document.getElementById('citiesLevel');
+        citiesLevel.hidden = false;
+        document.getElementById('cityModalTitle').textContent = 'Выберите город';
+
+        const list = document.getElementById('citiesLevelList');
+        if (!cities.length) {
+            list.innerHTML = '<div class="loading">В этом регионе пока нет заведений</div>';
+            return;
+        }
+        list.innerHTML = cities.map(city => `
+            <div class="city-item ${city.name === cityModalData.currentCity ? 'selected' : ''}"
+                data-city="${city.id}"
+                data-city-name="${city.name}">
+                ${city.name}<span class="count">(${city.subjs_count})</span>
+            </div>`
+        ).join('');
+    }
+
+    async function handleCitiesClick(event) {
+        const cityItem = event.target.closest('.city-item');
+        if (cityItem) {
+            await selectCity(cityItem.dataset.city, cityItem.dataset.cityName);
+        }
+    }
+
+    async function selectCity(cityId, cityName) {
+        try {
+            const res = await fetch(cityModalData.setCityUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': cityModalData.csrfToken
+                },
+                body: JSON.stringify({ city_id: Number(cityId) })
             });
+
+            if (!res.ok) {
+                alert('Не удалось сохранить выбор города');
+                return;
+            }
+
+            document.querySelector('.city-btn').textContent = cityName;
+            closeCityModal();
+            window.location.href = '/';
+        } catch (e) {
+            alert('Не удалось сохранить выбор города');
+        }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
         const openButton = document.getElementById('openCityModal');
         if (openButton) openButton.addEventListener('click', openCityModal);
 
+        // Слушатели вешаем один раз, а не при каждом рендере
+        document.getElementById('regionsLevel').addEventListener('click', handleRegionsClick);
+        document.getElementById('citiesLevelList').addEventListener('click', handleCitiesClick);
+
         document.addEventListener('click', e => {
             const modal = document.getElementById('cityModal');
-            const openButton = document.getElementById('openCityModal');
-            if (modal && !modal.contains(e.target) && openButton !== e.target) {
+            if (modal && modal.style.display === 'block'
+                && !modal.contains(e.target)
+                && !openButton.contains(e.target)) {
                 closeCityModal();
             }
         });

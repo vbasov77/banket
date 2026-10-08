@@ -15,6 +15,11 @@ class UserCity extends Model
 
     protected $fillable = [
         'user_id',
-        'city_id'
+        'city_id',
+        'region_ids',
+    ];
+
+    protected $casts = [
+        'region_ids' => 'array',
     ];
 }
