@@ -10,6 +10,7 @@ use App\Models\CatalogCategory;
 use App\Models\Performer;
 use App\Models\PerformerPhoto;
 use App\Services\PerformerService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -119,9 +120,9 @@ class PerformerRequestController extends Controller
     }
 
     /**
-     * @return CatalogCategory
+     * @return Collection
      */
-    private function activeCategories(): CatalogCategory
+    private function activeCategories(): Collection
     {
         return CatalogCategory::where('published', 1)
             ->orderBy('position')
