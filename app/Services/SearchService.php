@@ -39,7 +39,6 @@ class SearchService extends Service
             Log::channel('error_file')->error(
                 'Database query error in SearchService@searchResults: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'filters' => $request->all(),
                     'sql' => $e->getSql()
                 ]
@@ -49,7 +48,6 @@ class SearchService extends Service
             Log::channel('error_file')->error(
                 'Unexpected error in SearchService@searchResults: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'filters' => $request->all()
                 ]
             );
@@ -80,8 +78,8 @@ class SearchService extends Service
                 'Error in SearchService@searchByName',
                 [
                     'message' => $e->getMessage(),
-                    'trace'   => $e->getTraceAsString(),
-                    'query'   => $query ?? '',
+
+                    'query' => $query ?? '',
                 ]
             );
 
@@ -89,7 +87,6 @@ class SearchService extends Service
             return new \Illuminate\Pagination\LengthAwarePaginator([], 0, 7);
         }
     }
-
 
 
 }

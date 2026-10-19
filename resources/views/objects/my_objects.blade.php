@@ -8,13 +8,6 @@
         <div class="container px-4">
             <div class="row">
                 <div class="col-12">
-                    @if(!empty($error))
-                        <div class="alert alert-danger">{{ $error }}</div>
-                    @endif
-                    @if(!empty($message))
-                        <div class="alert alert-success">{{ $message }}</div>
-                    @endif
-
                     <div class="row mb-4">
                         <div class="col-12">
                             <h1 class="section-title display-5">Мои объекты</h1>

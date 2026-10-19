@@ -35,8 +35,7 @@
             </p>
 
             <div class="d-flex gap-2 justify-content-center">
-                <a href="{{ url('/') }}" class="btn btn-primary px-4">На главную</a>
-                <a href="{{ url('/maps') }}" class="btn btn-outline-secondary px-4">Карта</a>
+                <a href="{{ url('/') }}" class="btn-festive-gradient btn-festive-gradient-blue px-4">На главную</a>
             </div>
         </div>
     </div>

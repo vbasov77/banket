@@ -80,7 +80,7 @@ class ObjController extends Controller
                 [
                     'user_id' => $userId ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             abort(500, 'Внутренняя ошибка сервера');
@@ -149,7 +149,7 @@ class ObjController extends Controller
                     'input_data' => $request->validated(),
                     'user_id' => $user->id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                 ]
             );
 
@@ -188,7 +188,7 @@ class ObjController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in MapController@show: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown']
+                ['obj_id' => $request->id ?? 'unknown']
             );
             abort(500, 'Internal server error');
         }
@@ -225,7 +225,7 @@ class ObjController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in ObjectsController@edit: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $objId ?? 'unknown']
+                ['obj_id' => $objId ?? 'unknown']
             );
             abort(500, 'Internal server error');
         }
@@ -254,13 +254,13 @@ class ObjController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in ObjectsController@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown', 'sql' => $e->getSql()]
+                ['obj_id' => $request->id ?? 'unknown', 'sql' => $e->getSql()]
             );
             return redirect()->route('my.obj')->with('error', 'Database error occurred while updating object');
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in ObjectsController@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $request->id ?? 'unknown']
+                ['obj_id' => $request->id ?? 'unknown']
             );
             return redirect()->route('my.obj')->with('error', 'An error occurred while updating object');
         }
@@ -320,7 +320,6 @@ class ObjController extends Controller
             Log::channel('error_file')->error(
                 'Error in Controller@myObj: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'user_id' => Auth::user()->id ?? 'guest',
                 ]
             );
@@ -359,7 +358,7 @@ class ObjController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in Controller@viewObj: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'user_id' => Auth::id()]
+                [ 'user_id' => Auth::id()]
             );
 
             return view('objects.subjects.my_subjs', [

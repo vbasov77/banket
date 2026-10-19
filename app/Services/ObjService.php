@@ -59,7 +59,7 @@ class ObjService extends Service
                 [
                     'input_data' => $data,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -129,13 +129,13 @@ class ObjService extends Service
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in ObjService@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
+                ['obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
             );
             throw $e;
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Unexpected error in ObjService@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'data' => $data]
+                ['obj_id' => $id, 'data' => $data]
             );
             throw $e;
         }
@@ -187,7 +187,7 @@ class ObjService extends Service
                 'Ошибка в ObjService@findObjsWithDetails: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -245,7 +245,7 @@ class ObjService extends Service
                 [
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -272,13 +272,13 @@ class ObjService extends Service
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in ObjService@findByIdOnlyObj: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql()]
+                ['obj_id' => $id, 'sql' => $e->getSql()]
             );
             throw $e;
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Unexpected error in ObjService@findByIdOnlyObj: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id]
+                ['obj_id' => $id]
             );
             throw $e;
         }
@@ -309,7 +309,6 @@ class ObjService extends Service
             Log::channel('error_file')->error(
                 'Database query error in ObjService@findMySubjs: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'obj_id' => $objId,
                     'sql' => $e->getSql()
                 ]
@@ -319,7 +318,6 @@ class ObjService extends Service
             Log::channel('error_file')->error(
                 'Error in ObjService@findMySubjs: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'obj_id' => $objId
                 ]
             );

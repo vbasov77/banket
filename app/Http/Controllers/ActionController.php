@@ -83,7 +83,6 @@ class ActionController extends Controller
             Log::channel('error_file')->error('ActionController@store: ошибка создания акции', [
                 'obj_id' => $objId,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()
@@ -167,7 +166,6 @@ class ActionController extends Controller
             Log::channel('error_file')->error('ActionController@update: ошибка обновления акции', [
                 'obj_id' => $objId,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()
@@ -214,7 +212,6 @@ class ActionController extends Controller
                 Log::channel('error_file')->error('ActionController@destroy: ошибка удаления акции', [
                     'obj_id' => $objId,
                     'exception' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                 ]);
 
                 return redirect()

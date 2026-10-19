@@ -100,7 +100,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
     <div class="map-container">
-        <div id="map" style="height: 450px; width: 100%;"></div>
+        <div id="map" style="height: 80vh; width: 100%;"></div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

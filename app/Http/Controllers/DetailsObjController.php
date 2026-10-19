@@ -108,7 +108,7 @@ class DetailsObjController extends Controller
                     'exception_code' => $e->getCode(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine(),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
 
@@ -174,7 +174,7 @@ class DetailsObjController extends Controller
                     'input_data' => $request->all(),
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
 
@@ -291,7 +291,7 @@ class DetailsObjController extends Controller
                     'input_data' => $data ?? $request->all(),
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             return redirect()

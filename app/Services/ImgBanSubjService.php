@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Models\ImgBanSubj;
 use App\Models\ImgObj;
+use App\Models\Performer;
+use App\Models\PerformerPhoto;
 use App\Repositories\ImgBanRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -173,51 +175,64 @@ class ImgBanSubjService extends Service
                 [
                     'img_subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
         }
     }
 
-    public function destroyWithProfile(int $userId)
+    public function destroyWithProfile(int $userId): void
     {
-        $ids = collect();
+        // 1. Собираем ID картинок для очистки хранилища (imgBanRepository)
+        $imageIdsToDelete = collect();
 
-        // photo_id из img_obj
-        $ids->push(
+        $imageIdsToDelete->push(
             ImgObj::whereHas('obj', fn($q) => $q->where('user_id', $userId))
                 ->pluck('photo_id')
         );
-        // big_id из img_ban_subj
-        $ids->push(
+
+        $imageIdsToDelete->push(
             ImgBanSubj::whereHas('subject.obj', fn($q) => $q->where('user_id', $userId))
                 ->whereNotNull('big_id')
                 ->pluck('big_id')
         );
 
-        // small_id из img_ban_subj
-        $ids->push(
+        $imageIdsToDelete->push(
             ImgBanSubj::whereHas('subject.obj', fn($q) => $q->where('user_id', $userId))
                 ->whereNotNull('small_id')
                 ->pluck('small_id')
         );
 
-        $photoIds = $ids->flatten()->filter()->toArray();
-
-        $total = count($photoIds);
-
-        for ($i = 0; $i < $total; $i++) {
-            $id = $photoIds[$i];
-
-            // (опционально) пауза, чтобы не упереться в лимиты API
-            if ($i > 0 && $i % 10 === 0) {
-                usleep(200000); // 0.2 сек каждые 10 запросов
-            }
-
-            $this->imgBanRepository->delete($id);
+        // Сюда можно добавить big_id/small_id из performer_photos, если они хранят ID картинок
+        $performerIds = Performer::where('user_id', $userId)->pluck('id');
+        if ($performerIds->isNotEmpty()) {
+            $imageIdsToDelete->push(
+                PerformerPhoto::whereIn('performer_id', $performerIds)
+                    ->whereNotNull('big_id')
+                    ->pluck('big_id')
+            );
+            $imageIdsToDelete->push(
+                PerformerPhoto::whereIn('performer_id', $performerIds)
+                    ->whereNotNull('small_id')
+                    ->pluck('small_id')
+            );
         }
 
+        $allImageIds = $imageIdsToDelete->flatten()->filter()->toArray();
+
+        // 2. Удаляем строки из performer_photos одним запросом
+        if ($performerIds->isNotEmpty()) {
+            PerformerPhoto::whereIn('performer_id', $performerIds)->delete();
+        }
+
+        // 3. Очищаем хранилище картинок (цикл нужен только здесь)
+        foreach ($allImageIds as $index => $id) {
+            if ($index > 0 && $index % 10 === 0) {
+                usleep(200000);
+            }
+            $this->imgBanRepository->delete($id);
+        }
     }
 
     public function getAllImageBanIds()
@@ -282,7 +297,7 @@ class ImgBanSubjService extends Service
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Исключение при сборе ID фото', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+
             ]);
 
             return null;
@@ -319,19 +334,8 @@ class ImgBanSubjService extends Service
 
         $photoIds = $ids->flatten()->filter()->unique()->toArray();
 
-        $total = count($photoIds);
+        $this->imgBanRepository->cycleDel($photoIds);
 
-        for ($i = 0; $i < $total; $i++) {
-            $id = $photoIds[$i];
-
-            if ($i > 0 && $i % 10 === 0) {
-                usleep(200000);
-            }
-
-            $this->imgBanRepository->delete($id);
-        }
     }
-
-
 
 }

@@ -145,7 +145,7 @@ class UserVkController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             Log::channel('error_file')->error('Database error saving VK user data', [
                 'exception_message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+
                 'vk_user_id' => $request->input('user_id'),
                 'internal_user_id' => Auth::id(),
                 'timestamp' => now()->toDateTimeString()
@@ -157,7 +157,7 @@ class UserVkController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Unexpected error saving VK user data', [
                 'exception_message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+
                 'vk_user_id' => $request->input('user_id'),
                 'internal_user_id' => Auth::id(),
                 'timestamp' => now()->toDateTimeString()

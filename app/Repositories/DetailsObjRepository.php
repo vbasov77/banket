@@ -37,7 +37,7 @@ class DetailsObjRepository extends Repository
                 [
                     'requested_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -77,7 +77,7 @@ class DetailsObjRepository extends Repository
                 [
                     'update_data' => $data,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

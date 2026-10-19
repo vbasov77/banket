@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Models\CatalogCategory;
 use App\Models\Subj;
 use App\Models\Obj;
 use App\Models\GroupAddressObj;
+use App\Models\Performer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -45,7 +47,28 @@ class GenerateSitemap extends Command
                 ->map(fn ($group) => $baseUrl . '/show_group/id' . $group->id)
                 ->all();
 
-            $urls = array_merge($urls, $objUrls, $subjUrls, $groupUrls);
+            // Опубликованные категории каталога — /catalog/{slug}
+            $categoryUrls = CatalogCategory::query()
+                ->where('published', 1)
+                ->whereNotNull('slug')
+                ->limit(1000)
+                ->pluck('slug')
+                ->map(fn ($slug) => $baseUrl . '/catalog/' . $slug)
+                ->all();
+
+            // Опубликованные исполнители — /catalog/{category-slug}/{performer-id}
+            $performerUrls = Performer::query()
+                ->where('published', 1)
+                ->with('category:id,slug')
+                ->orderBy('id')
+                ->limit(5000)
+                ->get()
+                ->filter(fn ($performer) => $performer->category !== null)
+                ->map(fn ($performer) => $baseUrl . '/catalog/'
+                    . $performer->category->slug . '/' . $performer->id)
+                ->all();
+
+            $urls = array_merge($urls, $objUrls, $subjUrls, $groupUrls, $categoryUrls, $performerUrls);
 
             $xml = '<?xml version="1.0" encoding="UTF-8"?>' . PHP_EOL;
             $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
@@ -63,7 +86,7 @@ class GenerateSitemap extends Command
                 throw new Exception('Cannot write sitemap.xml: check permissions on public/');
             }
 
-            $this->info('Sitemap generated successfully.');
+            $this->info('Sitemap generated: ' . count($urls) . ' URLs.');
             return self::SUCCESS;
 
         } catch (Exception $e) {

@@ -85,7 +85,7 @@ class ImgSubjService extends Service
                 [
                     'subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -152,7 +152,7 @@ class ImgSubjService extends Service
                 [
                     'order_data_count' => count($orderData),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -183,7 +183,7 @@ class ImgSubjService extends Service
                 [
                     'img_subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

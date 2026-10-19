@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
+use App\View\Composers\CatalogComposer;
+use Illuminate\Support\Facades\View;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -62,5 +65,7 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         $this->app['router']->aliasMiddleware('ensureRole', \App\Http\Middleware\EnsureRole::class);
+
+        View::composer('layouts.app', CatalogComposer::class);
     }
 }

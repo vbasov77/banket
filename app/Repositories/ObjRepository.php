@@ -171,13 +171,13 @@ class ObjRepository extends Repository
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in ObjRepository@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
+                ['obj_id' => $id, 'sql' => $e->getSql(), 'data' => $data]
             );
             throw $e;
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Unexpected error in ObjRepository@update: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'data' => $data]
+                ['obj_id' => $id, 'data' => $data]
             );
             throw $e;
         }
@@ -403,13 +403,13 @@ class ObjRepository extends Repository
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in ObjRepository@findByIdOnlyObj: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id, 'sql' => $e->getSql()]
+                ['obj_id' => $id, 'sql' => $e->getSql()]
             );
             throw $e;
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Unexpected error in ObjRepository@findByIdOnlyObj: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'obj_id' => $id]
+                ['obj_id' => $id]
             );
             throw $e;
         }
@@ -473,7 +473,6 @@ class ObjRepository extends Repository
             Log::channel('error_file')->error(
                 'Database query error in repository@findMySubjs: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'obj_id' => $objId,
                     'sql' => $e->getSql()
                 ]
@@ -483,7 +482,6 @@ class ObjRepository extends Repository
             Log::channel('error_file')->error(
                 'Unexpected error in repository@findMySubjs: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'obj_id' => $objId
                 ]
             );

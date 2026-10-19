@@ -234,7 +234,7 @@ class CityService
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
+
                 'input' => $request->all(),
             ]);
 
@@ -389,7 +389,7 @@ class CityService
         } catch (\Throwable $e) {
             Log::channel('error_file')->error('Ошибка в CityService::setRegion', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+
             ]);
             return ['success' => false, 'message' => 'Внутренняя ошибка сервера', 'http_status' => 500];
         }

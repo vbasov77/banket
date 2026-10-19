@@ -40,7 +40,7 @@ class AuthTokenController extends Controller
                     'user_id' => $user->id,
                     'type' => 'fcm',
                     'device_model' => $request->device_model,
-                    'is_active' => true,
+                    'published' => 1,
                     'last_used_at' => now(),
                 ]
             );

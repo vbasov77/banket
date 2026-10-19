@@ -77,7 +77,7 @@ const lightbox = new Lightbox();
 // Обработчики кликов на изображениях
 document.querySelectorAll('.item-carousel').forEach(img => {
     img.addEventListener('click', () => {
-        const carouselWrapper = img.closest('.carousel-wrapper');
+        const carouselWrapper = img.closest('.carousel-wrapper, [data-lightbox]');
         if (!carouselWrapper) {
             console.error('Carousel wrapper not found for image:', img);
             return;

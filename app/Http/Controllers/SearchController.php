@@ -52,7 +52,6 @@ class SearchController extends Controller
             Log::channel('error_file')->error(
                 'Error in ObjectsController@clearFilters: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     // Добавляем состояние сессии на момент ошибки для отладки
                     'session_state_before_error' => [
                         'selected_filters' => session('selected_filters'),
@@ -136,7 +135,6 @@ class SearchController extends Controller
                 'Database query error in SearchController@searchGet',
                 [
                     'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                     'filters' => $filters,
                 ]
             );
@@ -147,7 +145,6 @@ class SearchController extends Controller
                 'Error in SearchController@searchGet',
                 [
                     'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
                     'filters' => $filters,
                 ]
             );
@@ -215,7 +212,6 @@ class SearchController extends Controller
             Log::channel('error_file')->error(
                 'Error in ObjectsController@destroySession: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     // Сохраняем состояние сессии на момент ошибки
                     'session_state_at_error' => [
                         'selected_filters' => session('selected_filters'),
@@ -251,7 +247,6 @@ class SearchController extends Controller
                 'Error in SearchController@searchByName',
                 [
                     'message' => $e->getMessage(),
-                    'trace'   => $e->getTraceAsString(),
                     'query'   => $query ?? '',
                 ]
             );
@@ -299,7 +294,6 @@ class SearchController extends Controller
                 'Database error in SearchController@suggestions',
                 [
                     'message'  => $e->getMessage(),
-                    'trace'    => $e->getTraceAsString(),
                     'query'    => $query ?? '',
                     'city_id'  => $cityId ?? null,
                     'sql'      => $e->getSql(),
@@ -316,7 +310,6 @@ class SearchController extends Controller
                 'Unexpected error in SearchController@suggestions',
                 [
                     'message' => $e->getMessage(),
-                    'trace'   => $e->getTraceAsString(),
                     'query'   => $query ?? '',
                     'city_id' => $cityId ?? null,
                 ]

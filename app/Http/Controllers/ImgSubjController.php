@@ -93,7 +93,7 @@ class ImgSubjController extends Controller
                     'input_data' => $request->all(),
                     'subj_id' => $subjId ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -173,7 +173,7 @@ class ImgSubjController extends Controller
                 [
                     'input_data' => $request->all(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -246,7 +246,7 @@ class ImgSubjController extends Controller
                     'subj_id' => $request->id,
                     'vk_error_code' => $e->getErrorCode(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -277,7 +277,7 @@ class ImgSubjController extends Controller
                     'input_data' => $request->all(),
                     'subj_id' => $request->id ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -359,7 +359,7 @@ class ImgSubjController extends Controller
                 [
                     'img_subj_id' => $id ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => request()->ip()
                 ]
             );

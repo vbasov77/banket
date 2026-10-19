@@ -60,13 +60,21 @@ class TestController extends Controller
         $ids = DB::table('img_ban_subj')
             ->select('big_id AS photo_id')
             ->whereNotNull('big_id')
-
             ->union(
                 DB::table('img_ban_subj')
                     ->select('small_id AS photo_id')
                     ->whereNotNull('small_id')
             )
-
+            ->union(
+                DB::table('performer_photos')
+                    ->select('small_id AS photo_id')
+                    ->whereNotNull('small_id')
+            )
+            ->union(
+                DB::table('performer_photos')
+                    ->select('big_id AS photo_id')
+                    ->whereNotNull('big_id')
+            )
             ->union(
                 DB::table('img_obj')
                     ->select('photo_id')
@@ -154,7 +162,7 @@ class TestController extends Controller
             });
         } catch (\Exception $e) {
 
-            Log::channel("error_file")->error( ['Failed to send email: '=> $e->getMessage()]);
+            Log::channel("error_file")->error(['Failed to send email: ' => $e->getMessage()]);
             $this->adminAlertService->sendMsgToAdmin("Письмо не отправлено", "Письмо не отправлено");
 
             return redirect()->route('login');
@@ -184,8 +192,8 @@ class TestController extends Controller
 
         $response = Http::withHeaders([
             'Authorization' => 'Token ' . $apiKey,
-            'Content-Type'  => 'application/json',
-            'Accept'        => 'application/json',
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
         ])->post('https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address', [
             'query' => $query,
             'count' => 10,
@@ -194,7 +202,7 @@ class TestController extends Controller
         if (!$response->successful()) {
             Log::channel('error_file')->error('DaData API error', [
                 'status' => $response->status(),
-                'body'   => $response->body()
+                'body' => $response->body()
             ]);
             return response()->json([]);
         }
@@ -206,12 +214,12 @@ class TestController extends Controller
             $d = $item['data'] ?? [];
             $result[] = [
                 'value' => $item['value'] ?? '',
-                'city'  => $d['city'] ?? '',
-                'area'  => $d['city_district'] ?? '',  // ← район города, не область
-                'street'=> $d['street'] ?? '',
+                'city' => $d['city'] ?? '',
+                'area' => $d['city_district'] ?? '',  // ← район города, не область
+                'street' => $d['street'] ?? '',
                 'house' => $d['house'] ?? '',
-                'lat'   => $d['geo_lat'] ?? null,
-                'lon'   => $d['geo_lon'] ?? null,
+                'lat' => $d['geo_lat'] ?? null,
+                'lon' => $d['geo_lon'] ?? null,
             ];
         }
 

@@ -39,7 +39,7 @@ class ImgSubjRepository extends Repository
                 [
                     'subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -84,7 +84,7 @@ class ImgSubjRepository extends Repository
                     'processed_count' => $index ?? 0,
                     'total_count' => count($orderData),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -117,7 +117,7 @@ class ImgSubjRepository extends Repository
                 [
                     'subj_id' => $subjId,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -150,7 +150,7 @@ class ImgSubjRepository extends Repository
                 [
                     'data' => $data,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -181,7 +181,7 @@ class ImgSubjRepository extends Repository
                 [
                     'img_subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -213,7 +213,7 @@ class ImgSubjRepository extends Repository
                 [
                     'img_subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

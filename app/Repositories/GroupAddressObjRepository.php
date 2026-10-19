@@ -268,7 +268,7 @@ LIMIT 1;";
             Log::channel('error_file')->error('GroupAddressObjRepository@findSubjectsByGroupId: ошибка запроса', [
                 'group_id' => $groupId,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+
             ]);
             throw $e;
         }

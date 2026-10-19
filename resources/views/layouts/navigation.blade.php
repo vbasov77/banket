@@ -1,35 +1,99 @@
 <style>
-    a { text-decoration: none; }
+    a {
+        text-decoration: none;
+    }
 
     .modal {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.5); z-index: 1000;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
     }
-    .modal.hidden { display: none; }
+
+    .modal.hidden {
+        display: none;
+    }
+
     .modal-content {
-        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-        background: white; padding: 20px; border-radius: 8px;
-        max-width: 90%; max-height: 90vh; overflow-y: auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
     }
-    .city-selector { margin-left: 10px; font-size: 13px; }
+
+    .city-selector {
+        margin-left: 10px;
+        font-size: 13px;
+    }
+
     .close-btn {
-        position: absolute; top: 15px; right: 15px; background: none;
-        color: #ff5722; border: none; font-size: 28px; cursor: pointer; line-height: 1;
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        color: #ff5722;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        line-height: 1;
     }
-    .cities-list { min-width: 260px; }
+
+    .cities-list {
+        min-width: 260px;
+    }
+
     .city-item {
-        padding: 8px 12px; cursor: pointer; border-radius: 6px; font-size: 14px;
+        padding: 8px 12px;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 14px;
     }
-    .city-item:hover { background: #f3f4f6; }
-    .city-item.selected { color: #ff5722; font-weight: 600; }
-    .city-item .count { color: #9ca3af; font-weight: 400; margin-left: 4px; }
+
+    .city-item:hover {
+        background: #f3f4f6;
+    }
+
+    .city-item.selected {
+        color: #ff5722;
+        font-weight: 600;
+    }
+
+    .city-item .count {
+        color: #9ca3af;
+        font-weight: 400;
+        margin-left: 4px;
+    }
+
     .back-btn {
-        background: none; border: none; color: #ff5722; cursor: pointer;
-        padding: 4px 0 8px; font-size: 14px;
+        background: none;
+        border: none;
+        color: #ff5722;
+        cursor: pointer;
+        padding: 4px 0 8px;
+        font-size: 14px;
     }
-    .loading { padding: 8px 12px; color: #9ca3af; font-size: 14px; }
+
+    .loading {
+        padding: 8px 12px;
+        color: #9ca3af;
+        font-size: 14px;
+    }
+
     @media (max-width: 480px) {
-        .close-btn { top: 8px; right: 8px; font-size: 20px; }
+        .close-btn {
+            top: 8px;
+            right: 8px;
+            font-size: 20px;
+        }
     }
 </style>
 
@@ -42,10 +106,55 @@
                     <img src="{{ asset('icons/restaurant.svg') }}" alt="feast boom" class="w-auto">
                 </a>
                 <div class="city-selector ml-4">
-                    <button type="button" id="openCityModal" class="city-btn text-sm font-medium text-gray-700 hover:text-red-600">
+                    <button type="button" id="openCityModal"
+                            class="city-btn text-sm font-medium text-gray-700 hover:text-red-600">
                         {{ session('user_city', '') }}
                     </button>
                 </div>
+
+                <div class="ml-4 d-none d-sm-block">
+                    <div x-data="{ open: false }" class="relative">
+                        <button
+                                @click="open = ! open"
+                                @click.outside="open = false"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-red-600 rounded-md transition duration-150"
+                        >
+                            Каталог
+                            <svg class="fill-current h-4 w-4 ms-1" xmlns="http://www.w3.org/2000/svg"
+                                 viewBox="0 0 20 20">
+                                <path fill-rule="evenodd"
+                                      d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </button>
+
+                        <div
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-100"
+                                x-transition:enter-start="opacity-0 scale-95"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-75"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-95"
+                                class="absolute z-50 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5"
+                                style="display: none"
+                        >
+                            <div class="py-1">
+                                @forelse ($catalogCategories as $cat)
+                                    <a
+                                            href="{{ route('catalog.index', $cat) }}"
+                                            class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-red-600"
+                                    >
+                                        {{ $cat->name }}
+                                    </a>
+                                @empty
+                                    <div class="px-4 py-2 text-sm text-gray-400">Каталог наполняется</div>
+                                @endforelse
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
             <!-- ПРАВАЯ ЧАСТЬ: Кнопки (все в одном ряду) -->
@@ -58,8 +167,11 @@
                                 <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-red-600 focus:outline-none transition ease-in-out duration-150">
                                     <div>Админ</div>
                                     <div class="ms-1">
-                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                             viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                  clip-rule="evenodd"/>
                                         </svg>
                                     </div>
                                 </button>
@@ -81,20 +193,30 @@
                             <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
                                 <div>{{ Auth::user()->name }}</div>
                                 <div class="ms-1">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                         viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                              clip-rule="evenodd"/>
                                     </svg>
                                 </div>
                             </button>
                         </x-slot>
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.show')">Профиль</x-dropdown-link>
-                            <x-dropdown-link :href="route('my.obj')">Панель управления</x-dropdown-link>
+                            @if(Auth::user()?->isAdmin() || Auth::user()?->isRestaurateur())
+                                <x-dropdown-link :href="route('my.obj')">Панель управления</x-dropdown-link>
+                            @endif
+                            <x-dropdown-link :href="route('contacts.index')">Мои контакты</x-dropdown-link>
+                            <x-dropdown-link :href="route('catalog.request.my_category')">Я Исполнитель
+                            </x-dropdown-link>
                             <x-dropdown-link :href="route('favorites.subjs')">Избранное</x-dropdown-link>
-                            <x-dropdown-link :href="route('show.messages', ['to_user_id' => 1])">Поддержка</x-dropdown-link>
+                            <x-dropdown-link :href="route('show.messages', ['to_user_id' => 1])">Поддержка
+                            </x-dropdown-link>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
-                                <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                                <x-dropdown-link :href="route('logout')"
+                                                 onclick="event.preventDefault(); this.closest('form').submit();">
                                     {{ __('Log Out') }}
                                 </x-dropdown-link>
                             </form>
@@ -110,10 +232,14 @@
 
             <!-- Гамбургер (мобильное меню) -->
             <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
+                <button @click="open = ! open"
+                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
                     <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex"
+                              stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16"/>
+                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round"
+                              stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
             </div>
@@ -128,17 +254,54 @@
                     <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
                 @endif
             </div>
+
             <div class="mt-3 space-y-1">
+                {{-- Каталог с раскрывающимся списком --}}
+                <div x-data="{ catOpen: false }">
+                    <button type="button"
+                            @click="catOpen = ! catOpen"
+                            class="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md">
+                        Каталог
+                        <svg class="fill-current h-4 w-4 transition-transform duration-200"
+                             :class="catOpen && 'rotate-180'"
+                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                  d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+
+                    <div x-show="catOpen" x-collapse x-cloak>
+                        <div class="py-1 ps-6">
+                            @forelse ($catalogCategories as $cat)
+                                <x-responsive-nav-link :href="route('catalog.index', $cat)">
+                                    {{ $cat->name }}
+                                </x-responsive-nav-link>
+                            @empty
+                                <div class="px-4 py-2 text-sm text-gray-400">Каталог наполняется</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
+
                 @if(Auth::check())
                     @if(Auth::user()?->isAdmin())
                         <x-responsive-nav-link :href="route('show.admin_panel')">Админ панель</x-responsive-nav-link>
                     @endif
                     <x-responsive-nav-link :href="route('favorites.subjs')">Избранное</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('my.obj')">Панель управления</x-responsive-nav-link>
-                    <x-responsive-nav-link :href="route('show.messages', ['to_user_id' => 1])">Поддержка</x-responsive-nav-link>
+                    @if(Auth::user()?->isAdmin() || Auth::user()?->isRestaurateur())
+                        <x-responsive-nav-link :href="route('my.obj')">Панель управления</x-responsive-nav-link>
+                    @endif
+                    <x-responsive-nav-link :href="route('profile.show')">Профиль
+                    </x-responsive-nav-link>
+                        <x-responsive-nav-link :href="route('catalog.request.my_category')">Я Исполнитель
+                    </x-responsive-nav-link>
+                    <x-responsive-nav-link :href="route('show.messages', ['to_user_id' => 1])">Поддержка
+                    </x-responsive-nav-link>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <x-responsive-nav-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                        <x-responsive-nav-link :href="route('logout')"
+                                               onclick="event.preventDefault(); this.closest('form').submit();">
                             {{ __('Log Out') }}
                         </x-responsive-nav-link>
                     </form>
@@ -278,7 +441,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': cityModalData.csrfToken
                 },
-                body: JSON.stringify({ city_id: Number(cityId) })
+                body: JSON.stringify({city_id: Number(cityId)})
             });
 
             if (!res.ok) {
