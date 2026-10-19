@@ -9,6 +9,7 @@ use App\Http\Requests\Catalog\UpdatePerformerRequest;
 use App\Models\CatalogCategory;
 use App\Models\Performer;
 use App\Models\PerformerPhoto;
+use App\Models\UserContact;
 use App\Services\PerformerService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
@@ -183,6 +184,7 @@ class PerformerRequestController extends Controller
     {
         $performerId = (int) $request->id;
 
+
         $img = PerformerPhoto::where('performer_id', $performerId)->exists();
         if (!$img) {
             return response()->json([
@@ -190,6 +192,7 @@ class PerformerRequestController extends Controller
                 'message' => 'Сначала добавьте фото' // Исправлено сообщение
             ]);
         }
+
 
         try {
             $user = auth()->user();
@@ -201,6 +204,14 @@ class PerformerRequestController extends Controller
             }
 
             $cat = Performer::findOrFail($performerId);
+
+            $contact = UserContact::where('user_id', $cat->user_id)->exists();
+            if (!$contact) {
+                return response()->json([
+                    'answer' => 'no',
+                    'message' => 'Сначала добавьте контакты в разделе Мои контакты' // Исправлено сообщение
+                ]);
+            }
 
             // Проверка прав доступа через метод модели isAuthor()
             if (!$cat->isAuthor()) {
