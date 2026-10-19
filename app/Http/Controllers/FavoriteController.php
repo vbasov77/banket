@@ -75,7 +75,7 @@ class FavoriteController extends Controller
                     'input_data' => $request->all(),
                     'user_id' => $user?->id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -134,7 +134,7 @@ class FavoriteController extends Controller
                     'input_data' => $request->all(),
                     'user_id' => $user?->id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -187,7 +187,7 @@ class FavoriteController extends Controller
                 [
                     'user_id' => $user?->id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => request()->ip()
                 ]
             );

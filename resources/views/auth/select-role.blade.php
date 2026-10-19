@@ -9,9 +9,11 @@
             background: #f6f9ff;
             cursor: pointer; /* или pointer */
         }
+
         .role-card:hover {
-            border-color: rgba(0,0,0,.1);
+            border-color: rgba(0, 0, 0, .1);
         }
+
         /* Цвет выбора: тёплый градиент вместо зелёного */
         input[name="role"]:checked + .role-card {
             transform: translateY(-2px);
@@ -24,6 +26,7 @@
             opacity: 0;
             transition: opacity 0.2s;
         }
+
         input[name="role"]:checked + .role-card .check-badge {
             opacity: 1;
         }
@@ -39,7 +42,7 @@
                 @endif
                 <div class="text-center mb-5">
                     <h2 class="fw-bold">Выберите вашу роль</h2>
-                    <p class="text-muted">От этого зависит, какие возможности будут доступны в системе «BanKet»</p>
+                    <p class="text-muted">От этого зависит, какие возможности будут доступны в системе «FeastBoom»</p>
                 </div>
 
                 <form action="{{ route('role.store') }}" method="POST">
@@ -50,6 +53,8 @@
                             @php
                                 $isBanquet = $role->name === 'soon_banquet';
                                 $isRestaurateur = $role->name === 'restaurateur';
+                                $isPerformer = $role->name === 'performer';
+
                             @endphp
 
                             <div class="col-12">
@@ -63,11 +68,14 @@
                                         required
                                 >
 
-                                <label for="role_{{ $role->name }}" class="role-card d-flex align-items-center gap-4 cursor-pointer h-100">
+                                <label for="role_{{ $role->name }}"
+                                       class="role-card d-flex align-items-center gap-4 cursor-pointer h-100">
                                     <div class="flex-grow-1">
                                         <h5 class="mb-1 fw-bold">
                                             @if($isBanquet)
                                                 Скоро банкет
+                                            @elseif($isPerformer)
+                                                Исполнитель
                                             @elseif($isRestaurateur)
                                                 Ресторатор
                                             @else
@@ -79,6 +87,8 @@
                                                 Поиск и бронирование банкетных залов
                                             @elseif($isRestaurateur)
                                                 Управление площадками и заявками
+                                            @elseif($isPerformer)
+                                                Исполнитель услуг
                                             @else
                                                 {{ $role->name }}
                                             @endif

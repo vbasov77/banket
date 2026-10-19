@@ -42,7 +42,6 @@ class ClickPhoneController extends Controller
                 'subj_id' => $subjId,
                 'ip'      => $request->ip(),
                 'message' => $e->getMessage(),
-                'trace'   => $e->getTraceAsString(),
             ]);
 
             return response()->json(['ok' => false], 500);

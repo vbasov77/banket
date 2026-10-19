@@ -157,13 +157,12 @@ class MapRepository extends Repository
         } catch (QueryException $e) {
             Log::channel('error_file')->error(
                 'Database query error in MapRepository@findMap: ' . $e->getMessage(),
-                ['trace' => $e->getTrace(), 'sql' => $e->getSql()]
+                [ 'sql' => $e->getSql()]
             );
             throw $e;
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
-                'Unexpected error in MapRepository@findMap: ' . $e->getMessage(),
-                ['trace' => $e->getTrace()]
+                'Unexpected error in MapRepository@findMap: ' . $e->getMessage()
             );
             throw $e;
         }

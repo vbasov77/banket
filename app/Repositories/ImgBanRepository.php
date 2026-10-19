@@ -7,7 +7,6 @@ namespace App\Repositories;
 
 use App\Models\ImgBanSubj;
 use Illuminate\Database\QueryException;
-use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -75,7 +74,6 @@ class ImgBanRepository extends Repository
             Log::channel('error_file')->error('Исключение при загрузке изображения', [
                 'filename' => $originalFileName,
                 'exception_message' => $e->getMessage(),
-                'stack_trace' => $e->getTraceAsString(),
                 'timestamp' => now()->toDateTimeString()
             ]);
 
@@ -111,7 +109,7 @@ class ImgBanRepository extends Repository
                 [
                     'subj_id' => $subjId,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -146,7 +144,7 @@ class ImgBanRepository extends Repository
                 [
                     'subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -177,14 +175,18 @@ class ImgBanRepository extends Repository
                 [
                     'img_subj_id' => $id,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
         }
     }
 
-    public function delete(string $imageId)
+    /**
+     * @param string $imageId
+     * @return void
+     */
+    public function delete(string $imageId): void
     {
         $imagebanConfig = config('services.imageban');
 
@@ -194,6 +196,25 @@ class ImgBanRepository extends Repository
             'Authorization' => 'Bearer ' . $imagebanConfig['client_secret'],
         ])->delete($url);
 
+    }
+
+    /**
+     * @param array $photoIds
+     * @return void
+     */
+    public function cycleDel(array $photoIds): void
+    {
+        $total = count($photoIds);
+
+        for ($i = 0; $i < $total; $i++) {
+            $id = $photoIds[$i];
+
+            if ($i > 0 && $i % 10 === 0) {
+                usleep(200000);
+            }
+
+            $this->delete($id);
+        }
     }
 
 }

@@ -1,8 +1,6 @@
-
 @extends('layouts.app', ['title' => "Банкетные залы, Кафе, Рестораны", 'metaDescription' => $metaDescription ?? null])
 
 @section('content')
-
 
     <script src="{{asset('js/preloader/preloader.js')}}"></script>
     <style>
@@ -155,8 +153,13 @@
             transition: all 0.3s ease;
         }
 
-        .carousel-prev { left: 15px; }
-        .carousel-next { right: 15px; }
+        .carousel-prev {
+            left: 15px;
+        }
+
+        .carousel-next {
+            right: 15px;
+        }
 
         .carousel-prev:hover,
         .carousel-next:hover {
@@ -292,6 +295,10 @@
 
             .front-body {
                 font-size: 16px;
+            }
+
+            .festival {
+                padding: 5px 7px;
             }
         }
 

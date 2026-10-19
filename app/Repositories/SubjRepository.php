@@ -40,7 +40,7 @@ class SubjRepository extends Repository
                 [
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -117,7 +117,7 @@ class SubjRepository extends Repository
                     'longitude' => $longitude,
                     'exclude_obj_id' => $excludeObjId,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

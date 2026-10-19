@@ -98,7 +98,7 @@ class ImgObjRepository extends Repository
                 [
                     'data' => $data,
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

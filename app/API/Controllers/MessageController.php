@@ -260,7 +260,6 @@ class MessageController extends Controller
             // Логируем реальную ошибку (в production лучше не отдавать её клиенту)
             Log::channel('error_file')->error('Ошибка удаления сообщений: ' . $e->getMessage(), [
                 'ids' => $ids,
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([

@@ -17,15 +17,16 @@ class RoleSelectionController extends Controller
      */
     public function show(Request $request): View|RedirectResponse
     {
-        // Если роль уже выбрана — сразу уводим дальше
         if (Auth::user()->role_id) {
             return $this->redirect();
         }
-        $message = null;
-        if (!empty($request->message)) {
-            $message = $request->message;
-        }
-        $roles = Role::whereIn('name', ['soon_banquet', 'restaurateur'])->get();
+
+        $message = $request->message ?? null;
+
+        // Роли берём строго в нужном порядке: исполнитель — последним
+        $roles = collect(['soon_banquet', 'restaurateur', 'performer'])
+            ->map(fn ($name) => Role::where('name', $name)->first())
+            ->filter();
 
         return view('auth.select-role', ['roles' => $roles, 'message' => $message]);
     }
@@ -33,7 +34,7 @@ class RoleSelectionController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'role' => ['required', 'in:soon_banquet,restaurateur'],
+            'role' => ['required', 'in:soon_banquet,restaurateur,performer'],
         ]);
 
         $role = Role::where('name', $request->role)->firstOrFail();
@@ -65,6 +66,10 @@ class RoleSelectionController extends Controller
 
         if ($user->isSoonBanquet()) {
             return redirect()->route('profile.show');
+        }
+
+        if ($user->isPerformer()) {
+            return redirect()->route('catalog.request.my_category');
         }
 
         return redirect()->route('profile.show');

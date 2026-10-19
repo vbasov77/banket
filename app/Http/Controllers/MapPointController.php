@@ -52,9 +52,6 @@ class MapPointController extends Controller
 
 
             if (!$map) {
-                Log::channel('error_file')->error(
-                    'Address not found for subject ID: ' . $subjId
-                );
                 abort(404, 'Address not found');
             }
 
@@ -93,7 +90,7 @@ class MapPointController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in MapController@index: ' . $e->getMessage(),
-                ['trace' => $e->getTrace()]
+
             );
             abort(500, 'Internal server error');
         }

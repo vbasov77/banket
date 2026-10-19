@@ -80,7 +80,6 @@ class ReportService extends Service
                 'Ошибка в ReportService@findPhoneClicks14Days: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace'           => $e->getTraceAsString(),
                 ]
             );
             return '';
@@ -146,7 +145,6 @@ class ReportService extends Service
                 'Ошибка в ReportService@findIps: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace'           => $e->getTraceAsString(),
                 ]
             );
             return '';
@@ -180,7 +178,6 @@ class ReportService extends Service
                 'Ошибка в ReportService@clearDb: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace'           => $e->getTraceAsString(),
                 ]
             );
             return 0;

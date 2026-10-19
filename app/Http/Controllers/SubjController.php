@@ -46,7 +46,7 @@ class SubjController extends Controller
         $id = (int)($request->id ?? 0);
 
         try {
-            // findOrFail вместо find: нет записи — сразу 404, а не fatal error
+
             $subjModel = Subj::with('obj')->findOrFail($id);
 
             // Неавторизованному не показываем неопубликованное
@@ -116,7 +116,7 @@ class SubjController extends Controller
                     'input_data' => $request->all(),
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                 ]
             );
 
@@ -158,7 +158,7 @@ class SubjController extends Controller
                 [
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             return view('objects.subjects.create', ['objId' => null])
@@ -237,7 +237,7 @@ class SubjController extends Controller
                     'input_data' => $request->validated(),
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             return redirect()->route('my.obj')->with([
@@ -293,7 +293,7 @@ class SubjController extends Controller
                 'exception' => $e->getMessage(),
                 'subj_id' => $request->id,
                 'user_id' => auth()->id(),
-                'trace' => $e->getTraceAsString()
+
             ]);
             return back()->withErrors(['error' => 'Произошла непредвиденная ошибка при загрузке формы редактирования']);
         }
@@ -352,7 +352,7 @@ class SubjController extends Controller
                 'exception' => $e->getMessage(),
                 'subj_id' => $request->input('subj_id'),
                 'user_id' => auth()->id(),
-                'trace' => $e->getTraceAsString()
+
             ]);
             return back()->withErrors(['error' => 'Произошла непредвиденная ошибка'])->withInput();
         }

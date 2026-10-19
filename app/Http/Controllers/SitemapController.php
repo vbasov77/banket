@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Response;
 use Exception;
+use App\Models\CatalogCategory;
+use App\Models\Performer;
 
 class SitemapController extends Controller
 {
@@ -126,7 +128,28 @@ class SitemapController extends Controller
             ->map(fn ($group) => $baseUrl . '/show_group/id' . $group->id)
             ->all();
 
-        $urls = array_merge($urls, $objUrls, $subjUrls, $groupUrls);
+        // Опубликованные исполнители — /catalog/{category-slug}/{performer-id}
+        $performerUrls = Performer::query()
+            ->where('published', 1)
+            ->with('category:id,slug')
+            ->orderBy('id')
+            ->limit(5000)
+            ->get()
+            ->filter(fn ($performer) => $performer->category !== null)
+            ->map(fn ($performer) => $baseUrl . '/catalog/'
+                . $performer->category->slug . '/' . $performer->id)
+            ->all();
+
+        // Опубликованные категории каталога — /catalog/{slug}
+        $categoryUrls = CatalogCategory::query()
+            ->where('published', 1)
+            ->whereNotNull('slug')
+            ->limit(1000)
+            ->pluck('slug')
+            ->map(fn ($slug) => $baseUrl . '/catalog/' . $slug)
+            ->all();
+
+        $urls = array_merge($urls, $objUrls, $subjUrls, $groupUrls, $performerUrls, $categoryUrls);
 
         $xml = $this->buildSitemapXml($urls);
 

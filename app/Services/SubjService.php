@@ -84,7 +84,7 @@ class SubjService extends Service
                     'obj_id' => $objId,
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -122,7 +122,7 @@ class SubjService extends Service
                 [
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;
@@ -233,7 +233,7 @@ class SubjService extends Service
                     'exclude_obj_id' => $excludeObjId,
                     'user_id' => auth()->id(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString()
+
                 ]
             );
             throw $e;

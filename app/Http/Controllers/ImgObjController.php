@@ -58,7 +58,7 @@ class ImgObjController extends Controller
                     [
                         'obj_id' => $id,
                         'exception_class' => get_class($e),
-                        'trace' => $e->getTraceAsString(),
+
                         'ip' => $request->ip()
                     ]
                 );
@@ -88,7 +88,7 @@ class ImgObjController extends Controller
                     'input_data' => $request->all(),
                     'obj_id' => $id ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -155,7 +155,7 @@ class ImgObjController extends Controller
                     'input_data' => $request->except(['img']),
                     'file_name' => $request->file('img')?->getClientOriginalName(),
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -171,7 +171,7 @@ class ImgObjController extends Controller
                     'obj_id' => $request->id,
                     'exception_class' => get_class($e),
                     'vk_error_code' => $e->getErrorCode(),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );
@@ -203,7 +203,7 @@ class ImgObjController extends Controller
                     'input_data' => $request->except(['img']),
                     'obj_id' => $request->id ?? 'unknown',
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
+
                     'ip' => $request->ip()
                 ]
             );

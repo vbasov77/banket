@@ -93,7 +93,7 @@ class ImageService extends Service
             Log::channel('error_file')->error(
                 'Invalid image format in compressImageIfLarge: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
+
                     'file_name' => $file->getClientOriginalName(),
                     'file_size' => $file->getSize(),
                     'file_type' => $file->getMimeType(),
@@ -110,7 +110,7 @@ class ImageService extends Service
             Log::channel('error_file')->error(
                 'Image processing error in compressImageIfLarge: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
+
                     'file_name' => $file->getClientOriginalName(),
                 ]
             );
@@ -125,7 +125,6 @@ class ImageService extends Service
             Log::channel('error_file')->error(
                 'Unexpected error in compressImageIfLarge: ' . $e->getMessage(),
                 [
-                    'trace' => $e->getTrace(),
                     'file_name' => $file->getClientOriginalName() ?? 'unknown',
                     'file_size' => $file->getSize() ?? 'unknown',
                 ]

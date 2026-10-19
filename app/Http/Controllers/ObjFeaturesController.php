@@ -46,7 +46,6 @@ class ObjFeaturesController extends Controller
             Log::channel('error_file')->error('Ошибка при открытии формы создания особенностей', [
                 'obj_id' => $request->id ?? null,
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
             return redirect()->route('my.obj')
                 ->with('error', 'Произошла ошибка. Попробуйте позже.');

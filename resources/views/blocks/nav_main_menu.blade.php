@@ -248,28 +248,26 @@
 
     <ul class="nav-list">
         <li><a class="dropdown-item" href="{{ route('create.obj') }}">Добавить объект</a></li>
+
         @if(!empty($data['details_obj']['id']))
             @if(empty($data['obj_features']))
                 <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить особенности</a></li>
             @endif
             <li><a class="dropdown-item" href="{{ route('create.subj') }}">Добавить субъект</a></li>
-
         @endif
+
         @if(!empty($data['id']))
             <li class="text-white">
                 <b>Редактировать:</b>
             </li>
-            <li><a class="dropdown-item" href="{{ route('obj.edit',['id' => $data['id']]) }}">
-                    Объект</a>
-            </li>
+            <li><a class="dropdown-item" href="{{ route('obj.edit', ['id' => $data['id']]) }}">
+                    Объект
+                </a></li>
             @if(!empty($data['details_obj']['id']))
                 <li><a class="dropdown-item"
                        href="{{ route('edit.details_obj', ['id' => $data['details_obj']['id']]) }}">Детали объекта</a>
                 </li>
             @endif
-        @else
-            <li><a class="dropdown-item" href="{{ route('create.obj') }}">Добавить объект</a>
-            </li>
         @endif
     </ul>
 </nav>

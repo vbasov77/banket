@@ -41,7 +41,20 @@ use App\Http\Controllers\Admin\AdminObjController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\ActionController;
 use App\Http\Controllers\ClickPhoneController;
+use App\Http\Controllers\Catalog\PerformerController;
+use App\Http\Controllers\Catalog\PerformerRequestController;
+use App\Http\Controllers\Admin\PerformerAdminController;
+use App\Http\Controllers\Catalog\PerformerPhotoController;
+use App\Http\Controllers\UserContactController;
+use App\Http\Controllers\Catalog\PerformerPackageController;
 
+Route::middleware(['auth'])->name('catalog.request.')->group(function () {
+    Route::get('/catalog/create', [PerformerRequestController::class, 'create'])->name('create');
+    Route::post('/', [PerformerRequestController::class, 'store'])->name('store');
+    Route::get('/my_category', [PerformerRequestController::class, 'myCategory'])->name('my_category');
+    Route::get('/{performer}/edit', [PerformerRequestController::class, 'edit'])->name('edit');
+    Route::put('/{performer}', [PerformerRequestController::class, 'update'])->name('update');
+});
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
 Auth::routes(['verify' => true]);
@@ -72,6 +85,10 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('admin')->group(function () {
+
+    Route::post('/{performer}/approve', [PerformerAdminController::class, 'approve'])->name('approve');
+    Route::post('/{performer}/reject', [PerformerAdminController::class, 'reject'])->name('reject');
+
     Route::post('/subjects/{id}/phone-click', [ClickPhoneController::class, 'store'])
         ->name('click_phone.store');
 
@@ -108,20 +125,33 @@ Route::middleware('admin')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
+    Route::get('/catalog/{category:slug}/performer/{performer}/packages',[PerformerPackageController::class, 'edit'])->name('catalog.packages.edit');
+    Route::post('/catalog/{category:slug}/performer/{performer}/packages',[PerformerPackageController::class, 'update'])->name('catalog.packages.update');
+
+    Route::get('profile/contacts', [UserContactController::class, 'index'])->name('contacts.index');
+    Route::post('profile/contacts', [UserContactController::class, 'sync'])->name('contacts.sync');
+
+    Route::post('/catalog/take_off/{id}', [PerformerRequestController::class, 'takeOff'])->name('catalog.request.take_off'); // <-- Полное имя, как в Blade
+    Route::post('/catalog/published/{id}', [PerformerRequestController::class, 'published'])->name('catalog.request.published');
+
+    Route::get('/catalog/delete-confirm/{id}', [PerformerController::class, 'deleteCategoryConfirm'])->name('performer.category.delete_confirm');
+    Route::delete('/catalog/category_destroy/{id}', [PerformerController::class, 'deleteCategory'])->name('category.destroy');
+    Route::get('catalog/request/photos/create/{id}', [PerformerPhotoController::class, 'create'])->name('catalog.request.photo.create');
+    Route::post('catalog/request/{performer}/photos', [PerformerPhotoController::class, 'store'])->name('catalog.request.photo.store');
+    Route::delete('catalog/request/{performer}/photos/{photo}', [PerformerPhotoController::class, 'destroy'])->name('catalog.request.photo.destroy');
+    Route::post('catalog/request/{performer}/photos/order', [PerformerPhotoController::class, 'changeOrder'])->name('catalog.request.photo.order');
+
     Route::get('/action/create', [ActionController::class, 'create'])->name('action.create');
     Route::post('/action', [ActionController::class, 'store'])->name('action.store');
     Route::get('/action/edit', [ActionController::class, 'edit'])->name('action.edit');
     Route::put('/action', [ActionController::class, 'update'])->name('action.update');
     Route::delete('/action', [ActionController::class, 'destroy'])->name('action.destroy');
 
-    Route::get('/obj_features/create/{id}', [ObjFeaturesController::class, 'createObjFeatures'])
-        ->name('create.obj_features');
-    Route::post('/obj_features/store', [ObjFeaturesController::class, 'storeObjFeatures'])
-        ->name('store.obj_features');
-    Route::get('/obj_features/edit/{id}', [ObjFeaturesController::class, 'editObjFeatures'])
-        ->name('edit.obj_features');
-    Route::put('/obj_features/update/{id}', [ObjFeaturesController::class, 'updateObjFeatures'])
-        ->name('update.obj_features');
+    Route::get('/obj_features/create/{id}', [ObjFeaturesController::class, 'createObjFeatures'])->name('create.obj_features');
+    Route::post('/obj_features/store', [ObjFeaturesController::class, 'storeObjFeatures'])->name('store.obj_features');
+    Route::get('/obj_features/edit/{id}', [ObjFeaturesController::class, 'editObjFeatures'])->name('edit.obj_features');
+    Route::put('/obj_features/update/{id}', [ObjFeaturesController::class, 'updateObjFeatures'])->name('update.obj_features');
 
     Route::get('/create_data_obj', [DataObjController::class, 'create'])->name('create.data_obj');
     Route::post('/store_data_obj', [DataObjController::class, 'store'])->name('store.data_obj');
@@ -189,7 +219,11 @@ Route::middleware('auth')->group(function () {
         ->name('profile.change-password');
 });
 
+Route::prefix('catalog')->name('catalog.')->group(function () {
+    Route::get('/{category:slug}', [PerformerController::class, 'index'])->name('index');
+    Route::get('/{category:slug}/{performer}', [PerformerController::class, 'show'])->name('show');
 
+});
 
 
 Route::get('/regions', [CityController::class, 'index'])->name('get-regions');

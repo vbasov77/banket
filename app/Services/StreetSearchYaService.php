@@ -99,7 +99,6 @@ class StreetSearchYaService
                     'message'        => $e->getMessage(),
                     'file'           => $e->getFile(),
                     'line'           => $e->getLine(),
-                    'trace'          => $e->getTraceAsString(),
                     'correlation_id' => $correlationId
                 ]);
                 return ['error' => true, 'status' => 500, 'message' => 'Произошла внутренняя ошибка.', 'correlation_id' => $correlationId];

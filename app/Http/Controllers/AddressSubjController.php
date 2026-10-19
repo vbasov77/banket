@@ -64,7 +64,6 @@ class AddressSubjController extends Controller
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
                 'user_ip' => $request->ip(),
                 'user_agent' => $request->userAgent()
             ]);
@@ -97,7 +96,7 @@ class AddressSubjController extends Controller
                 'message' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
+
                 'user_ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'correlation_id' => $correlationId = (string) Str::uuid()

@@ -151,7 +151,7 @@ class AddressController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error('Error in AddressController@store', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+
             ]);
             return response()->json([
                 'success' => false,

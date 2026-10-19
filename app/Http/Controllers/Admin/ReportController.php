@@ -45,7 +45,6 @@ class ReportController extends Controller
                 'Ошибка в ReportController@index: ' . $e->getMessage(),
                 [
                     'exception_class' => get_class($e),
-                    'trace' => $e->getTraceAsString(),
                 ]
             );
 

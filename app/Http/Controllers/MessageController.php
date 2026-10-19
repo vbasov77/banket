@@ -85,7 +85,7 @@ class MessageController extends Controller
                 'file'       => $e->getFile() . ':' . $e->getLine(),
                 'user_id'    => $userId,
                 'to_user_id' => $toUserId,
-                'trace'      => $e->getTraceAsString(),
+
             ]);
 
             return redirect()->back()->with('error', 'Произошла ошибка. Попробуйте позже');
@@ -212,7 +212,7 @@ class MessageController extends Controller
             // Сбой БД/сервера — 500
             Log::channel('error_file')->error("Сбой БД/сервера — 500: " . $e->getMessage(), [
                 'ids' => $ids,
-                'trace' => $e->getTraceAsString(),
+
             ]);
             return response()->json(['answer' => 'error', 'message' => 'Ошибка сервера'], 500);
         }

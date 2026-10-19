@@ -43,7 +43,7 @@ class FrontController extends Controller
     public function show(Request $request): Application|Factory|View|Response
     {
 
-        $this->userCityService->checkSessionUserCity($request);
+//        $this->userCityService->checkSessionUserCity($request);
         $message = $request->message ?? null;
 
         $ip = $request->ip();
@@ -51,57 +51,36 @@ class FrontController extends Controller
             $this->ipService->store($ip);
         }
 
-        try {
-            // 1. Параметры из URL (пагинация, явные фильтры)
-            $requestFilters = $request->only([
-                'for_events', 'capacity_to', 'per_person', 'district', 'near_metro_id'
-            ]);
 
-            // 2. Фильтры из сессии — гарантированно делаем массивом, даже если их нет
-            $sessionFilters = (array)session('selected_filters', []);
+        // 1. Параметры из URL (пагинация, явные фильтры)
+        $requestFilters = $request->only([
+            'for_events', 'capacity_to', 'per_person', 'district', 'near_metro_id'
+        ]);
 
-            // 3. Объединяем: приоритет у URL, остальное — из сессии
-            $mergedFilters = array_merge($sessionFilters, array_filter($requestFilters));
+        // 2. Фильтры из сессии — гарантированно делаем массивом, даже если их нет
+        $sessionFilters = (array)session('selected_filters', []);
 
-            // 4. Временно внедряем фильтры в запрос
-            $originalInput = $request->all();
-            $request->merge($mergedFilters);
+        // 3. Объединяем: приоритет у URL, остальное — из сессии
+        $mergedFilters = array_merge($sessionFilters, array_filter($requestFilters));
 
-            // Вызываем сервис (он по-прежнему принимает только Request)
-            $data = $this->objService->findObjsWithDetails($request);
+        // 4. Временно внедряем фильтры в запрос
+        $originalInput = $request->all();
+        $request->merge($mergedFilters);
+
+        // Вызываем сервис (он по-прежнему принимает только Request)
+        $data = $this->objService->findObjsWithDetails($request);
 //            dd(session('user_city'), session('city_id'), session('region_ids'), $data);
-            $metaDescription = $this->findMetaDescription($data);
+        $metaDescription = $this->findMetaDescription($data);
 
 
-            // Восстанавливаем исходный запрос (чтобы не ломать другую логику ниже)
-            $request->replace($originalInput);
-            return view('front', [
-                'data' => $data,
-                'message' => $message,
-                'metaDescription' => $metaDescription
-            ]);
-        } catch (QueryException $e) {
-            Log::channel('error_file')->error(
-                'SQL ошибка в FrontController@show: ' . $e->getMessage(),
-                [
-                    'sql_query' => $e->getSql(),
-                    'bindings' => $e->getBindings(),
-                    'trace' => $e->getTraceAsString()
-                ]
-            );
-            return response()->view('errors.500', [], 500);
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Ошибка в FrontController@show: ' . $e->getMessage(),
-                [
-                    'exception_class' => get_class($e),
-                    'file'  => $e->getFile(),
-                    'line'  => $e->getLine(),
-                    'trace' => $e->getTraceAsString(),
-                ]
-            );
-            return response()->view('errors.500', [], 500);
-        }
+        // Восстанавливаем исходный запрос (чтобы не ломать другую логику ниже)
+        $request->replace($originalInput);
+        return view('front', [
+            'data' => $data,
+            'message' => $message,
+            'metaDescription' => $metaDescription
+        ]);
+
     }
 
     private function findMetaDescription(mixed $objData): string

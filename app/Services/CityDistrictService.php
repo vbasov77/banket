@@ -109,7 +109,7 @@ class CityDistrictService
                 'error' => $e->getMessage(),
                 'file' => $e->getFile(),
                 'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString(),
+
                 'input' => $data,
             ]);
 

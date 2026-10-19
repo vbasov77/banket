@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -77,6 +78,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role?->name === 'soon_banquet';
     }
 
+    public function isPerformer(): bool
+    {
+        return $this->role?->name === 'performer';
+    }
+
     /**
      * @return mixed
      */
@@ -109,7 +115,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsToMany(City::class, 'user_city');
     }
 
-    public function obj()
+    public function obj(): HasOne
     {
         return $this->hasOne(Obj::class, 'user_id');
     }
@@ -138,5 +144,23 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return 10;
     }
+
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(UserContact::class);
+    }
+
+    public function performers(): HasMany
+    {
+        return $this->hasMany(Performer::class);
+    }
+
+    public function contact(string $type): ?string
+    {
+        return $this->contacts->firstWhere('type', $type)?->value;
+    }
+
+
+
 
 }
