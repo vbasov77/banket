@@ -48,13 +48,18 @@ class ImgBanPerformerService extends Service
 
         // big_id из img_ban_subj — большие фото performer
         $ids->push(
-            PerformerPhoto::whereNotNull('big_id')
+            PerformerPhoto::where('performer_id', $performerId)->whereNotNull('big_id')
                 ->pluck('big_id')
         );
 
         // small_id из img_ban_subj — малые фото performer
         $ids->push(
-            PerformerPhoto::whereNotNull('small_id')
+            PerformerPhoto::where('performer_id', $performerId)->whereNotNull('small_id')
+                ->pluck('small_id')
+        );
+
+        $ids->push(
+            PerformerAvatar::where('performer_id', $performerId)->whereNotNull('small_id')
                 ->pluck('small_id')
         );
 

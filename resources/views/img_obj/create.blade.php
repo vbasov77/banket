@@ -43,7 +43,8 @@
         </div>
     </div>
     <script>
-        window.storeImgObj = '{{route('img_obj.store')}}';
+        window.storeRoute = '{{route('img_obj.store')}}';
+        window.url = '/my_obj';
     </script>
     <script src="{{asset('js/jquery/3.6.0/jquery.min.js')}}"></script>
     <script src="{{asset('js/croppie/croppie.js')}}"></script>

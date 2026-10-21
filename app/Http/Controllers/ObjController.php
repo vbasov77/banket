@@ -358,7 +358,7 @@ class ObjController extends Controller
         } catch (\Exception $e) {
             Log::channel('error_file')->error(
                 'Error in Controller@viewObj: ' . $e->getMessage(),
-                [ 'user_id' => Auth::id()]
+                ['user_id' => Auth::id()]
             );
 
             return view('objects.subjects.my_subjs', [
@@ -413,8 +413,8 @@ class ObjController extends Controller
         }
 
         // Доп. проверка: ID из скрытого поля должен совпадать с ID из URL
-        $confirmId = (int) $request->input('confirm_id', 0);
-        if ($confirmId !== (int) $id) {
+        $confirmId = (int)$request->input('confirm_id', 0);
+        if ($confirmId !== (int)$id) {
             Log::channel('error_file')->warning(
                 'ID mismatch on delete: url_id=' . $id . ', form_id=' . $confirmId,
                 ['user_id' => Auth::id()]

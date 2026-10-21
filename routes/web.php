@@ -47,6 +47,7 @@ use App\Http\Controllers\Admin\PerformerAdminController;
 use App\Http\Controllers\Catalog\PerformerPhotoController;
 use App\Http\Controllers\UserContactController;
 use App\Http\Controllers\Catalog\PerformerPackageController;
+use App\Http\Controllers\Catalog\PerformerAvatarController;
 
 Route::middleware(['auth'])->name('catalog.request.')->group(function () {
     Route::get('/catalog/create', [PerformerRequestController::class, 'create'])->name('create');
@@ -125,6 +126,9 @@ Route::middleware('admin')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+
+    Route::post('/catalog/ava/store',[PerformerAvatarController::class, 'store'])->name('catalog.ava.store');
+    Route::get('/catalog/ava/create{id}',[PerformerAvatarController::class, 'create'])->name('catalog.ava.create');
 
     Route::get('/catalog/{category:slug}/performer/{performer}/packages',[PerformerPackageController::class, 'edit'])->name('catalog.packages.edit');
     Route::post('/catalog/{category:slug}/performer/{performer}/packages',[PerformerPackageController::class, 'update'])->name('catalog.packages.update');

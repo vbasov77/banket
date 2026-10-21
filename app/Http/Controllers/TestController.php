@@ -76,6 +76,11 @@ class TestController extends Controller
                     ->whereNotNull('big_id')
             )
             ->union(
+                DB::table('performer_avatars')
+                    ->select('small_id AS photo_id')
+                    ->whereNotNull('small_id')
+            )
+            ->union(
                 DB::table('img_obj')
                     ->select('photo_id')
                     ->whereNotNull('photo_id')
@@ -228,7 +233,6 @@ class TestController extends Controller
 
     public function testBag()
     {
-
 
 
     }

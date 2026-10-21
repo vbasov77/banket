@@ -21,8 +21,8 @@ return new class extends Migration
                 ->constrained('users')
                 ->nullOnDelete();
 
-            $table->string('path');
-            $table->timestamps();
+            $table->text('small_id')->nullable();
+            $table->text('small_img')->nullable();
         });
     }
 

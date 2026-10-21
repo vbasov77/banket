@@ -155,7 +155,7 @@ class PerformerService
     public function listAllForUser(int $userId): \Illuminate\Pagination\LengthAwarePaginator
     {
         return Performer::where('user_id', $userId)
-            ->with('firstPhoto') // <-- вот эта строчка делает всю магию: загружает первое фото
+            ->with('firstPhoto', 'avatar') // <-- вот эта строчка делает всю магию: загружает первое фото
             ->orderBy('created_at', 'desc')
             ->paginate(12); // пагинация сразу из коробки
     }
