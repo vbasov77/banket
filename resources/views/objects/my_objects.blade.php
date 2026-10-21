@@ -2,7 +2,6 @@
 @section('content')
     <script src="{{ asset('js/preloader/preloader.js') }}"></script>
     <link href="{{ asset('css/subj/card_subj.css') }}" rel="stylesheet">
-    @include('blocks.nav_main_menu')
 
     <section class="section py-2">
         <div class="container px-4">

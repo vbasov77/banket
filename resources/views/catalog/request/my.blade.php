@@ -3,6 +3,22 @@
 @section('content')
     <script src="{{ asset('js/preloader/preloader.js') }}"></script>
     <link href="{{ asset('css/subj/card_subj.css') }}" rel="stylesheet">
+    <style>
+        .card-avatar-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, .3);
+            background-color: #fff;
+            z-index: 2;
+        }
+
+    </style>
 
     <section class="section py-2">
         <div class="container px-4">
@@ -38,7 +54,21 @@
                                                          style="height: 200px; object-fit: cover;">
                                                 @endif
                                             </div>
+
+                                            <!-- Аватар в левом углу -->
+                                            @if($obj->avatar && $obj->avatar->small_img)
+                                                <a href="{{route('catalog.ava.create', ['id' => $obj->id])}}">
+                                                    <img src="{{ $obj->avatar->small_img }}"
+                                                         class="card-avatar-badge"
+                                                         alt="Аватар {{ $obj->name }}"></a>
+                                            @else
+                                                <a href="{{route('catalog.ava.create', ['id' => $obj->id])}}">
+                                                    <img src="{{ asset('images/no_image/no_image.jpg') }}"
+                                                         class="card-avatar-badge"
+                                                         alt="Нет фото">
+                                            @endif
                                         </div>
+
 
                                         <!-- Тело карточки -->
                                         <div class="restaurant-content">
@@ -66,14 +96,6 @@
                                                            href="{{ route('catalog.request.edit', ['performer' => $obj->id]) }}">
                                                             ✏️
                                                         </a>
-
-                                                        <!-- Удалить -->
-                                                        <a title="Удалить {{ $obj->name }}"
-                                                           class="text-decoration-none text-danger"
-                                                           href="{{ route('performer.category.delete_confirm', ['id' => $obj->id]) }}">
-                                                            🗑️
-                                                        </a>
-
                                                         <!-- Опубликовать / Снять с публикации -->
                                                         <img class="{{ $obj->published ? 'takeOff' : 'publish' }}"
                                                              data-id="{{ $obj->id }}"
@@ -91,6 +113,12 @@
                                                             <img src="{{ asset('icons/photo_st.svg') }}"
                                                                  style="width: 18px; height: 18px;"
                                                                  alt="Фотоальбом">
+                                                        </a>
+                                                        <!-- Удалить -->
+                                                        <a title="Удалить {{ $obj->name }}"
+                                                           class="text-decoration-none text-danger"
+                                                           href="{{ route('performer.category.delete_confirm', ['id' => $obj->id]) }}">
+                                                            🗑️
                                                         </a>
                                                     </div>
 

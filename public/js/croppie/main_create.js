@@ -80,7 +80,7 @@ $(document).ready(function () {
 
             // Отправляем AJAX-запрос
             $.ajax({
-                url: window.storeImgObj,
+                url: window.storeRoute,
                 type: "POST",
                 data: formData,
                 processData: false,  // важно для FormData
@@ -91,7 +91,7 @@ $(document).ready(function () {
                 success: function (data) {
                     if (data.success === true) {
                         alert('Ваш лого успешно сохранён');
-                        window.location = '/my_obj';
+                        window.location = window.url;
                     } else {
                         alert('Ошибка: ' + data.message);
                     }

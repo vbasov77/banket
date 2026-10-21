@@ -23,7 +23,9 @@ class PerformerRequestController extends Controller
     /**
      * @param PerformerService $service
      */
-    public function __construct(private PerformerService $service) {}
+    public function __construct(private PerformerService $service)
+    {
+    }
 
     /**
      * @return View
@@ -81,7 +83,7 @@ class PerformerRequestController extends Controller
             // Возвращаем страницу, но с сообщением об ошибке, которое подхватит твой Blade
             return view('catalog.request.my', [
                 'objects' => collect(), // Пустая коллекция, чтобы цикл @foreach не сломался
-                'error'   => 'Не удалось получить список объектов. Сервер временно недоступен.',
+                'error' => 'Не удалось получить список объектов. Сервер временно недоступен.',
             ]);
         }
     }
@@ -96,7 +98,7 @@ class PerformerRequestController extends Controller
         $performer = $this->service->findOwnedByUser($performerId, $request->user()->id);
 
         return view('catalog.request.edit', [
-            'performer'  => $performer,
+            'performer' => $performer,
             'categories' => $this->activeCategories(),
         ]);
     }
@@ -182,7 +184,7 @@ class PerformerRequestController extends Controller
      */
     public function published(Request $request): JsonResponse
     {
-        $performerId = (int) $request->id;
+        $performerId = (int)$request->id;
 
 
         $img = PerformerPhoto::where('performer_id', $performerId)->exists();
