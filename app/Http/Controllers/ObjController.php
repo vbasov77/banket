@@ -161,39 +161,29 @@ class ObjController extends Controller
     }
 
 
+    /**
+     * @param Request $request
+     * @return View
+     */
     public function show(Request $request): View
     {
-        try {
-            $objId = $request->id;
+        $objId = $request->id;
 
-            if (!$objId) {
-                Log::channel('error_file')->error(
-                    'Missing object ID in MapController@show'
-                );
-                abort(400, 'Object ID is required');
-            }
-
-            $obj = $this->objService->findById($objId);
-            $metaDescription = $this->objService->findMetaDescription($obj);
-
-            // Проверяем, найден ли объект
-            if (!$obj) {
-                Log::channel('error_file')->error(
-                    'Object not found for ID: ' . $objId
-                );
-                abort(404, 'Object not found');
-            }
-
-            return view('objects.show', ['obj' => $obj, 'metaDescription' => $metaDescription]);
-        } catch (\Exception $e) {
-            Log::channel('error_file')->error(
-                'Error in MapController@show: ' . $e->getMessage(),
-                ['obj_id' => $request->id ?? 'unknown']
-            );
-            abort(500, 'Internal server error');
+        if (!$objId) {
+            abort(400, 'Object ID is required');
         }
-    }
 
+        $obj = $this->objService->findById($objId);
+
+        if (!$obj) {
+            abort(404, 'Object not found');
+        }
+
+        return view('objects.show', [
+            'obj' => $obj,
+            'metaDescription' => $this->objService->findMetaDescription($obj),
+        ]);
+    }
 
     /**
      * @param Request $request
@@ -206,7 +196,7 @@ class ObjController extends Controller
 
             if (!$objId) {
                 Log::channel('error_file')->error(
-                    'Missing object ID in ObjectsController@edit'
+                    'Missing object ID in ObjectsController@edit. Code 400'
                 );
                 abort(400, 'Object ID is required');
             }
@@ -216,7 +206,7 @@ class ObjController extends Controller
             // Проверяем, найден ли объект
             if (!$obj) {
                 Log::channel('error_file')->error(
-                    'Object not found for ID: ' . $objId
+                    'Code 404. Object not found for ID: ' . $objId
                 );
                 abort(404, 'Object not found');
             }

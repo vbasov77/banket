@@ -395,7 +395,4 @@ class CityService
         }
     }
 
-
-
-
 }

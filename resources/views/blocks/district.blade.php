@@ -6,7 +6,7 @@
             aria-expanded="false">
         Район
     </button>
-    <div class="dropdown-menu-custom" id="districtDropdownMenu">
+    <div class="dropdown-menu dropdown-menu-custom" id="districtDropdownMenu">
         <h6 class="px-3 py-2 text-muted fw-semibold">Район <span id="currentCity">Санкт‑Петербурга</span></h6>
         <div class="px-3" id="districtsContainer">
             <!-- Сюда будут подгружаться районы -->

@@ -15,27 +15,44 @@
     {{--    <link href="{{ asset('css/contact-content/contact-content.css') }}" rel="stylesheet">--}}
 
     <style>
+        /* ===== Переменные: единая типографика и отступы ===== */
+        :root {
+            --fs-h1:        clamp(26px, 6vw, 38px);   /* section-title nameBoom */
+            --fs-h2:        clamp(22px, 5vw, 30px);   /* section-title */
+            --fs-h4:        20px;
+            --fs-h5:        17px;
+            --fs-body:      15px;
+            --fs-small:     13px;
+            --fs-phone:     20px;
+
+            --card-gap:     1rem;      /* отступы между карточками */
+            --section-gap:  3rem;      /* отступы между секциями */
+            --card-pad:     1.25rem;   /* внутренние отступы карточек */
+        }
+
+        /* ===== База ===== */
         .restaurant-card {
-            margin-top: 0px;
+            margin-top: 0;
         }
 
         .location-flow {
-            font-size: 13px;
+            font-size: var(--fs-small);
             color: #555;
-            line-height: 0.7;
-            margin-bottom: 14px;
-
+            line-height: 1.6;
+            margin-bottom: 12px;
             white-space: normal;
             word-wrap: break-word;
             overflow-wrap: break-word;
-
             display: flex;
             flex-wrap: wrap;
             align-items: flex-start;
             gap: 8px;
         }
 
-        .district-text {
+        .district-text,
+        .metro-inline-icon,
+        .metro-station-item,
+        .metro-separator {
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -43,46 +60,49 @@
         .metro-inline-icon {
             display: inline-block;
             vertical-align: middle;
-            flex-shrink: 0;
-        }
-
-        .metro-station-item {
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        .metro-separator {
-            flex-shrink: 0;
         }
 
         .d-flex.flex-wrap {
-            line-height: 1.2;
-            font-size: 15px;
+            line-height: 1.4;
+            font-size: var(--fs-body);
         }
 
         #phone-display {
-            font-size: 23px;
+            font-size: var(--fs-phone);
+            word-break: break-word;
         }
 
         .restaurant-image {
-            min-width: 350px;
+            min-width: 0;              /* было 350px — ломало вёрстку на узких экранах */
+            width: 100%;
+            object-fit: cover;
         }
 
-        .related .restaurant-image {
-            height: 230px;
-        }
+        /*.related .restaurant-image {*/
+        /*    height: 230px;*/
+        /*}*/
 
         h3.section-title {
-            font-size: 30px;
+            font-size: var(--fs-h2);
         }
 
+        /* Фиксация инлайн-стилей из Blade — выносим в классы */
+        .mt-section { margin-top: var(--section-gap); }
+        .mb-section { margin-bottom: var(--section-gap); }
+
+        /* ===== Планшеты и меньше ===== */
         @media (max-width: 768px) {
+            :root {
+                --section-gap: 2rem;
+                --card-pad: 1rem;
+            }
+
             .parallax-container {
-                height: 50vh;
+                height: 42vh;
             }
 
             .parallax-title {
-                font-size: clamp(24px, 10vw, 80px);
+                font-size: clamp(22px, 9vw, 56px);
             }
 
             .obj-features-table th,
@@ -93,39 +113,78 @@
 
             .obj-features-table th {
                 padding-bottom: 0;
-                font-size: 13px;
+                font-size: var(--fs-small);
                 color: #888;
+                border-bottom: 0;
             }
 
             .obj-features-table td {
                 padding-top: 2px;
                 padding-bottom: 12px;
             }
+
+            /* Карточки «Основная информация» / «Адрес» — на всю ширину без провисания */
+            .col-md-6.mb-4 {
+                margin-bottom: var(--card-gap);
+            }
+
+            .bg-light.p-4 {
+                padding: var(--card-pad);
+            }
+
+            #phone-display {
+                font-size: 18px;
+            }
+
+            /*.related .restaurant-image {*/
+            /*    height: 180px;*/
+            /*}*/
         }
 
+        /* ===== Телефоны ===== */
         @media (max-width: 480px) {
             .parallax-container {
                 height: 30vh;
             }
 
             .parallax-title {
-                font-size: clamp(24px, 10vw, 80px);
+                font-size: clamp(20px, 8vw, 40px);
             }
 
             .text-muted {
                 font-size: 16px;
             }
 
-            .restaurant-card {
-                margin-bottom: 0px;
-            }
-
             .nameBoom {
-                font-size: 14px;
+                font-size: clamp(22px, 6.5vw, 28px);
+                line-height: 1.25;
             }
 
             h3.section-title {
-                font-size: 20px;
+                font-size: clamp(18px, 5.5vw, 22px);
+            }
+
+            .bg-light.p-4 {
+                padding: 1rem;
+            }
+
+            .feature-badge {
+                font-size: 13px;
+            }
+
+            .btn-festive-gradient {
+                display: inline-block;
+                width: 100%;
+                text-align: center;       /* кнопка карты/редактирования на всю ширину — удобнее тапать */
+                padding: 12px 16px;
+            }
+
+            .location-flow {
+                gap: 6px;
+            }
+
+            .restaurant-card .card-title {
+                font-size: 15px;
             }
         }
     </style>
@@ -302,7 +361,6 @@
                     </div>
                 </div>
 
-                <hr class="my-5">
                 {{-- Акции --}}
                 @if(!empty($subj['actions']))
                     <div class="row mb-5">
@@ -654,9 +712,19 @@
     <script>
         document.getElementById('phone-display')?.addEventListener('click', function () {
             const phone = this.dataset.phone;
-            this.textContent = phone || 'Телефон не указан';
-            this.classList.remove('text-primary');
-            // отправляем клик в бэк
+
+            if (!phone) {
+                this.textContent = 'Телефон не указан';
+                this.classList.remove('text-primary');
+                return;
+            }
+
+            // Преобразуем номер в кликабельную tel-ссылку
+            const digits = phone.replace(/[^+\d]/g, ''); // оставляем только цифры и +
+            this.outerHTML = `<a href="tel:${digits}"
+        style="text-decoration:none; color:#000; font-weight:600; font-size:inherit;">${phone}</a>`;
+
+            // Отправляем клик в бэк (статистика)
             fetch(window.clickPhone, {
                 method: 'POST',
                 headers: {

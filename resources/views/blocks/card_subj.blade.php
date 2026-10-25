@@ -5,6 +5,17 @@
 
     .restaurant-image.nearestObjects {
         height: 150px;
+        overflow: hidden;          /* чтобы картинка не вылезала за скругления */
+        border-radius: 10px 10px 0 0;
+    }
+
+    /* картинка заполняет контейнер целиком, центр — по центру */
+    .restaurant-image.nearestObjects .card-img-top {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center center;
+        border-radius: 0;          /* border-radius теперь держит контейнер */
     }
 
     .restaurant-content.nearestObjects {
@@ -23,7 +34,6 @@
         }
     }
 </style>
-
 @if(!empty($nearestObjects) && count($nearestObjects) > 0)
     <section class="mt-5">
         <h3 class="section-title fs-4 mb-4">Рестораны поблизости</h3>
