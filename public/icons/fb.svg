@@ -1,0 +1,10 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <!-- Подложка: светло‑серый квадрат со скруглёнными углами (радиус ~8.5% от стороны) -->
+    <rect x="0" y="0" width="512" height="512" rx="44" fill="#F5F5F5"/>
+
+    <!-- Буква F — чёрная, жирный sans‑serif -->
+    <text x="10" y="385" font-family="sans-serif" font-weight="900" font-size="365" fill="#000000" text-anchor="start">F</text>
+
+    <!-- Буква B — красная, жирный sans‑serif -->
+    <text x="215" y="385" font-family="sans-serif" font-weight="900" font-size="365" fill="#FF0000" text-anchor="start">B</text>
+</svg>

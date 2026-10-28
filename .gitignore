@@ -13,6 +13,7 @@ Homestead.yaml
 auth.json
 npm-debug.log
 yarn-error.log
+banket.sql
 /.fleet
 /.idea
 /.vscode
