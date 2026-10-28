@@ -34,9 +34,9 @@ class ReportController extends Controller
             $days14 = $this->reportService->findArrayDays14();
 
             return view('reports.index', [
-                'week'      => $week,
-                'dataWeek'  => $dataWeek,
-                'days14'    => $days14,
+                'week' => $week,
+                'dataWeek' => $dataWeek,
+                'days14' => $days14,
                 'dataPhone' => $dataPhone,
             ]);
 
@@ -49,9 +49,9 @@ class ReportController extends Controller
             );
 
             return view('reports.index', [
-                'week'      => [],
-                'dataWeek'  => [],
-                'days14'    => [],
+                'week' => [],
+                'dataWeek' => [],
+                'days14' => [],
                 'dataPhone' => [],
                 'error_message' => 'Не удалось загрузить данные отчёта. Попробуйте позже.',
             ]);

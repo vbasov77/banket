@@ -108,8 +108,6 @@
         const suggestionsList = document.getElementById('suggestions-list');
         const findBtn = document.getElementById('find-on-map-btn');
 
-
-
         function debounce(func, wait) {
             let timeout;
             return function (...args) {

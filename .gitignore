@@ -1,12 +1,7 @@
 /.phpunit.cache
 /node_modules
-/public/build
 /public/hot
 /public/storage
-/public/fonts
-/public/images
-/public/icons
-/public/resized
 /storage/*.key
 /vendor
 .env
@@ -21,6 +16,4 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-/app/Repositories/KeyRepository.php
-ban.zip
-app.zip
+*.zip

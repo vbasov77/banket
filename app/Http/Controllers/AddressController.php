@@ -115,11 +115,13 @@ class AddressController extends Controller
             $city = City::firstOrCreate(['name' => $validated['city_name']]);
 
             // 2. Находим или создаём район
-            $district = District::firstOrCreate(
-                ['city_id' => $city->id],
-                ['name' => $validated['district_name'] ?: 'Не указан']
-            );
+            $district = District::firstOrCreate([
+                'city_id' => $city->id,
+                'name'    => $validated['district_name'] ?: 'Не указан',
+            ]);
 
+
+            Log::channel('info_file')->info([$district->id]);
             // 3. Формируем массив для старого сервиса
             $serviceData = [
                 'city_id' => $city->id,

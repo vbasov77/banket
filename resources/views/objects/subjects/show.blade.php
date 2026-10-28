@@ -187,6 +187,10 @@
                 font-size: 15px;
             }
         }
+
+        .moreSubj .restaurant-card{
+            height: 335px;
+        }
     </style>
 @endpush
 

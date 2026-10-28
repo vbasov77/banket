@@ -58,7 +58,7 @@ Route::middleware(['auth'])->name('catalog.request.')->group(function () {
 });
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
-Auth::routes(['verify' => true]);
+//Auth::routes(['verify' => true]);
 
 Route::get('/', [FrontController::class, 'show'])->name("front");
 

@@ -2,70 +2,50 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Repositories\MessageRepository;
 use App\Repositories\ObjRepository;
 use App\Services\MessageService;
 use App\Services\ObjService;
 use App\Services\Service;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\ServiceProvider;
-
 use App\View\Composers\CatalogComposer;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        // Сначала регистрируем репозиторий
-        $this->app->singleton(ObjRepository::class, function () {
-            return new ObjRepository();
-        });
-
-        // Затем регистрируем сервис с внедрением репозитория
-        $this->app->singleton(ObjService::class, function ($app) {
-            return new ObjService($app->make(ObjRepository::class));
-        });
-
+        $this->app->singleton(ObjRepository::class);
+        $this->app->singleton(ObjService::class);
         $this->app->bind(Service::class, ObjService::class);
-
         $this->app->singleton(MessageRepository::class);
         $this->app->singleton(MessageService::class);
-
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        // --- Твой существующий код для Doctrine (оставляем как есть) ---
-        if (class_exists(\Doctrine\DBAL\Types\Type::class)) {
-            try {
-                $connection = DB::connection();
-                if ($connection->getDriverName() === 'mysql') {
-                    $doctrineConnection = $connection->getDoctrineConnection();
-                    $platform = $doctrineConnection->getDatabasePlatform();
+        View::composer(['layouts.app', 'layouts.navigation'], CatalogComposer::class);
 
-                    $platform->registerDoctrineTypeMapping('point', 'string');
+        // Rate limiter 'api' (переехал из RouteServiceProvider)
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
 
-                    if (! \Doctrine\DBAL\Types\Type::hasType('point')) {
-                        \Doctrine\DBAL\Types\Type::addType(
-                            'point',
-                            \Doctrine\DBAL\Types\StringType::class
-                        );
-                    }
-                }
-            } catch (\Throwable $e) {
-                Log::error('Failed to register POINT type for MySQL: ' . $e->getMessage());
+        // Переехало из AuthServiceProvider
+        Gate::before(function (User $user, string $ability) {
+            if ($user->isAdmin()) {
+                return true;
             }
-        }
-        $this->app['router']->aliasMiddleware('ensureRole', \App\Http\Middleware\EnsureRole::class);
+        });
 
-        View::composer('layouts.app', CatalogComposer::class);
+        Gate::define('can-access', function (User $user, $model) {
+            // сюда целиком копируем тело can-access из AuthServiceProvider — без изменений
+        });
+
     }
 }
