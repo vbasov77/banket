@@ -1,11 +1,9 @@
 .git
-.env
 .env.backup
 .env.production
 auth.json
 vendor
 node_modules
-public/build
 public/hot
 public/storage
 .phpunit.result.cache

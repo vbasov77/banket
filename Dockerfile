@@ -13,6 +13,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf \
     && a2enmod rewrite
 
+# Наша папка public/icons не должна проигрывать встроенному Alias /icons/
+RUN sed -i 's|^Alias /icons/|#Alias /icons/|' /etc/apache2/mods-enabled/alias.conf
+
 # Composer приезжает из официального образа — одна строка вместо танцев с установкой
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -24,6 +27,11 @@ RUN composer install --no-interaction --no-scripts --no-autoloader
 
 # Потом — весь код проекта
 COPY . .
+
+# Секреты и собранный фронтенд — прямо в образ, чтобы переживать пересборки
+COPY .env ./
+COPY public/build ./public/build/
+
 RUN composer dump-autoload --optimize
 
 # Laravel пишет логи и кэш — даём права пользователю Apache
