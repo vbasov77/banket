@@ -33,13 +33,13 @@ class ParserABController extends Controller
     public function parse(Request $request): View|RedirectResponse
     {
         $request->validate([
-            'url' => 'required|url',
+            'link' => 'required|url',
             'url_gorko' => 'nullable|url',
         ]);
 
         try {
             $data = $this->parserService->processData(
-                $request->input('url'),
+                $request->input('link'),
                 $request->input('url_gorko'),
             );
         } catch (\Exception $e) {
@@ -49,7 +49,7 @@ class ParserABController extends Controller
         }
 
         return view('parsers.ab.parser', [
-            'url' => $request->input('url'),
+            'link' => $request->input('link'),
             'url_gorko' => $request->input('url_gorko'),
             'result' => $data,
         ]);
@@ -60,7 +60,7 @@ class ParserABController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->except(['_token', 'source_url']);
+        $data = $request->except(['_token']);
 
         // Селекты: берём метки, где статус не пустой и не «отсутствует»
         $equipment = [];

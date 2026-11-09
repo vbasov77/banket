@@ -3,6 +3,18 @@
 @section('content')
     <div class="container">
         <h1 class="mb-4">Парсер ресторанов avtobanket.ru</h1>
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul>
+                    @foreach($errors->all() as $err)
+                        <li>{{ $err }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-warning">{{ session('error') }}</div>
+        @endif
 
         {{-- Форма парсинга --}}
         <div class="card p-4 shadow-sm">
@@ -35,7 +47,7 @@
         @isset($result)
             <form id="parser-store-form" action="{{ route('parser.save') }}" method="POST">
                 @csrf
-                <input type="hidden" name="source_url" value="{{ $url }}">
+                <input type="hidden" name="link" value="{{ $link }}">
 
                 {{-- Основные данные --}}
                 <div class="card mt-4 p-4 shadow-sm">

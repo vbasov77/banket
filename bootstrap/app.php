@@ -67,6 +67,15 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // 1. Валидация — 422
         $exceptions->render(function (ValidationException $e, Request $request) {
+            Log::channel('error_file')->warning('Ошибка валидации', [
+                'url' => $request->fullUrl(),
+                'route' => $request->route()?->getName(),
+                'errors' => $e->errors(),
+                'input' => $request->except(['password', 'password_confirmation', '_token']),
+                'user_id' => $request->user()?->id,
+                'correlation_id' => (string) Str::uuid(),
+            ]);
+
             if ($request->expectsJson()) {
                 return response()->json([
                     'error' => 'validation_failed',

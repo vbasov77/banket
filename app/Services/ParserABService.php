@@ -39,6 +39,29 @@ class ParserABService
         return $data;
     }
 
+    /**
+     * Обрезает полный URL до относительного пути:
+     * https://www.avtobanket.ru/restaurants/graf-zeppelin?x=1 → restaurants/graf-zeppelin
+     */
+    private function trimLink(?string $link): ?string
+    {
+        $link = trim((string) $link);
+
+        if ($link === '') {
+            return null;
+        }
+
+        $parsed = parse_url($link);
+
+        $relative = ($parsed['path'] ?? '')
+            . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+
+        $relative = ltrim($relative, '/');
+
+        return $relative !== '' ? $relative : null;
+    }
+
+
     // ============================================================
     //  PUBLIC: Сохранение в БД
     // ============================================================
@@ -103,6 +126,7 @@ class ParserABService
             $loudMusicUntil = $data['loud_music'] ?? null;
             $workingHours = $data['working_hours'] ?? null;
 
+            $link = $this->trimLink($data['link'] ?? null);
             foreach ($data['halls'] ?? [] as $hall) {
                 $subjId = $this->repository->createSubj([
                     'obj_id' => $objId,
@@ -116,6 +140,7 @@ class ParserABService
                     'rent' => $hall['rent'] ?? null,
                     'working_hours' => $workingHours,
                     'features' => $hall['gorko_features'] ?? '',
+                    'link' => $link,
                     'published' => 0,
                     'created_at' => now(),
                 ]);
