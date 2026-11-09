@@ -21,6 +21,7 @@ class Subj extends Model
         'site_type',
         'loud_music_until',
         'features',
+        'link',
         'published',
     ];
 

@@ -31,6 +31,7 @@ class Subjs extends Migration
             $table->text('features')->nullable();  // 22:00, 23:00, 00:00, 01:00 или 'morning'
             $table->string('slug')->nullable();
             $table->integer('published')->default(0);
+            $table->string('link')->nullable();
             $table->timestamp('created_at')->useCurrent();
         });
     }

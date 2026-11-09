@@ -64,6 +64,7 @@ class EditSubjRequest extends FormRequest
                 Rule::in(['22:00', '23:00', '00:00', '01:00', 'morning']),
             ],
             'features' => ['nullable', 'string', 'max:10000'],
+            'link' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -111,7 +112,8 @@ class EditSubjRequest extends FormRequest
             'furshet' => 'Вместимость на фуршет',
             'site_type' => 'Тип площадки',
             'loud_music_until.in' => 'Громкая музыка',
-            'features' => 'Особенности'
+            'features' => 'Особенности',
+            'link' => 'Ссылка',
         ];
     }
 }

@@ -71,6 +71,7 @@ class CreateSubjRequest extends FormRequest
             ],
 
             'features' => ['nullable', 'string', 'max:10000'],
+            'link' => ['nullable', 'string', 'max:255'],
         ];
     }
 
@@ -123,8 +124,30 @@ class CreateSubjRequest extends FormRequest
             'furshet' => 'Вместимость на фуршет',
             'site_type' => 'Тип площадки',
             'loud_music_until.in' => 'Громкая музыка',
-            'features' => 'Особенности'
+            'features' => 'Особенности',
+            'link' => 'Ссылка'
         ];
     }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('link')) {
+            $link = trim($this->input('link'));
+
+            $parsed = parse_url($link);
+
+            // Собираем путь + query, отбрасывая схему и домен
+            $relative = ($parsed['path'] ?? '')
+                . (isset($parsed['query']) ? '?' . $parsed['query'] : '');
+
+            $this->merge([
+                'link' => ltrim($relative, '/'),
+            ]);
+        }
+    }
+
 
 }

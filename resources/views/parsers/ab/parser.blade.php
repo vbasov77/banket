@@ -10,11 +10,11 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="url" class="form-label fw-bold">Ссылка на avtobanket.ru</label>
-                        <input type="url" id="url" name="url" class="form-control"
+                        <label for="link" class="form-label fw-bold">Ссылка на avtobanket.ru</label>
+                        <input type="url" id="url" name="link" class="form-control"
                                placeholder="https://www.avtobanket.ru/restaurants/graf-zeppelin"
-                               value="{{ $url ?? '' }}" required>
-                        @error('url')
+                               value="{{ $link ?? '' }}" required>
+                        @error('link')
                         <div class="text-danger mt-2">{{ $message }}</div>
                         @enderror
                     </div>
